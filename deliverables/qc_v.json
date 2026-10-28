@@ -1,0 +1,95 @@
+{
+ "file": "/home/user/Claude-motion/out/final/THE_PATH_vertical_1080x1920_60fps.mp4",
+ "width": 1080,
+ "height": 1920,
+ "fps": "60/1",
+ "frames": 1272,
+ "duration": 21.2,
+ "codec": "h264",
+ "pix_fmt": "yuv420p",
+ "audio": {
+  "codec_name": "aac",
+  "sample_rate": "48000",
+  "channels": 2,
+  "duration": "21.200000"
+ },
+ "checks": {
+  "duration_21.2s": {
+   "ok": true,
+   "detail": "21.200s"
+  },
+  "resolution": {
+   "ok": true,
+   "detail": "1080x1920"
+  },
+  "fps_60": {
+   "ok": true,
+   "detail": "60/1"
+  },
+  "frame_count_1272": {
+   "ok": true,
+   "detail": "1272"
+  },
+  "audio_present": {
+   "ok": true,
+   "detail": "{'codec_name': 'aac', 'sample_rate': '48000', 'channels': 2, 'duration': '21.200000'}"
+  },
+  "stream_integrity": {
+   "ok": true,
+   "detail": ""
+  },
+  "no_accidental_black_frames": {
+   "ok": true,
+   "detail": "0 frames < 2/255: []"
+  },
+  "camera_continuous_no_teleport": {
+   "ok": true,
+   "detail": "max 2.30 m/frame, 7.6 deg/frame"
+  },
+  "loudness_-14_LUFS": {
+   "ok": true,
+   "detail": "-14.2 LUFS"
+  },
+  "true_peak_<=-1.25": {
+   "ok": true,
+   "detail": "-1.4 dBTP"
+  },
+  "impact_sync_within_50ms": {
+   "ok": true,
+   "detail": "-4 ms"
+  }
+ },
+ "big_luma_jumps_frames": [
+  70,
+  141,
+  142,
+  153,
+  154,
+  155,
+  156,
+  158,
+  159,
+  160,
+  161,
+  166,
+  167,
+  168,
+  169,
+  171,
+  172,
+  173,
+  184
+ ],
+ "camera": {
+  "max_step_m": 2.3031171491344398,
+  "max_step_frame": 135,
+  "max_turn_deg_per_frame": 7.609633775468735,
+  "max_turn_frame": 140
+ },
+ "sync_impact": {
+  "audio_onset_s": 1.1798125000000002,
+  "picture_jump_s": 1.1833333333333333,
+  "delta_ms": -3.5208333333331954
+ },
+ "fails": []
+}
