@@ -106,9 +106,9 @@ class Duo:
         for s, sx in (("L", -1), ("R", 1)):
             piv = geo.empty(f"{name}_wing{s}", coll, loc=(sx * 0.62, 0.06, 1.0), parent=sq)
             P[f"wing{s}"] = piv
-            sph(f"wingm{s}", (0.125, 0.30, 0.50), (sx * 0.095, 0, -0.40), M["wing"], parent=piv, seg=32, rings=16)
+            sph(f"wingm{s}", (0.15, 0.36, 0.54), (sx * 0.11, 0, -0.42), M["wing"], parent=piv, seg=32, rings=16)
             for k, dy in enumerate((-0.15, 0.0, 0.15)):
-                sph(f"wingt{s}{k}", (0.10, 0.14, 0.2), (sx * 0.095, dy, -0.80 + (0.03 if k == 1 else 0.0)), M["wing"], parent=piv, seg=20, rings=10)
+                sph(f"wingt{s}{k}", (0.12, 0.17, 0.22), (sx * 0.11, dy * 1.15, -0.86 + (0.03 if k == 1 else 0.0)), M["wing"], parent=piv, seg=20, rings=10)
             piv.rotation_euler = (0, 0, 0)
 
     # ------------------------------------------------------------------ animation API
@@ -130,7 +130,7 @@ class Duo:
             if w is not None:
                 w = np.asarray(w)       # (N,2): flap(roll about Y, + = tip outward), fold(pitch about X, + = forward)
                 anim.key_vec(P[f"wing{s}"], "rotation_euler", frames,
-                             np.stack([w[:, 1], sx * w[:, 0], np.zeros(len(w))], axis=1))
+                             np.stack([w[:, 1], sx * w[:, 0], sx * 0.38 * np.ones(len(w))], axis=1))
         for s, l in (("L", lid_l), ("R", lid_r)):
             if l is not None:
                 a = np.asarray(l)

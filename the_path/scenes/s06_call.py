@@ -19,8 +19,8 @@ from ..easing import (Polyline, catmull_rom, damped_osc, in_cubic, in_out_cubic,
 from ..world import Frame
 from . import s01_impact
 
-T_HI = 9.60
-T_USER = 10.40
+T_HI = 9.55
+T_USER = 10.28
 
 
 def rounded_rect_path(w, h, R, n_arc=10, start="right"):
@@ -41,11 +41,11 @@ def build(ctx):
     F5 = ctx.state["F5"]
     F6 = Frame(F5.p(0, -17.0, 0.0), facing=(0, -1, 0))
     ctx.state["F6"] = F6
-    c = ctx.coll("s06", window=(9.1, 11.7))
+    c = ctx.coll("s06", window=(9.1, 12.2))
     root = F6.empty("F6", c)
     ww, wh = (4.7, 6.0) if P else (6.6, 4.2)
     dscale = 2.0 if P else 1.7
-    fr = np.arange(int(9.2 * FPS), int(11.6 * FPS))
+    fr = np.arange(int(9.2 * FPS), int(12.1 * FPS))
     t = fr / FPS
 
     # ------------------------------------------------------------ window (materialises as the outline closes)
@@ -94,7 +94,7 @@ def build(ctx):
     D = duolib.Duo(ctx, "D6", c, scale=dscale)
     ctx.objs["duo6"] = D
     holder = duolib.mount(D, root, loc=(0, -wh / 2 + 0.55 - 0.02, -0.15))
-    Fd = np.arange(int(9.5 * FPS), int(11.6 * FPS))
+    Fd = np.arange(int(9.5 * FPS), int(12.1 * FPS))
     td = Fd / FPS
     idle = duolib.idle(td, seed=6, rest=0.1, blinks=[10.05, 10.95], energy=1.0)
     # pops up from below the window edge with a springy arrival
@@ -108,7 +108,7 @@ def build(ctx):
     ctx.ev("duo_hi", T_HI, dur=dur_hi)
     ctx.ev("user_line", T_USER, dur=dur_us)
     # looks straight at the user; leans in while the user talks; smiles + hops after the user line
-    t_happy = T_USER + dur_us + 0.05
+    t_happy = T_USER + dur_us - 0.15
     ht = td - t_happy
     hop = np.where((ht >= 0) & (ht < 0.36), np.sin(math.pi * np.clip(ht / 0.36, 0, 1)) * 0.28, 0.0)
     land = damped_osc(ht - 0.36, 0.10, 4.5, 0.3) * (ht >= 0.36)
@@ -132,7 +132,7 @@ def build(ctx):
     nb = 40
     bm = mat.emissive("wave_bar", "#9CFF52", 3.2)
     bm2 = mat.principled("wave_bar_b", "feather", 0.35, coat=0.3, emit="feather", emit_strength=0.6)
-    fw = np.arange(int(10.25 * FPS), int(11.6 * FPS))
+    fw = np.arange(int(10.25 * FPS), int(12.1 * FPS))
     tw = fw / FPS
     bands = lipsync.bands("user_line", tw, T_USER, dur_us, 11, seed=11)
     # wave baseline in F6 coordinates
@@ -161,7 +161,7 @@ def build(ctx):
         t_k = t_emit + 0.20 * k / (nb - 1)
         grow = smoothstep(u(tw, t_k, t_k + 0.07))
         h = (0.09 + 1.35 * np.clip(e, 0, 1)) * grow + 0.02
-        h = 0.02 + (h - 0.02) * (1 - smoothstep(u(tw, 11.30 + 0.004 * k, 11.50 + 0.004 * k)))
+        h = 0.02 + (h - 0.02) * (1 - smoothstep(u(tw, T_USER + dur_us + 0.04 + 0.004 * k, T_USER + dur_us + 0.26 + 0.004 * k)))
         anim.key_vec(o, "scale", fw, np.stack([np.ones_like(tw), h, np.ones_like(tw)], 1))
         anim.key_vec(o, "location", fw, pts[k][None] + (F6.y[None] * (h / 2)[:, None]))
     ctx.ev("wave", t_emit, dur=1.1)

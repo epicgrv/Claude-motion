@@ -80,8 +80,7 @@ def build(ctx):
         arm_end[name] = arm
         ctx.state["arm_paths"][name] = arm
         # pulse head runs hub -> module just before the camera gets there
-        tm = T_MOD[name]
-        tp0, tp1 = tm - 0.30, tm - 0.04
+        tp0, tp1 = dict(lang=(11.64, 11.82), math=(12.20, 12.42), music=(12.74, 12.98), chess=(13.45, 13.70))[name]
         fp = np.arange(int(tp0 * FPS), int(tp1 * FPS) + 2)
         tp = fp / FPS
         pl = Polyline(arm)
@@ -132,6 +131,7 @@ def build(ctx):
             tp = t_l + 0.10 + 0.045 * ci
             pulse = np.exp(-(t - tp).clip(0) * 6.0) * (t >= tp)
             anim.key(m.node_tree, mat.path_emit_strength(m), fr, 0.05 + 0.9 * pulse + 0.18 * (t >= tp))
+            ctx.ev("flag_on", tp, i=ci)
             tiles.append(tl)
     gc = geo.sphere("lang_core", c, 0.28, mat=mat.emissive("lang_core_m", "#58CC02", 3.0), parent=rootL, seg=24, rings=12)
     gk = geo.area_light("lang_key", c, (0.8, 0.95, 1.0), 380, size=3.5, loc=tuple(FL.p(-1.5, 3.0, 5.0)), rot=geo.look_rot(FL.p(-1.5, 3.0, 5.0), FL.p(0, 0, 0)))

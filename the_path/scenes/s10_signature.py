@@ -42,5 +42,5 @@ def build(ctx):
     lens = 35.0 if not P else 24.0
     ty = -0.9 if not P else -1.0
     ctx.cam(20.20, F8.p(0.0, 0.58, D0 - 0.78), F8.p(0, ty + 0.35, 0.0), lens=lens, fstop=5.0, focus=None, tension=0.0)
-    ctx.cam(21.20, F8.p(0.0, 0.62, D0 - 0.55), F8.p(0, ty + 0.55, 0.0), lens=lens, fstop=5.0, focus=None, tension=0.0)
+    ctx.cam(21.20, F8.p(0.0, 0.58, D0 - 0.78), F8.p(0, ty + 0.35, 0.0), lens=lens, fstop=5.0, focus=None, tension=0.0)
     return dict()

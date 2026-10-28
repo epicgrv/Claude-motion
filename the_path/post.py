@@ -104,12 +104,18 @@ def grade_display(x, p):
     return x + (np.clip(y, 0, 1) - x) * w
 
 
-def process(beauty, depth, frame, params=None, W=None):
+def process(beauty, depth, frame, params=None, size=None, sharpen=0.0):
     p = dict(DEFAULT)
     if params:
         p.update(params)
-    h, w = beauty.shape[:2]
     img = beauty.astype(np.float32)
+    if size is not None and (img.shape[1], img.shape[0]) != tuple(size):
+        # internal render resolution -> master resolution (Lanczos on linear data; depth is only used for fog)
+        img = cv2.resize(img, tuple(size), interpolation=cv2.INTER_LANCZOS4)
+        img = np.maximum(img, 0)
+        if depth is not None:
+            depth = cv2.resize(depth, tuple(size), interpolation=cv2.INTER_LINEAR)
+    h, w = img.shape[:2]
     if depth is not None and p["fog"] > 0:
         d = np.where(depth > 1e9, 1e4, depth)
         f = 1 - np.exp(-p["fog"] * np.maximum(d - p["fog_start"], 0))
@@ -123,6 +129,9 @@ def process(beauty, depth, frame, params=None, W=None):
         img = img * (1 - p["vignette"] * np.clip(r2 / 2, 0, 1) ** 1.2)[..., None]
     disp = oetf(img)
     disp = grade_display(disp, p)
+    if sharpen > 0:
+        bl = cv2.GaussianBlur(disp, (0, 0), 1.1)
+        disp = np.clip(disp + sharpen * (disp - bl), 0, 1)
     if p["fade"] > 0:
         disp = disp * (1 - p["fade"]) + oetf(BG_LIN)[None, None, :] * p["fade"] if False else disp * (1 - p["fade"])
     # temporal grain (fine, luma-weighted) + triangular dither against banding
