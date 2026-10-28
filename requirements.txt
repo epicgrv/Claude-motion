@@ -1,0 +1,9 @@
+# Render/orchestration stack (Python 3.13). bpy = Blender 5.2 as a Python module (Cycles, OIDN).
+bpy==5.2.3
+numpy
+scipy
+pillow
+fonttools
+brotli
+opencv-python-headless
+OpenEXR
