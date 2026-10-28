@@ -83,3 +83,5 @@ def dump_events(ctx, path):
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     ev = sorted(ctx.events, key=lambda e: e["t"])
     Path(path).write_text(json.dumps(ev, indent=1))
+    d = ctx.cam_data
+    np.savez(str(path).replace(".json", ".cam.npz"), pos=d["pos"], tgt=d["tgt"], lens=d["lens"], roll=d["roll"])

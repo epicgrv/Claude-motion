@@ -25,7 +25,8 @@ from ..easing import (Polyline, catmull_rom, damped_osc, in_cubic, in_out_cubic,
 from ..world import Frame
 
 RING = 10.5
-THETA = dict(lang=225.0, math=135.0, music=45.0, chess=-45.0)
+# ring rotated so the orbit opens looking the same way the previous scene's camera was (no whip at the hand-off)
+THETA = dict(lang=90.0, math=0.0, music=-90.0, chess=180.0)
 T_MOD = dict(lang=A["langs"], math=A["math_"], music=A["music"], chess=A["chess"])
 
 
@@ -315,7 +316,7 @@ def build(ctx):
     # orbit comes round (no whip pans), then the camera climbs out and looks down on the single structure.
     from scipy.interpolate import PchipInterpolator
     kt = [11.40, 11.62, 12.06, 12.70, 13.34, 14.12, 14.40]
-    kdeg = [118.0, 105.0, 45.0, -45.0, -135.0, -225.0, -247.0]
+    kdeg = [-70.0, -76.0, -90.0, -180.0, -270.0, -360.0, -382.0]
     ang = PchipInterpolator(kt, np.radians(kdeg))
     lens = 30.0 if not P else 21.0
     for tk in np.arange(11.62, 14.41, 0.04):

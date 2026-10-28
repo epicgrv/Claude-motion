@@ -27,7 +27,7 @@ BG_LIN = np.array(lin("bg"), dtype=np.float32)
 FOG_COL = np.array([0.0030, 0.0062, 0.0074], dtype=np.float32)
 
 DEFAULT = dict(exposure=1.0, fog=0.0036, fog_start=6.0, bloom=0.22, streak=0.0, vignette=0.14,
-               grain=0.010, saturation=1.02, contrast=1.06, shoulder=0.72, highlight_desat=0.55,
+               grain=0.008, saturation=1.02, contrast=1.06, shoulder=0.72, highlight_desat=0.55,
                fade=0.0)
 
 

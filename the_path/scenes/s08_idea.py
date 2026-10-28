@@ -26,8 +26,15 @@ def build(ctx):
     P = ctx.portrait
     H = ctx.state["hub"]
     c = ctx.coll("s08", window=(14.4, 17.3))
-    O8 = H + np.array([-3.0, -9.0, 3.0])
-    F8 = Frame(O8, facing=(0, 1, 0), up_hint=(0, 0, 1))
+    # the station is rotated by the same -135 deg as S07's ring, so the camera arrives from where the orbit ended
+    ca, sa = math.cos(math.radians(-135)), math.sin(math.radians(-135))
+
+    def rz(v):
+        v = np.asarray(v, float)
+        return np.array([ca * v[0] - sa * v[1], sa * v[0] + ca * v[1], v[2]])
+
+    O8 = H + rz([-3.0, -9.0, 3.0])
+    F8 = Frame(O8, facing=tuple(rz([0, 1, 0])), up_hint=(0, 0, 1))
     ctx.state["F8"] = F8
     root = F8.empty("F8", c)
     fr = np.arange(int(14.5 * FPS), int(16.75 * FPS))
@@ -137,8 +144,8 @@ def build(ctx):
 
     # --------------------------------------------------------------- camera: follow the union, then almost stop
     HH = H
-    ctx.cam(14.80, HH + np.array([-3.1, 12.5, 10.5]), HH + np.array([-1.2, 0.0, 0.5]), lens=30 if not P else 22, fstop=4.0, focus=None)
-    ctx.cam(14.98, HH + np.array([-3.0, 9.5, 6.2]), F8.p(0, base_y + 0.4, 0.0) * 0.55 + H * 0.45, lens=32 if not P else 22, fstop=4.0, focus=None)
+    ctx.cam(14.80, HH + rz([-3.1, 12.5, 10.5]), HH + rz([-1.2, 0.0, 0.5]), lens=30 if not P else 22, fstop=4.0, focus=None)
+    ctx.cam(14.98, HH + rz([-3.0, 9.5, 6.2]), F8.p(0, base_y + 0.4, 0.0) * 0.55 + H * 0.45, lens=32 if not P else 22, fstop=4.0, focus=None)
     cam_c = F8.p(0.0, -0.6 + (0.0 if not P else -0.5), D)
     ctx.cam(15.35, F8.p(0.0, 1.2, D * 1.12), F8.p(0, -0.7, 0.0), lens=lens, fstop=4.5, focus=None, tension=0.5)
     ctx.cam(15.90, F8.p(0.0, 0.7, D * 1.04), F8.p(0, -0.9 if not P else -1.0, 0.0), lens=lens, fstop=5.0, focus=None, tension=0.2)

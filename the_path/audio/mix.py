@@ -91,7 +91,7 @@ def master(target_i=-14.0, target_tp=-1.25):
     js = json.loads(re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", p1.stderr, re.S).group(0))
     flt = (f"loudnorm=I={target_i}:TP={target_tp}:LRA=11:measured_I={js['input_i']}:measured_TP={js['input_tp']}:"
            f"measured_LRA={js['input_lra']}:measured_thresh={js['input_thresh']}:offset={js['target_offset']}:linear=true,"
-           f"alimiter=limit=0.862:level=disabled")
+           f"alimiter=limit=0.835:level=disabled")
     out = AUDIO / "master.wav"
     subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src), "-af", flt, "-ar", "48000", "-c:a", "pcm_s24le",
                     "-t", f"{TOTAL:.3f}", str(out)], check=True)

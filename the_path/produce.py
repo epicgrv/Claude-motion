@@ -38,7 +38,8 @@ def main(argv=None):
     ap.add_argument("--out", default=None)
     ap.add_argument("--frames", default=None, help="a-b (test clips)")
     ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--crf", type=int, default=13)
+    ap.add_argument("--crf", type=int, default=19)
+    ap.add_argument("--preset", default="medium")
     ap.add_argument("--sharpen", type=float, default=0.30)
     ap.add_argument("--noaudio", action="store_true")
     a = ap.parse_args(argv)
@@ -53,7 +54,7 @@ def main(argv=None):
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
     if not a.noaudio and audio.exists():
         cmd += ["-i", str(audio)]
-    cmd += ["-c:v", "libx264", "-preset", "slow", "-crf", str(a.crf), "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "5.1",
+    cmd += ["-c:v", "libx264", "-preset", a.preset, "-crf", str(a.crf), "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "5.1",
             "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
             "-vf", "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p",
             "-r", str(FPS), "-g", "60", "-movflags", "+faststart"]
