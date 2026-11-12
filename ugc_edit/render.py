@@ -1,6 +1,6 @@
 """Premium UGC edit v2. python3 render2.py in.mp4 edit.json out.mp4   (run from dir holding a/)"""
 import sys, json, subprocess, numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 SRC, CFG, OUT = sys.argv[1:4]
 cfg = json.load(open(CFG))
@@ -80,7 +80,7 @@ LUT64 = interp_axis(interp_axis(interp_axis(CUBE, 0), 1), 2)   # [b64][g64][r64]
 MIX = cfg.get("lut_mix", 0.5)
 
 vy, vx = np.mgrid[0:H, 0:W]
-VIG = (1 - 0.22 * np.clip(((vx / W - .5) ** 2 * 1.3 + (vy / H - .5) ** 2) * 2.2, 0, 1) ** 1.6)[..., None].astype(np.float32)
+VIG = (1 - 0.12 * np.clip(((vx / W - .5) ** 2 * 1.3 + (vy / H - .5) ** 2) * 2.2, 0, 1) ** 1.6)[..., None].astype(np.float32)
 rng = np.random.default_rng(3)
 GRAIN = [np.repeat(np.repeat(rng.normal(0, 1, (H // 2, W // 2)).astype(np.float32), 2, 0), 2, 1)[..., None] for _ in range(6)]
 
@@ -88,84 +88,96 @@ def grade(f):
     i = np.clip((f * 63 + 0.5).astype(np.int32), 0, 63)
     g = LUT64[i[..., 2], i[..., 1], i[..., 0]]
     f = f * (1 - MIX) + g * MIX
-    f = 0.5 + (f - 0.5) * 1.05          # gentle contrast
+    f = 0.5 + (f - 0.5) * 1.02          # gentle contrast
     return np.clip(f, 0, 1) * VIG
 
-# ---------------- captions ----------------
-CREAM, GOLD = (255, 252, 246), (236, 196, 128)
+# ---------------- captions: stacked "small / BIG KEYWORD / small" style ----------------
+WHITE, GREY, LIME = (255, 255, 255), (228, 228, 222), (214, 245, 60)
 FONTS = {}
-def fnt(key, size):
-    path = {"sans": "sequel_bold.otf", "sansB": "sequel_black.otf", "hook": "sequel_black_obl.otf", "serif": "garamond_bi.ttf"}[key]
-    k = (key, size)
+def fnt(path, size):
+    k = (path, size)
     if k not in FONTS: FONTS[k] = ImageFont.truetype(A + path, size)
     return FONTS[k]
 
-def render_line(layer, words, y, size, t, sans="sans", serif_scale=1.22, letter_track=0):
-    """words: [(text, accent:bool, start)] - each word rises+fades in at its own spoken time."""
+def tracked_len(text, f, track):
+    return sum(f.getlength(ch) for ch in text) + track * (len(text) - 1)
+
+def draw_tracked(d, x, y, text, f, fill, track):
+    for ch in text:
+        d.text((x, y), ch, font=f, fill=fill, anchor="ls"); x += f.getlength(ch) + track
+
+def small_words(layer, words, x0, y, size, t, color, align_right_at=None):
+    f = fnt("helv_bold.ttf", size); tr = -size * 0.03; sp = size * 0.28
+    widths = [tracked_len(w, f, tr) for w, _ in words]
+    total = sum(widths) + sp * (len(words) - 1)
+    x = (align_right_at - total) if align_right_at is not None else x0
+    if align_right_at is None and total > (W - 2 * x0): x = (W - total) / 2
+    x = min(max(x, 70), W - 70 - total)
     d = ImageDraw.Draw(layer)
-    items = []
-    for w, acc, st in words:
-        f = fnt("serif", int(size * serif_scale)) if acc else fnt(sans, size)
-        items.append((w, acc, st, f, d.textlength(w, font=f)))
-    sp = size * 0.24
-    total = sum(it[4] for it in items) + sp * (len(items) - 1)
-    x = (W - total) / 2
-    for w, acc, st, f, wd in items:
-        k = ease_out3((t - st) / 0.2)
+    for (w, st), wd in zip(words, widths):
+        k = ease_out3((t - st) / 0.18)
         if k > 0:
-            dy = (1 - k) * size * 0.35
-            a = int(255 * clamp(k * 1.6))
-            sc = 0.92 + 0.08 * ease_out5((t - st) / 0.25)
-            # draw on small tile for per-word scale pop
-            tw, th = int(wd + size), int(size * 2.2)
-            tile = Image.new("RGBA", (tw, th), (0, 0, 0, 0))
-            ImageDraw.Draw(tile).text((size / 2, th * 0.7), w, font=f, fill=(GOLD if acc else CREAM) + (a,), anchor="ls")
-            if sc < 0.999:
-                nw, nh = int(tw * sc), int(th * sc)
-                tile = tile.resize((nw, nh), Image.LANCZOS)
-                ox, oy = (tw - nw) / 2, (th - nh) * 0.7
-            else: ox = oy = 0
-            layer.alpha_composite(tile, (int(x - size / 2 + ox), int(y - th * 0.7 + dy + oy)))
+            a = int(255 * clamp(k * 1.5))
+            draw_tracked(d, x, y + (1 - k) * size * 0.4, w, f, color + (a,), tr)
         x += wd + sp
 
-def with_shadow(layer, size):
-    al = layer.split()[3]
-    sh = al.filter(ImageFilter.GaussianBlur(size * 0.12)).point(lambda v: int(v * 0.75))
-    glow = al.filter(ImageFilter.GaussianBlur(size * 0.75)).point(lambda v: int(min(255, v * 3.2) * 0.55))
-    base = Image.new("RGBA", layer.size, (0, 0, 0, 0))
-    g = Image.new("RGBA", layer.size, (14, 9, 4, 0)); g.putalpha(glow)
-    base.alpha_composite(g)
-    shadow = Image.new("RGBA", layer.size, (10, 6, 2, 0)); shadow.putalpha(sh)
-    base.alpha_composite(shadow, (0, int(size * 0.06)))
-    base.alpha_composite(layer)
-    return base
+def caption_layer(t):
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for blk in cfg["captions"]:
+        if not (blk["start"] <= t < blk["end"]): continue
+        key, kst = blk["key"]
+        kfont_path = "helv_boldobl.ttf" if blk.get("italic") else "helv_bold.ttf"
+        S = blk.get("size", 190)
+        f = fnt(kfont_path, S); tr = -S * 0.045
+        kw = tracked_len(key, f, tr)
+        if kw > 930: S = int(S * 930 / kw); f = fnt(kfont_path, S); tr = -S * 0.045; kw = tracked_len(key, f, tr)
+        x0 = (W - kw) / 2; y = blk["y"] * H
+        cap = f.getbbox("H", anchor="ls")[1]          # negative: cap height above baseline
+        ss = blk.get("small", 68)
+        txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        if blk.get("top"):
+            small_words(txt, blk["top"], x0 + S * 0.06, y + cap - S * 0.07, ss, t, WHITE)
+        if blk.get("bottom"):
+            small_words(txt, blk["bottom"], 0, y + ss * 1.25, ss, t, GREY, align_right_at=x0 + kw - S * 0.03)
+        # keyword: scale-pop in
+        k = ease_out5((t - kst) / 0.28)
+        keyl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        if k > 0:
+            tile = Image.new("RGBA", (int(kw + S), int(S * 1.6)), (0, 0, 0, 0))
+            draw_tracked(ImageDraw.Draw(tile), S / 2, S * 1.15, key, f, LIME + (int(255 * clamp(k * 1.4)),), tr)
+            sc = 1.18 - 0.18 * k
+            tw, th = tile.size
+            if abs(sc - 1) > 0.002:
+                tile = tile.resize((int(tw * sc), int(th * sc)), Image.LANCZOS)
+            keyl.alpha_composite(tile, (int(x0 - S / 2 * sc - (tw * sc - tw) / 2 + (S / 2) * (sc - 1)), int(y - S * 1.15 * sc)))
+        # lime glow on keyword
+        ka = keyl.split()[3]
+        glow = Image.new("RGBA", (W, H), LIME + (0,)); glow.putalpha(ka.filter(ImageFilter.GaussianBlur(S * 0.16)).point(lambda v: int(v * 0.55)))
+        allA = ImageChops.lighter(ka, txt.split()[3])
+        dark = Image.new("RGBA", (W, H), (8, 8, 6, 0))
+        dark.putalpha(ImageChops.lighter(
+            allA.filter(ImageFilter.GaussianBlur(S * 0.36)).point(lambda v: int(min(255, v * 2.8) * 0.55)),
+            allA.filter(ImageFilter.GaussianBlur(S * 0.09)).point(lambda v: int(min(255, v * 2.0) * 0.6))))
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.putalpha(allA.filter(ImageFilter.GaussianBlur(4)).point(lambda v: int(v * 0.5)))
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        for L_ in (dark, glow): lay.alpha_composite(L_)
+        lay.alpha_composite(sh, (0, 4))
+        lay.alpha_composite(keyl); lay.alpha_composite(txt)
+        fa = 1 - smooth((t - blk["end"] + 0.14) / 0.14)
+        out.alpha_composite(fade_layer(lay, fa))
+    return out
 
 def fade_layer(layer, a):
     if a >= 0.999: return layer
     layer.putalpha(layer.split()[3].point(lambda v: int(v * a)))
     return layer
 
-def caption_layer(t):
-    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    for blk in cfg["captions"]:
-        if not (blk["start"] <= t < blk["end"]): continue
-        hook = blk.get("hook", False)
-        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        y = blk.get("y", 0.73) * H
-        for li, line in enumerate(blk["lines"]):
-            size = int(line.get("size", 112 if hook else 74) * cfg.get("type_scale", 1.0))
-            render_line(lay, [(w[0], w[1], w[2]) for w in line["words"]], y, size, t,
-                        sans="hook" if hook else "sansB", serif_scale=line.get("serif_scale", 1.25))
-            y += size * line.get("lead", 1.12)
-        a = 1 - smooth((t - blk["end"] + 0.14) / 0.14)
-        out.alpha_composite(fade_layer(with_shadow(lay, 90 if hook else 70), a))
-    return out
-
 # ---------------- main ----------------
 dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-t", str(END), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
                         "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p", "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
 PAD = 140
+BBOX = open("caption_bbox.txt", "w")
 for i in range(N):
     raw = dec.stdout.read(W * H * 3)
     if len(raw) < W * H * 3: break
@@ -186,9 +198,12 @@ for i in range(N):
     L = burn_frame(t)
     if L is not None: f = 1 - (1 - f) * (1 - L)
     if t < 0.09: f = f + (1 - f) * (1 - t / 0.09) ** 2 * 0.85          # shutter flash
-    f = np.clip(f + GRAIN[i % 6] * 0.014, 0, 1)
+    f = np.clip(f + GRAIN[i % 6] * 0.010, 0, 1)
     out = Image.fromarray((f * 255).astype(np.uint8)).convert("RGBA")
-    out.alpha_composite(caption_layer(t))
+    cl = caption_layer(t)
+    bb = cl.split()[3].point(lambda v: 255 if v > 40 else 0).getbbox()
+    BBOX.write(f"{t:.3f} {bb[1] / H if bb else -1:.3f} {bb[3] / H if bb else -1:.3f}\n")
+    out.alpha_composite(cl)
     enc.stdin.write(out.convert("RGB").tobytes())
     if i % 48 == 0: print(f"{i}/{N}", flush=True)
 enc.stdin.close(); enc.wait(); dec.terminate()

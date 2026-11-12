@@ -4,5 +4,5 @@
 
 Pipeline (assets from the editing pack on Drive go in `a/` and `sfx/`, not committed — fonts are licensed):
 - `edit.json` — cut points, zoom drift/punch-ins, film-burn placements, word-timed captions (Whisper small.en).
-- `render.py` — zoom-out hook, shutter flash, film burns (screen blend), whip transitions, TailorMade LUT @50 %, vignette, grain, captions (Sequel Sans + Adobe Garamond Pro Bold Italic).
+- `render.py` — zoom-out hook, shutter flash, film burns (screen blend), whip transitions, vignette, grain, stacked captions (small white top / big lime Helvetica Bold keyword / grey bottom), light grade (LUT 18 %).
 - `mix.py` — SFX bed from the pack's trending SFX + synthesized shutter.
