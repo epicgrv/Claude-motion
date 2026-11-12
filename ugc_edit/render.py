@@ -1,174 +1,192 @@
-"""Premium UGC edit. python3 render.py in.mp4 captions.json out_video_noaudio.mp4"""
-import sys, json, subprocess, math, numpy as np
+"""Premium UGC edit v2. python3 render2.py in.mp4 edit.json out.mp4   (run from dir holding a/)"""
+import sys, json, subprocess, numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-SRC, CAP, OUT = sys.argv[1:4]
+SRC, CFG, OUT = sys.argv[1:4]
+cfg = json.load(open(CFG))
 W, H, FPS = 1080, 1920, 24
-END = 13.417                       # trim: cut before incomplete last words
-CUTS = [4.0, 7.958, 12.0]          # source shot changes
-N = int(round(END * FPS))
-FD = "fonts/"
-cfg = json.load(open(CAP)) if CAP != "-" else {"hook": None, "lines": []}
+END = cfg["end"]; CUTS = cfg["cuts"]; N = int(round(END * FPS))
+A = "a/"
 
-def ease_out(x): x = min(max(x, 0), 1); return 1 - (1 - x) ** 4
-def ease_io(x): x = min(max(x, 0), 1); return x * x * (3 - 2 * x)
+def clamp(x): return min(max(x, 0.0), 1.0)
+def ease_out3(x): x = clamp(x); return 1 - (1 - x) ** 3
+def ease_out5(x): x = clamp(x); return 1 - (1 - x) ** 5
+def smooth(x): x = clamp(x); return x * x * x * (x * (6 * x - 15) + 10)   # smootherstep
 
-# ---------- camera (zoom) curve ----------
+# ---------------- camera ----------------
+HOOK_Z, HOOK_T = 1.32, 1.25
 def zoom_at(t):
-    z = 1.0
-    if t < 0.6:                                   # hook: zoom OUT from tight
-        z = 1.5 - 0.5 * ease_out(t / 0.6)
-        return z
-    # slow drifts per shot
-    if t < CUTS[0]: z = 1.0 + 0.05 * (t - 0.6) / (CUTS[0] - 0.6)
-    elif t < CUTS[1]: z = 1.04 + 0.08 * (t - CUTS[0]) / (CUTS[1] - CUTS[0])
-    elif t < CUTS[2]: z = 1.0 + 0.04 * (t - CUTS[1]) / (CUTS[2] - CUTS[1])
-    else: z = 1.02 + 0.12 * ease_io((t - CUTS[2]) / (END - CUTS[2]))
-    # punch-ins on emphasis beats (hold, then ease back)
-    for p, amt, hold in cfg.get("punches", [[2.3, 0.10, 1.2], [9.9, 0.10, 1.4]]):
+    if t < HOOK_T:   # smooth zoom-out: fast start, long soft landing (C1-continuous into drift)
+        return 1.0 + (HOOK_Z - 1.0) * (1 - ease_out5(t / HOOK_T))
+    seg = [0, *CUTS, END]
+    drift = cfg["drift"]
+    for k in range(len(seg) - 1):
+        if seg[k] <= t < seg[k + 1]:
+            a, b = drift[k]; s0 = max(seg[k], HOOK_T if k == 0 else seg[k])
+            z = a + (b - a) * smooth((t - s0) / (seg[k + 1] - s0))
+            break
+    else:
+        z = drift[-1][1]
+    for p, amt, hold in cfg["punches"]:
         if p <= t < p + hold:
-            k = ease_out((t - p) / 0.12) * (1 - ease_io((t - p - hold + 0.25) / 0.25))
-            z += amt * k
-    # transition zoom whip around cuts
-    for c in CUTS:
+            z *= 1 + amt * ease_out3((t - p) / 0.14) * (1 - smooth((t - p - hold + 0.3) / 0.3))
+    for c in CUTS:   # zoom-through transition
         d = t - c
-        if -0.17 < d < 0: z *= 1 + 0.25 * ease_io((d + 0.17) / 0.17) ** 2
-        if 0 <= d < 0.25: z *= 1 + 0.25 * (1 - ease_out(d / 0.25))
+        if -0.2 < d < 0: z *= 1 + 0.22 * smooth((d + 0.2) / 0.2) ** 2
+        if 0 <= d < 0.3: z *= 1 + 0.22 * (1 - ease_out3(d / 0.3))
     return z
 
 def blur_at(t):
     for c in CUTS:
         d = t - c
-        if -0.13 < d < 0.17: return 1 - abs(d) / (0.13 if d < 0 else 0.17)
-    if t < 0.25: return 0.8 * (1 - t / 0.25)
-    return 0
+        if -0.125 < d < 0.17: return 1 - (abs(d) / (0.125 if d < 0 else 0.17))
+    return 0.0
 
-# ---------- film burn / light leak ----------
-rng = np.random.default_rng(3)
-lw, lh = 54, 96
-yy, xx = np.mgrid[0:lh, 0:lw] / np.array([lh, lw])[:, None, None]
-blobs = [(rng.uniform(-.2, 1.2), rng.uniform(-.2, 1.2), rng.uniform(.15, .45), rng.uniform(-1, 1), rng.uniform(-1, 1)) for _ in range(7)]
-def burn(t, phase):
-    f = np.zeros((lh, lw))
-    for i, (bx, by, r, vx, vy) in enumerate(blobs):
-        cx = bx + vx * (t + phase) * 0.9; cy = by + vy * (t + phase) * 0.9
-        f += np.exp(-(((xx - cx) ** 2) * 2.2 + (yy - cy) ** 2) / (r * r))
-    edge = np.clip(1.3 - np.minimum.reduce([xx, 1 - xx, yy * 1.6, (1 - yy) * 1.6]) * 3.5, 0, 1)
-    f = np.clip(f * 0.55 + edge * 0.6, 0, 1.6)
-    col = np.stack([np.clip(f * 1.25, 0, 1), np.clip(f * 0.62 - .05, 0, 1) ** 1.2, np.clip(f - 1.0, 0, 1) * 0.5], -1)
-    im = Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8)).resize((W, H), Image.BICUBIC)
-    return np.asarray(im).astype(np.float32) / 255
+# ---------------- film burns (from Drive pack, screen-blended) ----------------
+def load_rgb(name):
+    raw = np.fromfile(A + name + ".rgb", np.uint8)
+    return raw.reshape(-1, H, W, 3)
+TINT = np.array([1.0, 0.82, 0.62], np.float32)
+BURNS = {k: load_rgb(k) for k in {b[1] for b in cfg["burns"]}}
+def burn_frame(t):
+    out = None
+    for start, name, gain in cfg["burns"]:
+        fi = int(round((t - start) * FPS))
+        clip = BURNS[name]
+        if 0 <= fi < len(clip):
+            L = clip[fi].astype(np.float32) / 255 * gain * TINT
+            out = L if out is None else 1 - (1 - out) * (1 - L)
+    return out
 
-def burn_amt(t):
-    a = 0.0
-    if t < 1.0: a = max(a, 1.0 * (1 - ease_io(t / 1.0)) if t > 0.05 else 1.0)
-    for c in CUTS:
-        d = abs(t - c)
-        if d < 0.3: a = max(a, 0.55 * (1 - d / 0.3))
-    return a
+# ---------------- grade: Drive LUT (TailorMade) @ mix + vignette + grain ----------------
+def load_cube(p):
+    rows, size = [], None
+    for ln in open(p):
+        s = ln.strip().split()
+        if not s or s[0].startswith("#"): continue
+        if s[0] == "LUT_3D_SIZE": size = int(s[1]); continue
+        try: rows.append([float(v) for v in s[:3]])
+        except ValueError: pass
+    return np.array(rows, np.float32).reshape(size, size, size, 3), size   # [b][g][r]
+CUBE, CS = load_cube(A + "tailormade.cube")
+# bake to 64^3 uint8-indexed lookup via per-channel quantization (fast nearest on 6-bit)
+q = np.linspace(0, CS - 1, 64)
+def interp_axis(arr, axis):
+    i0 = np.floor(q).astype(int); i1 = np.minimum(i0 + 1, CS - 1); f = (q - i0).astype(np.float32)
+    a0 = np.take(arr, i0, axis); a1 = np.take(arr, i1, axis)
+    sh = [1] * arr.ndim; sh[axis] = -1
+    return a0 + (a1 - a0) * f.reshape(sh)
+LUT64 = interp_axis(interp_axis(interp_axis(CUBE, 0), 1), 2)   # [b64][g64][r64][3]
+MIX = cfg.get("lut_mix", 0.5)
 
-# ---------- grade ----------
 vy, vx = np.mgrid[0:H, 0:W]
-vig = 1 - 0.28 * np.clip(((vx / W - .5) ** 2 * 1.4 + (vy / H - .5) ** 2) * 2.2, 0, 1) ** 1.5
-vig = vig[..., None].astype(np.float32)
-lut = np.arange(256) / 255.0
-s_curve = np.clip(lut + 0.10 * np.sin(2 * np.pi * (lut - 0.5)) * -0.5 + 0.08 * (lut - lut * lut) * 0, 0, 1)
-s_curve = (0.5 + (lut - 0.5) * 1.08 - 0.04 * np.sin(2 * np.pi * lut)).clip(0, 1)
-LUT = np.stack([s_curve * 1.02, s_curve * 1.0, s_curve * 0.965], -1).clip(0, 1).astype(np.float32)
-grain_bank = [rng.normal(0, 1, (H // 2, W // 2)).astype(np.float32) for _ in range(6)]
+VIG = (1 - 0.22 * np.clip(((vx / W - .5) ** 2 * 1.3 + (vy / H - .5) ** 2) * 2.2, 0, 1) ** 1.6)[..., None].astype(np.float32)
+rng = np.random.default_rng(3)
+GRAIN = [np.repeat(np.repeat(rng.normal(0, 1, (H // 2, W // 2)).astype(np.float32), 2, 0), 2, 1)[..., None] for _ in range(6)]
 
-# ---------- captions ----------
-def font(name, size, var=None):
-    f = ImageFont.truetype(FD + name, size)
-    if var: f.set_variation_by_name(var)
-    return f
-SANS_BI = "/usr/share/fonts/opentype/inter/InterDisplay-BlackItalic.otf"
-SANS_B = "/usr/share/fonts/opentype/inter/InterDisplay-ExtraBold.otf"
+def grade(f):
+    i = np.clip((f * 63 + 0.5).astype(np.int32), 0, 63)
+    g = LUT64[i[..., 2], i[..., 1], i[..., 0]]
+    f = f * (1 - MIX) + g * MIX
+    f = 0.5 + (f - 0.5) * 1.05          # gentle contrast
+    return np.clip(f, 0, 1) * VIG
 
-def draw_words(canvas, words, y, size, t0, t, center=True):
-    """words: list of (text, style). style: 'sans','serif','hook_sans','hook_serif'"""
-    fonts = {"sans": ImageFont.truetype(SANS_B, size),
-             "serif": font("Playfair-Italic.ttf", int(size * 1.18), b"Black Italic"),
-             "hook_sans": ImageFont.truetype(SANS_BI, size),
-             "hook_serif": font("Playfair-Italic.ttf", int(size * 1.25), b"Black Italic")}
-    gold = (244, 205, 120)
-    d = ImageDraw.Draw(canvas)
-    sp = size * 0.26
-    widths = [d.textlength(w, font=fonts[s]) for w, s in words]
-    total = sum(widths) + sp * (len(words) - 1)
+# ---------------- captions ----------------
+CREAM, GOLD = (255, 252, 246), (236, 196, 128)
+FONTS = {}
+def fnt(key, size):
+    path = {"sans": "sequel_bold.otf", "sansB": "sequel_black.otf", "hook": "sequel_black_obl.otf", "serif": "garamond_bi.ttf"}[key]
+    k = (key, size)
+    if k not in FONTS: FONTS[k] = ImageFont.truetype(A + path, size)
+    return FONTS[k]
+
+def render_line(layer, words, y, size, t, sans="sans", serif_scale=1.22, letter_track=0):
+    """words: [(text, accent:bool, start)] - each word rises+fades in at its own spoken time."""
+    d = ImageDraw.Draw(layer)
+    items = []
+    for w, acc, st in words:
+        f = fnt("serif", int(size * serif_scale)) if acc else fnt(sans, size)
+        items.append((w, acc, st, f, d.textlength(w, font=f)))
+    sp = size * 0.24
+    total = sum(it[4] for it in items) + sp * (len(items) - 1)
     x = (W - total) / 2
-    layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
-    ld = ImageDraw.Draw(layer)
-    for i, ((w, s), wd) in enumerate(zip(words, widths)):
-        k = ease_out((t - t0 - i * 0.06) / 0.22)
-        if k <= 0: x += wd + sp; continue
-        dy = (1 - k) * size * 0.45
-        a = int(255 * min(1, k * 1.4))
-        fill = gold if "serif" in s else (255, 255, 255)
-        ld.text((x, y + dy), w, font=fonts[s], fill=fill + (a,), anchor="ls",
-                stroke_width=0)
+    for w, acc, st, f, wd in items:
+        k = ease_out3((t - st) / 0.2)
+        if k > 0:
+            dy = (1 - k) * size * 0.35
+            a = int(255 * clamp(k * 1.6))
+            sc = 0.92 + 0.08 * ease_out5((t - st) / 0.25)
+            # draw on small tile for per-word scale pop
+            tw, th = int(wd + size), int(size * 2.2)
+            tile = Image.new("RGBA", (tw, th), (0, 0, 0, 0))
+            ImageDraw.Draw(tile).text((size / 2, th * 0.7), w, font=f, fill=(GOLD if acc else CREAM) + (a,), anchor="ls")
+            if sc < 0.999:
+                nw, nh = int(tw * sc), int(th * sc)
+                tile = tile.resize((nw, nh), Image.LANCZOS)
+                ox, oy = (tw - nw) / 2, (th - nh) * 0.7
+            else: ox = oy = 0
+            layer.alpha_composite(tile, (int(x - size / 2 + ox), int(y - th * 0.7 + dy + oy)))
         x += wd + sp
-    sh = layer.split()[3].filter(ImageFilter.GaussianBlur(size * 0.18))
-    shadow = Image.new("RGBA", canvas.size, (0, 0, 0, 0)); shadow.putalpha(sh.point(lambda v: int(v * 0.75)))
-    canvas.alpha_composite(shadow, (0, int(size * 0.05)))
-    canvas.alpha_composite(layer)
+
+def with_shadow(layer, size):
+    al = layer.split()[3]
+    sh = al.filter(ImageFilter.GaussianBlur(size * 0.12)).point(lambda v: int(v * 0.75))
+    glow = al.filter(ImageFilter.GaussianBlur(size * 0.75)).point(lambda v: int(min(255, v * 3.2) * 0.55))
+    base = Image.new("RGBA", layer.size, (0, 0, 0, 0))
+    g = Image.new("RGBA", layer.size, (14, 9, 4, 0)); g.putalpha(glow)
+    base.alpha_composite(g)
+    shadow = Image.new("RGBA", layer.size, (10, 6, 2, 0)); shadow.putalpha(sh)
+    base.alpha_composite(shadow, (0, int(size * 0.06)))
+    base.alpha_composite(layer)
+    return base
+
+def fade_layer(layer, a):
+    if a >= 0.999: return layer
+    layer.putalpha(layer.split()[3].point(lambda v: int(v * a)))
+    return layer
 
 def caption_layer(t):
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    hk = cfg.get("hook")
-    if hk and hk["start"] <= t < hk["end"]:
-        fade = 1 - ease_io((t - hk["end"] + 0.15) / 0.15)
-        tmp = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        y = H * 0.40
-        for li, line in enumerate(hk["lines"]):
-            draw_words(tmp, [(w.strip("*"), "hook_serif" if w.startswith("*") else "hook_sans") for w in line.split()],
-                       y + li * 132, 112, hk["start"] + li * 0.18, t)
-        if fade < 1:
-            a = tmp.split()[3].point(lambda v: int(v * fade)); tmp.putalpha(a)
-        lay.alpha_composite(tmp)
-    for ln in cfg.get("lines", []):
-        if ln["start"] <= t < ln["end"]:
-            words = [(w.strip("*"), "serif" if w.startswith("*") else "sans") for w in ln["text"].split()]
-            draw_words(lay, words, H * 0.74, 78, ln["start"], t)
-    return lay
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for blk in cfg["captions"]:
+        if not (blk["start"] <= t < blk["end"]): continue
+        hook = blk.get("hook", False)
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        y = blk.get("y", 0.73) * H
+        for li, line in enumerate(blk["lines"]):
+            size = int(line.get("size", 112 if hook else 74) * cfg.get("type_scale", 1.0))
+            render_line(lay, [(w[0], w[1], w[2]) for w in line["words"]], y, size, t,
+                        sans="hook" if hook else "sansB", serif_scale=line.get("serif_scale", 1.25))
+            y += size * line.get("lead", 1.12)
+        a = 1 - smooth((t - blk["end"] + 0.14) / 0.14)
+        out.alpha_composite(fade_layer(with_shadow(lay, 90 if hook else 70), a))
+    return out
 
-# ---------- main loop ----------
+# ---------------- main ----------------
 dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-t", str(END), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                        "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
+                        "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p", "-movflags", "+faststart", OUT], stdin=subprocess.PIPE)
+PAD = 140
 for i in range(N):
     raw = dec.stdout.read(W * H * 3)
     if len(raw) < W * H * 3: break
     t = i / FPS
-    img = Image.frombuffer("RGB", (W, H), raw)
-    z = zoom_at(t)
-    cw, ch = W / z, H / z
-    img = img.transform((W, H), Image.EXTENT, ((W - cw) / 2, (H - ch) / 2, (W + cw) / 2, (H + ch) / 2), Image.BICUBIC)
+    src = Image.frombuffer("RGB", (W, H), raw)
+    z = zoom_at(t); cw, ch = W / z, H / z
+    img = src.transform((W, H), Image.EXTENT, ((W - cw) / 2, (H - ch) / 2, (W + cw) / 2, (H + ch) / 2), Image.BICUBIC)
     f = np.asarray(img).astype(np.float32) / 255
     b = blur_at(t)
-    if b > 0.05:  # vertical motion blur (whip)
-        n = int(2 + b * 10); step = int(4 + b * 9)
+    if b > 0.04:   # vertical whip blur, edge-padded (no wraparound)
+        n = int(3 + b * 9); step = max(1, int(3 + b * 10))
+        p = np.pad(f, ((n * step, n * step), (0, 0), (0, 0)), mode="edge")
         acc = np.zeros_like(f)
-        for k in range(-n, n + 1): acc += np.roll(f, k * step, axis=0)
+        for k in range(-n, n + 1):
+            o = n * step + k * step; acc += p[o:o + H]
         f = acc / (2 * n + 1)
-    # grade
-    idx = (f * 255).astype(np.uint8)
-    f = np.stack([LUT[idx[..., c], c] for c in range(3)], -1)
-    f *= vig
-    # film burn (screen blend)
-    a = burn_amt(t)
-    if a > 0.01:
-        L = burn(t, 0 if t < 1 else min(CUTS, key=lambda c: abs(c - t))) * a
-        f = 1 - (1 - f) * (1 - L)
-    # camera-click flash
-    if t < 0.125: f = f + (1 - f) * (1 - t / 0.125) ** 1.5
-    for c in CUTS:
-        d = t - c
-        if 0 <= d < 0.09: f = f + (1 - f) * 0.35 * (1 - d / 0.09)
-    # grain
-    g = grain_bank[i % 6]
-    g = np.repeat(np.repeat(g, 2, 0), 2, 1)[..., None]
-    f = np.clip(f + g * 0.018, 0, 1)
+    f = grade(f)
+    L = burn_frame(t)
+    if L is not None: f = 1 - (1 - f) * (1 - L)
+    if t < 0.09: f = f + (1 - f) * (1 - t / 0.09) ** 2 * 0.85          # shutter flash
+    f = np.clip(f + GRAIN[i % 6] * 0.014, 0, 1)
     out = Image.fromarray((f * 255).astype(np.uint8)).convert("RGBA")
     out.alpha_composite(caption_layer(t))
     enc.stdin.write(out.convert("RGB").tobytes())
