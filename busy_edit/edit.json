@@ -102,16 +102,6 @@
  "price": null,
  "burns": [
   [
-   -0.2,
-   "_MLT5",
-   0.7
-  ],
-  [
-   0.18,
-   "_MLT12",
-   0.5
-  ],
-  [
    2.95,
    "_MLT12",
    0.65
@@ -141,8 +131,8 @@
     "out.",
     2.24
    ],
-   "col": "orange",
-   "size": 230,
+   "col": "blush",
+   "size": 160,
    "top": [
     [
      "that",
@@ -165,13 +155,13 @@
   {
    "start": 2.48,
    "end": 3.82,
-   "y": 0.78,
+   "y": 0.7,
    "key": [
     "perfect",
     3.3
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "and",
@@ -196,13 +186,13 @@
   {
    "start": 3.84,
    "end": 5.4,
-   "y": 0.78,
+   "y": 0.7,
    "key": [
     "everywhere",
     4.76
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "because",
@@ -235,13 +225,13 @@
   {
    "start": 6.28,
    "end": 7.28,
-   "y": 0.7,
+   "y": 0.595,
    "key": [
     "individually",
     6.3
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "bottom": [
     [
      "wrapped,",
@@ -252,13 +242,13 @@
   {
    "start": 7.32,
    "end": 8.18,
-   "y": 0.7,
+   "y": 0.84,
    "key": [
     "body size,",
     7.44
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "full",
@@ -269,24 +259,24 @@
   {
    "start": 8.2,
    "end": 8.86,
-   "y": 0.72,
+   "y": 0.84,
    "key": [
     "bamboo,",
     8.22
    ],
-   "col": "orange",
-   "size": 196
+   "col": "blue",
+   "size": 138
   },
   {
    "start": 8.88,
    "end": 11.02,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "real",
     9.72
    ],
    "col": "yellow",
-   "size": 196,
+   "size": 138,
    "top": [
     [
      "and",
@@ -319,13 +309,13 @@
   {
    "start": 11.06,
    "end": 12.1,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "fake",
     11.42
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "not",
@@ -346,16 +336,16 @@
   {
    "start": 12.2,
    "end": 13.96,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "collarbone,",
     13.28
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
-     "I",
+     "i",
      12.22
     ],
     [
@@ -379,13 +369,13 @@
   {
    "start": 13.98,
    "end": 15.02,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "glycolic",
     14.36
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "and",
@@ -410,13 +400,13 @@
   {
    "start": 15.04,
    "end": 15.78,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "arnica",
     15.2
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "and",
@@ -433,20 +423,20 @@
   {
    "start": 15.8,
    "end": 16.76,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "breathe.",
     16.32
    ],
-   "col": "yellow",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "while",
      15.8
     ],
     [
-     "I",
+     "i",
      16.02
     ],
     [
@@ -458,13 +448,13 @@
   {
    "start": 16.8,
    "end": 18.28,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "compost,",
     17.6
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blue",
+   "size": 138,
    "top": [
     [
      "the",
@@ -491,13 +481,13 @@
   {
    "start": 18.3,
    "end": 19.3,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "trash,",
     18.78
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "wrapper",
@@ -516,13 +506,13 @@
   {
    "start": 19.34,
    "end": 20.2,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "flushed,",
     19.54
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
      "nothing",
@@ -533,13 +523,13 @@
   {
    "start": 20.24,
    "end": 21.12,
-   "y": 0.72,
+   "y": 0.52,
    "key": [
     "complicated.",
     20.4
    ],
    "col": "yellow",
-   "size": 196,
+   "size": 138,
    "top": [
     [
      "nothing",
@@ -550,24 +540,24 @@
   {
    "start": 21.98,
    "end": 23.12,
-   "y": 0.72,
+   "y": 0.75,
    "key": [
     "$14.95",
     22.0
    ],
    "col": "yellow",
-   "size": 230
+   "size": 160
   },
   {
    "start": 23.16,
    "end": 25.22,
-   "y": 0.72,
+   "y": 0.745,
    "key": [
     "hit",
     24.0
    ],
-   "col": "orange",
-   "size": 230,
+   "col": "blush",
+   "size": 150,
    "top": [
     [
      "and",
@@ -612,16 +602,16 @@
   {
    "start": 25.26,
    "end": 26.62,
-   "y": 0.72,
+   "y": 0.745,
    "key": [
     "never",
     25.54
    ],
-   "col": "orange",
-   "size": 196,
+   "col": "blush",
+   "size": 138,
    "top": [
     [
-     "I'm",
+     "i'm",
      25.28
     ]
    ],

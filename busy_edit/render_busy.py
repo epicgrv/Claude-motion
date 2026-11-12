@@ -35,8 +35,7 @@ def zoom_at(t):
         if -0.17 < d < 0: z *= 1 + 0.2 * smooth((d + 0.17) / 0.17) ** 2
         if 0 <= d < 0.27: z *= 1 + 0.2 * (1 - eo3(d / 0.27))
     imp = cfg["impact"]; d = t - imp
-    if t < imp: z *= 1.22 - 0.08 * eo3(t / imp)
-    if 0 <= d < 1.15: z *= 1 + 0.2 * (1 - eo5(d / 1.15))
+    if 0 <= d < 1.0: z *= 1 + 0.12 * (1 - eo5(d / 1.0))
     return z
 rng = np.random.default_rng(11)
 SHAKE = rng.uniform(-1, 1, (64, 2))
@@ -206,14 +205,16 @@ def small_words(layer, words, x0, y, size, t, color, right=None, kw_span=None):
     f = fnt(PB, size); tr = -size * 0.02; sp = size * 0.26
     wd = [tracked_len(w, f, tr) for w, _ in words]; total = sum(wd) + sp * (len(words) - 1)
     x = (right - total) if right is not None else x0
-    if right is None and kw_span and total > kw_span: x = (W - total) / 2
+    if kw_span and total > kw_span: x = (W - total) / 2
     x = min(max(x, 64), W - 64 - total)
     d = ImageDraw.Draw(layer)
     for (w, st), w_ in zip(words, wd):
         k = eo3((t - st) / 0.18)
         if k > 0: draw_tracked(d, x, y + (1 - k) * size * 0.4, w, f, color + (int(255 * clamp(k * 1.5)),), tr)
         x += w_ + sp
-KEYCOL = {"orange": ORANGE, "blush": BLUSH, "yellow": YELLOW}
+BLUE = (153, 209, 229)
+KEYCOL = {"orange": ORANGE, "blush": BLUSH, "yellow": YELLOW, "blue": BLUE}
+GLOWCOL = {"blush": MAUVE}
 def stacked(t):
     out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     for blk in cfg["blocks"]:
@@ -223,10 +224,10 @@ def stacked(t):
         kw = tracked_len(key, f, tr)
         if kw > 940: S = int(S * 940 / kw); f = fnt(PB, S); tr = -S * 0.04; kw = tracked_len(key, f, tr)
         x0 = (W - kw) / 2; y = blk["y"] * H
-        cap = f.getbbox("H", anchor="ls")[1]; ss = blk.get("small", 74)
+        cap = f.getbbox("H", anchor="ls")[1]; ss = blk.get("small", 54)
         txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         if blk.get("top"): small_words(txt, blk["top"], x0 + S * 0.05, y + cap - S * 0.08, ss, t, WHITE, kw_span=kw)
-        if blk.get("bottom"): small_words(txt, blk["bottom"], 0, y + ss * 1.3, ss, t, CREAM, right=x0 + kw - S * 0.02)
+        if blk.get("bottom"): small_words(txt, blk["bottom"], 0, y + ss * 1.3, ss, t, CREAM, right=x0 + kw - S * 0.02, kw_span=kw)
         k = eo5((t - kst) / 0.28)
         keyl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         if k > 0:
@@ -236,7 +237,7 @@ def stacked(t):
             if abs(sc - 1) > 0.002: tile = tile.resize((int(tw * sc), int(th * sc)), Image.LANCZOS)
             keyl.alpha_composite(tile, (int(x0 - S / 2 - (tile.width - tw) / 2), int(y - S * 1.15 - (tile.height - th) * 0.72)))
         ka = keyl.split()[3]
-        glow = Image.new("RGBA", (W, H), col + (0,)); glow.putalpha(ka.filter(ImageFilter.GaussianBlur(S * 0.15)).point(lambda v: int(v * 0.5)))
+        glow = Image.new("RGBA", (W, H), GLOWCOL.get(blk.get("col"), col) + (0,)); glow.putalpha(ka.filter(ImageFilter.GaussianBlur(S * 0.15)).point(lambda v: int(v * 0.5)))
         allA = ImageChops.lighter(ka, txt.split()[3])
         dark = Image.new("RGBA", (W, H), INK + (0,))
         dark.putalpha(ImageChops.lighter(
@@ -287,14 +288,13 @@ for i in range(N):
         f = acc / (2 * n + 1)
     f = grade(f)
     d = t - cfg["impact"]
-    if 0 <= d < 0.1: f = f + (1 - f) * 0.55 * (1 - d / 0.1)        # impact flash
+    if 0 <= d < 0.08: f = f + (1 - f) * 0.2 * (1 - d / 0.08)        # impact flash
     for c in cfg["whips"]:
         dd = t - c
         if 0 <= dd < 0.07: f = f + (1 - f) * 0.25 * (1 - dd / 0.07)
     f = brand_wipe(f, t)
     L = burn_frame(t)
     if L is not None: f = 1 - (1 - f) * (1 - L)
-    if t < 0.1: f = f + (1 - f) * (1 - t / 0.1) ** 2 * 0.85
     f = np.clip(f + GRAIN[i % 6] * 0.006, 0, 1)
     out = Image.fromarray((f * 255).astype(np.uint8)).convert("RGBA")
     ov = overlay(t)

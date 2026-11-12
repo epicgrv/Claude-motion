@@ -24,7 +24,6 @@ for c in [3.2, 7.333, 8.9, 21.15]:
     place(whoosh, c - 0.5, -12)
 place(whoosh, 5.433 - 0.5, -12)
 # chips: soft click + typewriter tick
-place(click, 0.0, -7)                                  # shutter click + flash
 for t in [2.24, 4.76, 9.72, 11.42, 14.36, 17.60, 24.00, 25.54]:   # keyword pops
     place(pop, t, -21, dur=0.35)
 for c in [3.2, 5.433, 8.9, 21.15]: place(boom, c - 0.05, -21, dur=0.9)
