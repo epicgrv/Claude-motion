@@ -35,7 +35,8 @@ def zoom_at(t):
         if -0.17 < d < 0: z *= 1 + 0.2 * smooth((d + 0.17) / 0.17) ** 2
         if 0 <= d < 0.27: z *= 1 + 0.2 * (1 - eo3(d / 0.27))
     imp = cfg["impact"]; d = t - imp
-    if 0 <= d < 0.6: z *= 1 + 0.16 * (1 - eo3(d / 0.6))
+    if t < imp: z *= 1.22 - 0.08 * eo3(t / imp)
+    if 0 <= d < 1.15: z *= 1 + 0.2 * (1 - eo5(d / 1.15))
     return z
 rng = np.random.default_rng(11)
 SHAKE = rng.uniform(-1, 1, (64, 2))
@@ -195,14 +196,73 @@ def brand_wipe(f, t):
                 b2 = min(bot + 30, H); f[bot:b2] = np.array(CREAM, np.float32) / 255
     return f
 
-def overlay(t):
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    hook(lay, cfg["hook"], t)
-    for st in cfg["chips"]: chips(lay, st, t)
-    for ch in cfg["captions"]:
-        if ch["start"] <= t < ch["end"]: caption_chunk(lay, ch, t)
-    price(lay, cfg["price"], t)
-    return lay
+from PIL import ImageChops
+def tracked_len(text, f, tr): return sum(f.getlength(c) for c in text) + tr * (len(text) - 1)
+def draw_tracked(d, x, y, text, f, fill, tr, stroke=0):
+    for c in text:
+        d.text((x, y), c, font=f, fill=fill, anchor="ls", stroke_width=stroke, stroke_fill=INK + (fill[3],) if stroke else None)
+        x += f.getlength(c) + tr
+def small_words(layer, words, x0, y, size, t, color, right=None, kw_span=None):
+    f = fnt(PB, size); tr = -size * 0.02; sp = size * 0.26
+    wd = [tracked_len(w, f, tr) for w, _ in words]; total = sum(wd) + sp * (len(words) - 1)
+    x = (right - total) if right is not None else x0
+    if right is None and kw_span and total > kw_span: x = (W - total) / 2
+    x = min(max(x, 64), W - 64 - total)
+    d = ImageDraw.Draw(layer)
+    for (w, st), w_ in zip(words, wd):
+        k = eo3((t - st) / 0.18)
+        if k > 0: draw_tracked(d, x, y + (1 - k) * size * 0.4, w, f, color + (int(255 * clamp(k * 1.5)),), tr)
+        x += w_ + sp
+KEYCOL = {"orange": ORANGE, "blush": BLUSH, "yellow": YELLOW}
+def stacked(t):
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for blk in cfg["blocks"]:
+        if not (blk["start"] <= t < blk["end"]): continue
+        key, kst = blk["key"]; col = KEYCOL[blk.get("col", "orange")]
+        S = blk.get("size", 196); f = fnt(PB, S); tr = -S * 0.04
+        kw = tracked_len(key, f, tr)
+        if kw > 940: S = int(S * 940 / kw); f = fnt(PB, S); tr = -S * 0.04; kw = tracked_len(key, f, tr)
+        x0 = (W - kw) / 2; y = blk["y"] * H
+        cap = f.getbbox("H", anchor="ls")[1]; ss = blk.get("small", 74)
+        txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        if blk.get("top"): small_words(txt, blk["top"], x0 + S * 0.05, y + cap - S * 0.08, ss, t, WHITE, kw_span=kw)
+        if blk.get("bottom"): small_words(txt, blk["bottom"], 0, y + ss * 1.3, ss, t, CREAM, right=x0 + kw - S * 0.02)
+        k = eo5((t - kst) / 0.28)
+        keyl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        if k > 0:
+            tile = Image.new("RGBA", (int(kw + S), int(S * 1.6)), (0, 0, 0, 0))
+            draw_tracked(ImageDraw.Draw(tile), S / 2, S * 1.15, key, f, col + (int(255 * clamp(k * 1.4)),), tr, stroke=max(3, int(S * 0.022)))
+            sc = 1.18 - 0.18 * k; tw, th = tile.size
+            if abs(sc - 1) > 0.002: tile = tile.resize((int(tw * sc), int(th * sc)), Image.LANCZOS)
+            keyl.alpha_composite(tile, (int(x0 - S / 2 - (tile.width - tw) / 2), int(y - S * 1.15 - (tile.height - th) * 0.72)))
+        ka = keyl.split()[3]
+        glow = Image.new("RGBA", (W, H), col + (0,)); glow.putalpha(ka.filter(ImageFilter.GaussianBlur(S * 0.15)).point(lambda v: int(v * 0.5)))
+        allA = ImageChops.lighter(ka, txt.split()[3])
+        dark = Image.new("RGBA", (W, H), INK + (0,))
+        dark.putalpha(ImageChops.lighter(
+            allA.filter(ImageFilter.GaussianBlur(S * 0.36)).point(lambda v: int(min(255, v * 3.0) * 0.68)),
+            allA.filter(ImageFilter.GaussianBlur(S * 0.08)).point(lambda v: int(min(255, v * 2.2) * 0.78))))
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); sh.putalpha(allA.filter(ImageFilter.GaussianBlur(4)).point(lambda v: int(v * 0.5)))
+        lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        lay.alpha_composite(dark); lay.alpha_composite(glow); lay.alpha_composite(sh, (0, 4))
+        lay.alpha_composite(keyl); lay.alpha_composite(txt)
+        fa = 1 - smooth((t - blk["end"] + 0.14) / 0.14)
+        if fa < 0.999: lay.putalpha(lay.split()[3].point(lambda v: int(v * fa)))
+        out.alpha_composite(lay)
+    return out
+def overlay(t): return stacked(t)
+
+# film burns from Drive pack (screen blend, warm tint)
+TINT = np.array([1.0, 0.84, 0.66], np.float32)
+BURNS = {n: np.fromfile(A + n + ".rgb", np.uint8).reshape(-1, H, W, 3) for n in {b[1] for b in cfg["burns"]}}
+def burn_frame(t):
+    o = None
+    for st, n, g in cfg["burns"]:
+        fi = int(round((t - st) * FPS)); clip = BURNS[n]
+        if 0 <= fi < len(clip):
+            L = clip[fi].astype(np.float32) / 255 * g * TINT
+            o = L if o is None else 1 - (1 - o) * (1 - L)
+    return o
 
 # ---------------- main ----------------
 dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", SRC, "-t", str(END), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
@@ -232,6 +292,9 @@ for i in range(N):
         dd = t - c
         if 0 <= dd < 0.07: f = f + (1 - f) * 0.25 * (1 - dd / 0.07)
     f = brand_wipe(f, t)
+    L = burn_frame(t)
+    if L is not None: f = 1 - (1 - f) * (1 - L)
+    if t < 0.1: f = f + (1 - f) * (1 - t / 0.1) ** 2 * 0.85
     f = np.clip(f + GRAIN[i % 6] * 0.006, 0, 1)
     out = Image.fromarray((f * 255).astype(np.uint8)).convert("RGBA")
     ov = overlay(t)

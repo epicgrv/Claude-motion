@@ -46,13 +46,12 @@
  ],
  "whips": [
   3.2,
+  5.433,
   7.333,
   8.9,
   21.15
  ],
- "brand_wipes": [
-  5.433
- ],
+ "brand_wipes": [],
  "punches": [
   [
    2.24,
@@ -100,32 +99,80 @@
    1.1
   ]
  ],
- "hook": {
-  "start": 0.45,
-  "end": 2.46,
-  "y": 0.555,
-  "lines": [
-   {
-    "text": "that almost",
-    "start": 0.45,
-    "size": 104
-   },
-   {
-    "text": "took me out.",
-    "start": 0.72,
-    "size": 112,
-    "pill": "orange",
-    "rot": -3,
-    "lead": 1.3
-   }
+ "price": null,
+ "burns": [
+  [
+   -0.2,
+   "_MLT5",
+   0.7
+  ],
+  [
+   0.18,
+   "_MLT12",
+   0.5
+  ],
+  [
+   2.95,
+   "_MLT12",
+   0.65
+  ],
+  [
+   5.1,
+   "_MLT3",
+   0.45
+  ],
+  [
+   8.65,
+   "_MLT12",
+   0.55
+  ],
+  [
+   20.9,
+   "_MLT12",
+   0.6
   ]
- },
- "captions": [
+ ],
+ "blocks": [
+  {
+   "start": 0.45,
+   "end": 2.46,
+   "y": 0.7,
+   "key": [
+    "out.",
+    2.24
+   ],
+   "col": "orange",
+   "size": 230,
+   "top": [
+    [
+     "that",
+     1.26
+    ],
+    [
+     "almost",
+     1.7
+    ],
+    [
+     "took",
+     1.9
+    ],
+    [
+     "me",
+     2.08
+    ]
+   ]
+  },
   {
    "start": 2.48,
-   "end": 3.18,
-   "y": 0.62,
-   "words": [
+   "end": 3.82,
+   "y": 0.78,
+   "key": [
+    "perfect",
+    3.3
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "and",
      2.5
@@ -133,38 +180,30 @@
     [
      "honestly,",
      2.66
-    ]
-   ],
-   "size": 82
-  },
-  {
-   "start": 3.2,
-   "end": 3.82,
-   "y": 0.68,
-   "words": [
+    ],
     [
      "it's",
      3.2
-    ],
-    [
-     "perfect",
-     3.3
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "timing",
      3.52
     ]
-   ],
-   "size": 82,
-   "hl": {
-    "1": "blush"
-   }
+   ]
   },
   {
    "start": 3.84,
-   "end": 4.52,
-   "y": 0.68,
-   "words": [
+   "end": 5.4,
+   "y": 0.78,
+   "key": [
+    "everywhere",
+    4.76
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "because",
      3.84
@@ -176,23 +215,13 @@
     [
      "wipes",
      4.34
-    ]
-   ],
-   "size": 82
-  },
-  {
-   "start": 4.54,
-   "end": 5.4,
-   "y": 0.68,
-   "words": [
+    ],
     [
      "go",
      4.54
-    ],
-    [
-     "everywhere",
-     4.76
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "with",
      5.06
@@ -201,65 +230,64 @@
      "me.",
      5.3
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 6.28,
    "end": 7.28,
-   "y": 0.62,
-   "words": [
-    [
-     "individually",
-     6.3
-    ],
+   "y": 0.7,
+   "key": [
+    "individually",
+    6.3
+   ],
+   "col": "orange",
+   "size": 196,
+   "bottom": [
     [
      "wrapped,",
      6.68
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 7.32,
    "end": 8.18,
-   "y": 0.62,
-   "words": [
+   "y": 0.7,
+   "key": [
+    "body size,",
+    7.44
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "full",
      7.32
-    ],
-    [
-     "body",
-     7.44
-    ],
-    [
-     "size,",
-     7.66
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 8.2,
    "end": 8.86,
-   "y": 0.62,
-   "words": [
-    [
-     "bamboo,",
-     8.22
-    ]
+   "y": 0.72,
+   "key": [
+    "bamboo,",
+    8.22
    ],
-   "size": 82,
-   "hl": {
-    "0": "blush"
-   }
+   "col": "orange",
+   "size": 196
   },
   {
    "start": 8.88,
-   "end": 9.7,
-   "y": 0.62,
-   "words": [
+   "end": 11.02,
+   "y": 0.72,
+   "key": [
+    "real",
+    9.72
+   ],
+   "col": "yellow",
+   "size": 196,
+   "top": [
     [
      "and",
      8.88
@@ -277,17 +305,7 @@
      9.4
     ]
    ],
-   "size": 82
-  },
-  {
-   "start": 9.72,
-   "end": 11.02,
-   "y": 0.62,
-   "words": [
-    [
-     "real",
-     9.72
-    ],
+   "bottom": [
     [
      "tangerine",
      10.04
@@ -296,17 +314,19 @@
      "oil,",
      10.44
     ]
-   ],
-   "size": 82,
-   "hl": {
-    "0": "yellow"
-   }
+   ]
   },
   {
    "start": 11.06,
    "end": 12.1,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "fake",
+    11.42
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "not",
      11.06
@@ -314,23 +334,26 @@
     [
      "some",
      11.2
-    ],
-    [
-     "fake",
-     11.42
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "spray.",
      11.62
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 12.2,
-   "end": 13.12,
-   "y": 0.62,
-   "words": [
+   "end": 13.96,
+   "y": 0.72,
+   "key": [
+    "collarbone,",
+    13.28
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "I",
      12.22
@@ -346,31 +369,28 @@
     [
      "neck,",
      12.68
-    ]
-   ],
-   "size": 82
-  },
-  {
-   "start": 13.14,
-   "end": 13.96,
-   "y": 0.62,
-   "words": [
+    ],
     [
      "my",
      13.16
-    ],
-    [
-     "collarbone,",
-     13.28
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 13.98,
    "end": 15.02,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "glycolic",
+    14.36
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
+    [
+     "and",
+     13.98
+    ],
     [
      "it's",
      14.1
@@ -378,46 +398,49 @@
     [
      "got",
      14.24
-    ],
-    [
-     "glycolic",
-     14.36
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "acid",
      14.78
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 15.04,
    "end": 15.78,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "arnica",
+    15.2
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "and",
      15.04
-    ],
-    [
-     "arnica",
-     15.2
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "working",
      15.42
     ]
-   ],
-   "size": 82,
-   "hl": {
-    "1": "blush"
-   }
+   ]
   },
   {
    "start": 15.8,
    "end": 16.76,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "breathe.",
+    16.32
+   ],
+   "col": "yellow",
+   "size": 196,
+   "top": [
     [
      "while",
      15.8
@@ -429,22 +452,20 @@
     [
      "just",
      16.16
-    ],
-    [
-     "breathe.",
-     16.32
     ]
-   ],
-   "size": 82,
-   "hl": {
-    "3": "blush"
-   }
+   ]
   },
   {
    "start": 16.8,
-   "end": 17.32,
-   "y": 0.62,
-   "words": [
+   "end": 18.28,
+   "y": 0.72,
+   "key": [
+    "compost,",
+    17.6
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "the",
      16.8
@@ -456,15 +477,7 @@
     [
      "goes",
      17.1
-    ]
-   ],
-   "size": 82
-  },
-  {
-   "start": 17.34,
-   "end": 18.28,
-   "y": 0.62,
-   "words": [
+    ],
     [
      "in",
      17.34
@@ -472,19 +485,20 @@
     [
      "the",
      17.48
-    ],
-    [
-     "compost,",
-     17.6
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 18.3,
    "end": 19.3,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "trash,",
+    18.78
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "wrapper",
      18.3
@@ -496,54 +510,65 @@
     [
      "the",
      18.68
-    ],
-    [
-     "trash,",
-     18.78
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 19.34,
    "end": 20.2,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "flushed,",
+    19.54
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "nothing",
      19.34
-    ],
-    [
-     "flushed,",
-     19.54
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 20.24,
    "end": 21.12,
-   "y": 0.62,
-   "words": [
+   "y": 0.72,
+   "key": [
+    "complicated.",
+    20.4
+   ],
+   "col": "yellow",
+   "size": 196,
+   "top": [
     [
      "nothing",
      20.24
-    ],
-    [
-     "complicated.",
-     20.4
     ]
+   ]
+  },
+  {
+   "start": 21.98,
+   "end": 23.12,
+   "y": 0.72,
+   "key": [
+    "$14.95",
+    22.0
    ],
-   "size": 82,
-   "hl": {
-    "1": "yellow"
-   }
+   "col": "yellow",
+   "size": 230
   },
   {
    "start": 23.16,
-   "end": 23.98,
-   "y": 0.62,
-   "words": [
+   "end": 25.22,
+   "y": 0.72,
+   "key": [
+    "hit",
+    24.0
+   ],
+   "col": "orange",
+   "size": 230,
+   "top": [
     [
      "and",
      23.18
@@ -561,17 +586,7 @@
      23.8
     ]
    ],
-   "size": 82
-  },
-  {
-   "start": 24.0,
-   "end": 25.22,
-   "y": 0.62,
-   "words": [
-    [
-     "hit",
-     24.0
-    ],
+   "bottom": [
     [
      "in",
      24.18
@@ -592,38 +607,29 @@
      "one,",
      24.68
     ]
-   ],
-   "size": 82
+   ]
   },
   {
    "start": 25.26,
-   "end": 25.94,
-   "y": 0.62,
-   "words": [
+   "end": 26.62,
+   "y": 0.72,
+   "key": [
+    "never",
+    25.54
+   ],
+   "col": "orange",
+   "size": 196,
+   "top": [
     [
      "I'm",
      25.28
-    ],
-    [
-     "never",
-     25.54
-    ],
+    ]
+   ],
+   "bottom": [
     [
      "skipping",
      25.74
-    ]
-   ],
-   "size": 82,
-   "hl": {
-    "1": "orange",
-    "2": "orange"
-   }
-  },
-  {
-   "start": 25.96,
-   "end": 26.62,
-   "y": 0.62,
-   "words": [
+    ],
     [
      "these",
      25.96
@@ -632,88 +638,7 @@
      "again.",
      26.24
     ]
-   ],
-   "size": 82,
-   "hl": {
-    "1": "blush"
-   }
-  }
- ],
- "chips": [
-  {
-   "start": 6.3,
-   "end": 12.1,
-   "y": 0.085,
-   "items": [
-    [
-     "INDIVIDUALLY WRAPPED",
-     6.3
-    ],
-    [
-     "FULL BODY SIZE",
-     7.32
-    ],
-    [
-     "BAMBOO",
-     8.22
-    ],
-    [
-     "REAL TANGERINE OIL",
-     10.04
-    ]
-   ]
-  },
-  {
-   "start": 14.36,
-   "end": 16.76,
-   "y": 0.085,
-   "dot": [
-    201,
-    128,
-    163
-   ],
-   "items": [
-    [
-     "GLYCOLIC ACID",
-     14.36
-    ],
-    [
-     "ARNICA",
-     15.2
-    ]
-   ]
-  },
-  {
-   "start": 17.6,
-   "end": 21.12,
-   "y": 0.085,
-   "dot": [
-    240,
-    222,
-    54
-   ],
-   "items": [
-    [
-     "WIPE: COMPOST",
-     17.6
-    ],
-    [
-     "WRAPPER: TRASH",
-     18.78
-    ],
-    [
-     "NOTHING FLUSHED",
-     19.54
-    ]
    ]
   }
- ],
- "price": {
-  "start": 22.0,
-  "end": 23.12,
-  "y": 0.6,
-  "text": "$14.95",
-  "label": "BUSY CO. BODY WIPES",
-  "rot": 4
- }
+ ]
 }

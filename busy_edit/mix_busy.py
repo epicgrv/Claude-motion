@@ -22,11 +22,12 @@ place(pop, 0.72, -17, dur=0.4)            # pill pop "took me out."
 # whip transitions
 for c in [3.2, 7.333, 8.9, 21.15]:
     place(whoosh, c - 0.5, -12)
-place(swoosh, 5.433 - 0.4, -10, dur=1.0)   # brand wipe
-place(boom, 5.40, -22, dur=1.0)
+place(whoosh, 5.433 - 0.5, -12)
 # chips: soft click + typewriter tick
-for t in [6.30, 7.32, 8.22, 10.04, 14.36, 15.20, 17.60, 18.78, 19.54]:
-    place(click, t, -17); place(typ, t + 0.02, -27, dur=0.18)
+place(click, 0.0, -7)                                  # shutter click + flash
+for t in [2.24, 4.76, 9.72, 11.42, 14.36, 17.60, 24.00, 25.54]:   # keyword pops
+    place(pop, t, -21, dur=0.35)
+for c in [3.2, 5.433, 8.9, 21.15]: place(boom, c - 0.05, -21, dur=0.9)
 place(ding, 20.42, -19)                    # nothing complicated
 place(cash, 21.98, -11, dur=1.4)           # price
 place(pop, 22.0, -18, dur=0.4)
