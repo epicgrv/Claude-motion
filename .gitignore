@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 *.blend1
+finance_shorts/reference/*.mp4
+finance_shorts/**/out/
+*.wav
+*.mp3
