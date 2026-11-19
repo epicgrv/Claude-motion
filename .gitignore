@@ -7,3 +7,6 @@ finance_shorts/reference/*.mp4
 finance_shorts/**/out/
 *.wav
 *.mp3
+finance_shorts/visuals/*/plates/*.png
+finance_shorts/visuals/*/out/
+finance_shorts/audio/*/takes/
