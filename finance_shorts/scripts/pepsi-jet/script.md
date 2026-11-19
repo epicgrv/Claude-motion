@@ -1,14 +1,44 @@
-# Script v1: "The $700,000 Pepsi Loophole"
+# Script v2: "The $700,000 Pepsi Loophole"
 
 **Format:** YouTube Short / IG Reel · 9:16 · target 55–60 s · ~168 words · Pillar: business case study · Concept taught: **arbitrage / reading the fine print**
-**Status:** awaiting owner review (step 2)
+**Status:** v2 approved by owner (all humour lines A–J added). Voiceover recorded: **80.6 s**. Small wording changes for accuracy and clarity: F says "a few points closer" (the coupon count isn't documented), L06 opens with "But John? He read the fine print." so it can't be heard as an instruction to John, and the arbitrage definition is spoken by John.
+
+## Narration v2 (as recorded; timings from `audio/pepsi-jet/timeline.json`)
+
+| ID | Who | Line | Time (s) |
+|---|---|---|---|
+| L01 | NAR | In 1996, a college kid mailed Pepsi a check for $700,000… to buy a fighter jet. | 0.0–5.7 |
+| L02 | NAR | Pepsi's TV ad showed a teen landing a Harrier jet at school. | 5.9–9.5 |
+| L03 | TEEN | Sure beats the bus. | 9.6–10.7 |
+| L04 | NAR | Price: seven million Pepsi Points. | 10.8–12.8 |
+| L05 | BUDDY | Dude. You'd have to drink Pepsi forever. | 13.0–15.3 |
+| L06 | NAR | But John? He read the fine print. Extra points cost… ten cents each. Seven million times ten cents… seven hundred grand. For a jet worth over twenty million. That's a 96% discount. Not even Black Friday goes that hard. | 15.4–28.5 |
+| L07 | JOHN | Class, this is arbitrage: buy something cheap that's worth way more somewhere else. | 28.6–32.8 |
+| L08 | BUDDY | This is insanity. | 32.9–33.8 |
+| L09 | NAR | So he lined up five investors. | 34.0–35.6 |
+| L10 | INVESTOR | Where do we park it? | 35.7–36.6 |
+| L11 | JOHN | …School? | 37.0–37.5 |
+| L12 | NAR | And he mailed Pepsi a check for $700,008.50. He even paid the shipping. What is he, a criminal? | 37.6–44.2 |
+| L13 | NAR | Pepsi said the jet was a joke. | 44.3–46.0 |
+| L14 | EXEC | It's a commercial, kid. | 46.1–48.1 |
+| L15 | NAR | They sent the check back… with coupons for free Pepsi. Which, to be fair, gets him a few points closer. | 48.2–53.7 |
+| L16 | NAR | So he sued. And a federal judge ruled no reasonable person would believe a soda company sells fighter jets. | 53.8–59.7 |
+| L17 | BUDDY | Unreasonable person, right here. | 59.8–61.7 |
+| L18 | NAR | He lost. Somewhere, a school bus driver sighed with relief. | 61.8–65.5 |
+| L19 | NAR | But Pepsi quietly re-aired the ad. Same jet. New price: seven HUNDRED million points. That's a 9,900% price hike. Worst inflation in history. Plus two tiny words underneath… | 65.7–76.8 |
+| L20 | NAR | "Just kidding." | 77.2–77.9 |
+| L21 | BUDDY | …So we're keeping the cans? | 78.4–80.0 |
+
+> The v1 table below is kept for reference. The storyboard shots will be re-timed to v2 in the visual stage.
+
+## v1 narration (superseded)
 
 ## Title options
 1. He Tried to Buy a Fighter Jet With Pepsi Points
 2. The $700,000 Pepsi Loophole
 3. Pepsi Owed This Kid a Fighter Jet
 
-## Narration (VO = narrator · quoted lines = character, voiced by the narrator in character as the reference does)
+### v1 detail (VO = narrator · quoted lines = character, voiced by the narrator in character as the reference does)
 
 | # | Line | Time (est.) |
 |---|---|---|

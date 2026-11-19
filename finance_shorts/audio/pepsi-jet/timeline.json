@@ -1,0 +1,1427 @@
+{
+ "duration": 80.59,
+ "lines": [
+  {
+   "id": "L01",
+   "who": "NAR",
+   "text": "In 1996, a college kid mailed Pepsi a check for $700,000\u2026 to buy a fighter jet.",
+   "heard": "In 1996, a college kid mailed Pepsi a check for $700 ,000 to buy a fighter jet.",
+   "wer": 0.0,
+   "take": "L01_NAR_697d4fef1b.wav",
+   "start": 0.0,
+   "end": 5.74,
+   "words": [
+    {
+     "w": "In",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "1996,",
+     "s": 0.16,
+     "e": 0.9
+    },
+    {
+     "w": "a",
+     "s": 1.42,
+     "e": 1.5
+    },
+    {
+     "w": "college",
+     "s": 1.5,
+     "e": 1.8
+    },
+    {
+     "w": "kid",
+     "s": 1.8,
+     "e": 2.0
+    },
+    {
+     "w": "mailed",
+     "s": 2.0,
+     "e": 2.28
+    },
+    {
+     "w": "Pepsi",
+     "s": 2.28,
+     "e": 2.58
+    },
+    {
+     "w": "a",
+     "s": 2.58,
+     "e": 2.86
+    },
+    {
+     "w": "check",
+     "s": 2.86,
+     "e": 2.96
+    },
+    {
+     "w": "for",
+     "s": 2.96,
+     "e": 3.16
+    },
+    {
+     "w": "$700",
+     "s": 3.16,
+     "e": 3.66
+    },
+    {
+     "w": ",000",
+     "s": 3.66,
+     "e": 4.26
+    },
+    {
+     "w": "to",
+     "s": 4.26,
+     "e": 4.82
+    },
+    {
+     "w": "buy",
+     "s": 4.82,
+     "e": 5.02
+    },
+    {
+     "w": "a",
+     "s": 5.02,
+     "e": 5.18
+    },
+    {
+     "w": "fighter",
+     "s": 5.18,
+     "e": 5.38
+    },
+    {
+     "w": "jet.",
+     "s": 5.38,
+     "e": 5.72
+    }
+   ]
+  },
+  {
+   "id": "L02",
+   "who": "NAR",
+   "text": "Pepsi's TV ad showed a teen landing a Harrier jet at school.",
+   "heard": "Pepsi's TV ad showed a teen landing a Harrier jet at school.",
+   "wer": 0.0,
+   "take": "L02_NAR_f81e9251dd.wav",
+   "start": 5.86,
+   "end": 9.46,
+   "words": [
+    {
+     "w": "Pepsi's",
+     "s": 5.86,
+     "e": 6.3
+    },
+    {
+     "w": "TV",
+     "s": 6.3,
+     "e": 6.52
+    },
+    {
+     "w": "ad",
+     "s": 6.52,
+     "e": 6.8
+    },
+    {
+     "w": "showed",
+     "s": 6.8,
+     "e": 7.06
+    },
+    {
+     "w": "a",
+     "s": 7.06,
+     "e": 7.22
+    },
+    {
+     "w": "teen",
+     "s": 7.22,
+     "e": 7.44
+    },
+    {
+     "w": "landing",
+     "s": 7.44,
+     "e": 7.76
+    },
+    {
+     "w": "a",
+     "s": 7.76,
+     "e": 7.96
+    },
+    {
+     "w": "Harrier",
+     "s": 7.96,
+     "e": 8.34
+    },
+    {
+     "w": "jet",
+     "s": 8.34,
+     "e": 8.64
+    },
+    {
+     "w": "at",
+     "s": 8.64,
+     "e": 8.96
+    },
+    {
+     "w": "school.",
+     "s": 8.96,
+     "e": 9.3
+    }
+   ]
+  },
+  {
+   "id": "L03",
+   "who": "TEEN",
+   "text": "Sure beats the bus.",
+   "heard": "sure beats the bus.",
+   "wer": 0.0,
+   "take": "L03_TEEN_993455eb12.wav",
+   "start": 9.56,
+   "end": 10.67,
+   "words": [
+    {
+     "w": "sure",
+     "s": 9.56,
+     "e": 9.82
+    },
+    {
+     "w": "beats",
+     "s": 9.82,
+     "e": 10.04
+    },
+    {
+     "w": "the",
+     "s": 10.04,
+     "e": 10.22
+    },
+    {
+     "w": "bus.",
+     "s": 10.22,
+     "e": 10.48
+    }
+   ]
+  },
+  {
+   "id": "L04",
+   "who": "NAR",
+   "text": "Price: seven million Pepsi Points.",
+   "heard": "Price, seven million Pepsi points.",
+   "wer": 0.0,
+   "take": "L04_NAR_fa98f8aa89.wav",
+   "start": 10.77,
+   "end": 12.85,
+   "words": [
+    {
+     "w": "Price,",
+     "s": 10.77,
+     "e": 11.09
+    },
+    {
+     "w": "seven",
+     "s": 11.53,
+     "e": 11.73
+    },
+    {
+     "w": "million",
+     "s": 11.73,
+     "e": 12.07
+    },
+    {
+     "w": "Pepsi",
+     "s": 12.07,
+     "e": 12.35
+    },
+    {
+     "w": "points.",
+     "s": 12.35,
+     "e": 12.69
+    }
+   ]
+  },
+  {
+   "id": "L05",
+   "who": "BUDDY",
+   "text": "Dude. You'd have to drink Pepsi forever.",
+   "heard": "Dude, you'd have to drink Pepsi forever.",
+   "wer": 0.0,
+   "take": "L05_BUDDY_50cfaa9044.wav",
+   "start": 12.97,
+   "end": 15.27,
+   "words": [
+    {
+     "w": "Dude,",
+     "s": 12.97,
+     "e": 13.17
+    },
+    {
+     "w": "you'd",
+     "s": 13.51,
+     "e": 13.61
+    },
+    {
+     "w": "have",
+     "s": 13.61,
+     "e": 13.67
+    },
+    {
+     "w": "to",
+     "s": 13.67,
+     "e": 13.77
+    },
+    {
+     "w": "drink",
+     "s": 13.77,
+     "e": 13.95
+    },
+    {
+     "w": "Pepsi",
+     "s": 13.95,
+     "e": 14.31
+    },
+    {
+     "w": "forever.",
+     "s": 14.31,
+     "e": 14.97
+    }
+   ]
+  },
+  {
+   "id": "L06",
+   "who": "NAR",
+   "text": "But John? He read the fine print. Extra points cost\u2026 ten cents each. Seven million times ten cents\u2026 seven hundred grand. For a jet worth over twenty million. That's a 96% discount. Not even Black Friday goes that hard.",
+   "heard": "But John, he read the fine print. Extra points cost 10 cents each, seven million times 10 cents, 700 grand, for a jet worth over 20 million. That's a 96 % discount. Not even Black Friday goes that hard.",
+   "wer": 0.0,
+   "take": "L06_NAR_26fba44117.wav",
+   "start": 15.39,
+   "end": 28.48,
+   "words": [
+    {
+     "w": "But",
+     "s": 15.39,
+     "e": 15.55
+    },
+    {
+     "w": "John,",
+     "s": 15.55,
+     "e": 15.89
+    },
+    {
+     "w": "he",
+     "s": 16.15,
+     "e": 16.35
+    },
+    {
+     "w": "read",
+     "s": 16.35,
+     "e": 16.53
+    },
+    {
+     "w": "the",
+     "s": 16.53,
+     "e": 16.67
+    },
+    {
+     "w": "fine",
+     "s": 16.67,
+     "e": 16.89
+    },
+    {
+     "w": "print.",
+     "s": 16.89,
+     "e": 17.29
+    },
+    {
+     "w": "Extra",
+     "s": 17.63,
+     "e": 17.77
+    },
+    {
+     "w": "points",
+     "s": 17.77,
+     "e": 18.15
+    },
+    {
+     "w": "cost",
+     "s": 18.15,
+     "e": 18.47
+    },
+    {
+     "w": "10",
+     "s": 18.47,
+     "e": 18.97
+    },
+    {
+     "w": "cents",
+     "s": 18.97,
+     "e": 19.29
+    },
+    {
+     "w": "each,",
+     "s": 19.29,
+     "e": 19.61
+    },
+    {
+     "w": "seven",
+     "s": 19.95,
+     "e": 20.17
+    },
+    {
+     "w": "million",
+     "s": 20.17,
+     "e": 20.43
+    },
+    {
+     "w": "times",
+     "s": 20.43,
+     "e": 20.81
+    },
+    {
+     "w": "10",
+     "s": 20.81,
+     "e": 21.05
+    },
+    {
+     "w": "cents,",
+     "s": 21.05,
+     "e": 21.43
+    },
+    {
+     "w": "700",
+     "s": 21.57,
+     "e": 21.97
+    },
+    {
+     "w": "grand,",
+     "s": 21.97,
+     "e": 22.47
+    },
+    {
+     "w": "for",
+     "s": 22.67,
+     "e": 22.83
+    },
+    {
+     "w": "a",
+     "s": 22.83,
+     "e": 22.97
+    },
+    {
+     "w": "jet",
+     "s": 22.97,
+     "e": 23.15
+    },
+    {
+     "w": "worth",
+     "s": 23.15,
+     "e": 23.41
+    },
+    {
+     "w": "over",
+     "s": 23.41,
+     "e": 23.75
+    },
+    {
+     "w": "20",
+     "s": 23.75,
+     "e": 24.15
+    },
+    {
+     "w": "million.",
+     "s": 24.15,
+     "e": 24.51
+    },
+    {
+     "w": "That's",
+     "s": 24.77,
+     "e": 25.01
+    },
+    {
+     "w": "a",
+     "s": 25.01,
+     "e": 25.11
+    },
+    {
+     "w": "96",
+     "s": 25.11,
+     "e": 25.57
+    },
+    {
+     "w": "%",
+     "s": 25.57,
+     "e": 25.99
+    },
+    {
+     "w": "discount.",
+     "s": 25.99,
+     "e": 26.43
+    },
+    {
+     "w": "Not",
+     "s": 26.69,
+     "e": 26.87
+    },
+    {
+     "w": "even",
+     "s": 26.87,
+     "e": 27.09
+    },
+    {
+     "w": "Black",
+     "s": 27.09,
+     "e": 27.33
+    },
+    {
+     "w": "Friday",
+     "s": 27.33,
+     "e": 27.65
+    },
+    {
+     "w": "goes",
+     "s": 27.65,
+     "e": 27.91
+    },
+    {
+     "w": "that",
+     "s": 27.91,
+     "e": 28.15
+    },
+    {
+     "w": "hard.",
+     "s": 28.15,
+     "e": 28.37
+    }
+   ]
+  },
+  {
+   "id": "L07",
+   "who": "JOHN",
+   "text": "Class, this is arbitrage: buy something cheap that's worth way more somewhere else.",
+   "heard": "Class, this is Arbitrage. Buy something cheap that's worth way more somewhere else.",
+   "wer": 0.0,
+   "take": "L07_JOHN_5863ac405c.wav",
+   "start": 28.6,
+   "end": 32.77,
+   "words": [
+    {
+     "w": "Class,",
+     "s": 28.6,
+     "e": 28.88
+    },
+    {
+     "w": "this",
+     "s": 29.32,
+     "e": 29.42
+    },
+    {
+     "w": "is",
+     "s": 29.42,
+     "e": 29.6
+    },
+    {
+     "w": "Arbitrage.",
+     "s": 29.6,
+     "e": 30.04
+    },
+    {
+     "w": "Buy",
+     "s": 30.32,
+     "e": 30.44
+    },
+    {
+     "w": "something",
+     "s": 30.44,
+     "e": 30.74
+    },
+    {
+     "w": "cheap",
+     "s": 30.74,
+     "e": 30.98
+    },
+    {
+     "w": "that's",
+     "s": 30.98,
+     "e": 31.5
+    },
+    {
+     "w": "worth",
+     "s": 31.5,
+     "e": 31.62
+    },
+    {
+     "w": "way",
+     "s": 31.62,
+     "e": 31.88
+    },
+    {
+     "w": "more",
+     "s": 31.88,
+     "e": 32.1
+    },
+    {
+     "w": "somewhere",
+     "s": 32.1,
+     "e": 32.36
+    },
+    {
+     "w": "else.",
+     "s": 32.36,
+     "e": 32.62
+    }
+   ]
+  },
+  {
+   "id": "L08",
+   "who": "BUDDY",
+   "text": "This is insanity.",
+   "heard": "This is insanity.",
+   "wer": 0.0,
+   "take": "L08_BUDDY_f608cb20c6.wav",
+   "start": 32.85,
+   "end": 33.84,
+   "words": [
+    {
+     "w": "This",
+     "s": 32.85,
+     "e": 33.01
+    },
+    {
+     "w": "is",
+     "s": 33.01,
+     "e": 33.13
+    },
+    {
+     "w": "insanity.",
+     "s": 33.13,
+     "e": 33.51
+    }
+   ]
+  },
+  {
+   "id": "L09",
+   "who": "NAR",
+   "text": "So he lined up five investors.",
+   "heard": "So he lined up five investors.",
+   "wer": 0.0,
+   "take": "L09_NAR_4aeccadc46.wav",
+   "start": 33.96,
+   "end": 35.63,
+   "words": [
+    {
+     "w": "So",
+     "s": 33.96,
+     "e": 34.12
+    },
+    {
+     "w": "he",
+     "s": 34.12,
+     "e": 34.26
+    },
+    {
+     "w": "lined",
+     "s": 34.26,
+     "e": 34.48
+    },
+    {
+     "w": "up",
+     "s": 34.48,
+     "e": 34.64
+    },
+    {
+     "w": "five",
+     "s": 34.64,
+     "e": 34.94
+    },
+    {
+     "w": "investors.",
+     "s": 34.94,
+     "e": 35.38
+    }
+   ]
+  },
+  {
+   "id": "L10",
+   "who": "INVESTOR",
+   "text": "Where do we park it?",
+   "heard": "Where do we park it?",
+   "wer": 0.0,
+   "take": "L10_INVESTOR_e3297fcda0.wav",
+   "start": 35.71,
+   "end": 36.65,
+   "words": [
+    {
+     "w": "Where",
+     "s": 35.71,
+     "e": 35.91
+    },
+    {
+     "w": "do",
+     "s": 35.91,
+     "e": 36.05
+    },
+    {
+     "w": "we",
+     "s": 36.05,
+     "e": 36.19
+    },
+    {
+     "w": "park",
+     "s": 36.19,
+     "e": 36.45
+    },
+    {
+     "w": "it?",
+     "s": 36.45,
+     "e": 36.63
+    }
+   ]
+  },
+  {
+   "id": "L11",
+   "who": "JOHN",
+   "text": "\u2026School?",
+   "heard": "School?",
+   "wer": 0.0,
+   "take": "L11_JOHN_10c84982ba.wav",
+   "start": 36.95,
+   "end": 37.49,
+   "words": [
+    {
+     "w": "School?",
+     "s": 36.95,
+     "e": 37.27
+    }
+   ]
+  },
+  {
+   "id": "L12",
+   "who": "NAR",
+   "text": "And he mailed Pepsi a check for $700,008.50. He even paid the shipping. What is he, a criminal?",
+   "heard": "and he mailed Pepsi a check for $700 ,008 .50. He even paid the shipping. What is he, a criminal?",
+   "wer": 0.0,
+   "take": "L12_NAR_85fc63c07b.wav",
+   "start": 37.64,
+   "end": 44.22,
+   "words": [
+    {
+     "w": "and",
+     "s": 37.64,
+     "e": 37.76
+    },
+    {
+     "w": "he",
+     "s": 37.76,
+     "e": 37.86
+    },
+    {
+     "w": "mailed",
+     "s": 37.86,
+     "e": 38.1
+    },
+    {
+     "w": "Pepsi",
+     "s": 38.1,
+     "e": 38.4
+    },
+    {
+     "w": "a",
+     "s": 38.4,
+     "e": 38.62
+    },
+    {
+     "w": "check",
+     "s": 38.62,
+     "e": 38.74
+    },
+    {
+     "w": "for",
+     "s": 38.74,
+     "e": 38.94
+    },
+    {
+     "w": "$700",
+     "s": 38.94,
+     "e": 39.46
+    },
+    {
+     "w": ",008",
+     "s": 39.46,
+     "e": 40.24
+    },
+    {
+     "w": ".50.",
+     "s": 40.24,
+     "e": 41.42
+    },
+    {
+     "w": "He",
+     "s": 41.82,
+     "e": 41.98
+    },
+    {
+     "w": "even",
+     "s": 41.98,
+     "e": 42.2
+    },
+    {
+     "w": "paid",
+     "s": 42.2,
+     "e": 42.4
+    },
+    {
+     "w": "the",
+     "s": 42.4,
+     "e": 42.56
+    },
+    {
+     "w": "shipping.",
+     "s": 42.56,
+     "e": 42.84
+    },
+    {
+     "w": "What",
+     "s": 43.2,
+     "e": 43.28
+    },
+    {
+     "w": "is",
+     "s": 43.28,
+     "e": 43.4
+    },
+    {
+     "w": "he,",
+     "s": 43.4,
+     "e": 43.58
+    },
+    {
+     "w": "a",
+     "s": 43.68,
+     "e": 43.78
+    },
+    {
+     "w": "criminal?",
+     "s": 43.78,
+     "e": 43.96
+    }
+   ]
+  },
+  {
+   "id": "L13",
+   "who": "NAR",
+   "text": "Pepsi said the jet was a joke.",
+   "heard": "Pepsi said the jet was a joke.",
+   "wer": 0.0,
+   "take": "L13_NAR_76a19f4b52.wav",
+   "start": 44.34,
+   "end": 46.02,
+   "words": [
+    {
+     "w": "Pepsi",
+     "s": 44.34,
+     "e": 44.62
+    },
+    {
+     "w": "said",
+     "s": 44.62,
+     "e": 44.92
+    },
+    {
+     "w": "the",
+     "s": 44.92,
+     "e": 45.1
+    },
+    {
+     "w": "jet",
+     "s": 45.1,
+     "e": 45.32
+    },
+    {
+     "w": "was",
+     "s": 45.32,
+     "e": 45.52
+    },
+    {
+     "w": "a",
+     "s": 45.52,
+     "e": 45.66
+    },
+    {
+     "w": "joke.",
+     "s": 45.66,
+     "e": 45.86
+    }
+   ]
+  },
+  {
+   "id": "L14",
+   "who": "EXEC",
+   "text": "It's a commercial, kid.",
+   "heard": "Hahaha, it's a commercial, kid!",
+   "wer": 0.0,
+   "take": "L14_EXEC_fe579185dd.wav",
+   "start": 46.1,
+   "end": 48.12,
+   "words": [
+    {
+     "w": "Hahaha,",
+     "s": 46.44,
+     "e": 46.78
+    },
+    {
+     "w": "it's",
+     "s": 47.08,
+     "e": 47.24
+    },
+    {
+     "w": "a",
+     "s": 47.24,
+     "e": 47.34
+    },
+    {
+     "w": "commercial,",
+     "s": 47.34,
+     "e": 47.68
+    },
+    {
+     "w": "kid!",
+     "s": 47.82,
+     "e": 48.0
+    }
+   ]
+  },
+  {
+   "id": "L15",
+   "who": "NAR",
+   "text": "They sent the check back\u2026 with coupons for free Pepsi. Which, to be fair, gets him a few points closer.",
+   "heard": "they sent the check back with coupons for free Pepsi, which, to be fair, gets him a few points closer.",
+   "wer": 0.0,
+   "take": "L15_NAR_c814916f93.wav",
+   "start": 48.24,
+   "end": 53.67,
+   "words": [
+    {
+     "w": "they",
+     "s": 48.24,
+     "e": 48.38
+    },
+    {
+     "w": "sent",
+     "s": 48.38,
+     "e": 48.56
+    },
+    {
+     "w": "the",
+     "s": 48.56,
+     "e": 48.72
+    },
+    {
+     "w": "check",
+     "s": 48.72,
+     "e": 48.94
+    },
+    {
+     "w": "back",
+     "s": 48.94,
+     "e": 49.26
+    },
+    {
+     "w": "with",
+     "s": 49.26,
+     "e": 49.64
+    },
+    {
+     "w": "coupons",
+     "s": 49.64,
+     "e": 50.02
+    },
+    {
+     "w": "for",
+     "s": 50.02,
+     "e": 50.34
+    },
+    {
+     "w": "free",
+     "s": 50.34,
+     "e": 50.58
+    },
+    {
+     "w": "Pepsi,",
+     "s": 50.58,
+     "e": 50.9
+    },
+    {
+     "w": "which,",
+     "s": 51.26,
+     "e": 51.44
+    },
+    {
+     "w": "to",
+     "s": 51.64,
+     "e": 51.72
+    },
+    {
+     "w": "be",
+     "s": 51.72,
+     "e": 51.86
+    },
+    {
+     "w": "fair,",
+     "s": 51.86,
+     "e": 52.12
+    },
+    {
+     "w": "gets",
+     "s": 52.42,
+     "e": 52.52
+    },
+    {
+     "w": "him",
+     "s": 52.52,
+     "e": 52.68
+    },
+    {
+     "w": "a",
+     "s": 52.68,
+     "e": 52.76
+    },
+    {
+     "w": "few",
+     "s": 52.76,
+     "e": 52.92
+    },
+    {
+     "w": "points",
+     "s": 52.92,
+     "e": 53.18
+    },
+    {
+     "w": "closer.",
+     "s": 53.18,
+     "e": 53.46
+    }
+   ]
+  },
+  {
+   "id": "L16",
+   "who": "NAR",
+   "text": "So he sued. And a federal judge ruled no reasonable person would believe a soda company sells fighter jets.",
+   "heard": "So he sued, and a federal judge ruled no reasonable person would believe a soda company sells fighter jets.",
+   "wer": 0.0,
+   "take": "L16_NAR_ce994f49c4.wav",
+   "start": 53.82,
+   "end": 59.67,
+   "words": [
+    {
+     "w": "So",
+     "s": 53.82,
+     "e": 54.0
+    },
+    {
+     "w": "he",
+     "s": 54.0,
+     "e": 54.16
+    },
+    {
+     "w": "sued,",
+     "s": 54.16,
+     "e": 54.58
+    },
+    {
+     "w": "and",
+     "s": 54.96,
+     "e": 55.04
+    },
+    {
+     "w": "a",
+     "s": 55.04,
+     "e": 55.18
+    },
+    {
+     "w": "federal",
+     "s": 55.18,
+     "e": 55.46
+    },
+    {
+     "w": "judge",
+     "s": 55.46,
+     "e": 55.74
+    },
+    {
+     "w": "ruled",
+     "s": 55.74,
+     "e": 56.22
+    },
+    {
+     "w": "no",
+     "s": 56.22,
+     "e": 56.74
+    },
+    {
+     "w": "reasonable",
+     "s": 56.74,
+     "e": 57.12
+    },
+    {
+     "w": "person",
+     "s": 57.12,
+     "e": 57.52
+    },
+    {
+     "w": "would",
+     "s": 57.52,
+     "e": 57.7
+    },
+    {
+     "w": "believe",
+     "s": 57.7,
+     "e": 57.96
+    },
+    {
+     "w": "a",
+     "s": 57.96,
+     "e": 58.12
+    },
+    {
+     "w": "soda",
+     "s": 58.12,
+     "e": 58.3
+    },
+    {
+     "w": "company",
+     "s": 58.3,
+     "e": 58.66
+    },
+    {
+     "w": "sells",
+     "s": 58.66,
+     "e": 59.0
+    },
+    {
+     "w": "fighter",
+     "s": 59.0,
+     "e": 59.3
+    },
+    {
+     "w": "jets.",
+     "s": 59.3,
+     "e": 59.6
+    }
+   ]
+  },
+  {
+   "id": "L17",
+   "who": "BUDDY",
+   "text": "Unreasonable person, right here.",
+   "heard": "Unreasonable person, right here.",
+   "wer": 0.0,
+   "take": "L17_BUDDY_0bf103d335.wav",
+   "start": 59.75,
+   "end": 61.69,
+   "words": [
+    {
+     "w": "Unreasonable",
+     "s": 59.75,
+     "e": 60.25
+    },
+    {
+     "w": "person,",
+     "s": 60.25,
+     "e": 60.75
+    },
+    {
+     "w": "right",
+     "s": 61.09,
+     "e": 61.23
+    },
+    {
+     "w": "here.",
+     "s": 61.23,
+     "e": 61.49
+    }
+   ]
+  },
+  {
+   "id": "L18",
+   "who": "NAR",
+   "text": "He lost. Somewhere, a school bus driver sighed with relief.",
+   "heard": "He lost, somewhere, a school bus driver sighed with relief.",
+   "wer": 0.0,
+   "take": "L18_NAR_6dbc839155.wav",
+   "start": 61.84,
+   "end": 65.48,
+   "words": [
+    {
+     "w": "He",
+     "s": 61.84,
+     "e": 62.02
+    },
+    {
+     "w": "lost,",
+     "s": 62.02,
+     "e": 62.34
+    },
+    {
+     "w": "somewhere,",
+     "s": 62.7,
+     "e": 63.18
+    },
+    {
+     "w": "a",
+     "s": 63.56,
+     "e": 63.64
+    },
+    {
+     "w": "school",
+     "s": 63.64,
+     "e": 63.9
+    },
+    {
+     "w": "bus",
+     "s": 63.9,
+     "e": 64.14
+    },
+    {
+     "w": "driver",
+     "s": 64.14,
+     "e": 64.46
+    },
+    {
+     "w": "sighed",
+     "s": 64.46,
+     "e": 64.8
+    },
+    {
+     "w": "with",
+     "s": 64.8,
+     "e": 65.04
+    },
+    {
+     "w": "relief.",
+     "s": 65.04,
+     "e": 65.36
+    }
+   ]
+  },
+  {
+   "id": "L19",
+   "who": "NAR",
+   "text": "But Pepsi quietly re-aired the ad. Same jet. New price: seven HUNDRED million points. That's a 9,900% price hike. Worst inflation in history. Plus two tiny words underneath\u2026",
+   "heard": "but Pepsi quietly re -aired the ad. Same jet. New price, 700 million points. That's a 9 ,900 % price hike. Worst inflation in history. Plus two tiny words underneath.",
+   "wer": 0.0,
+   "take": "L19_NAR_797fdeaaf4.wav",
+   "start": 65.68,
+   "end": 76.85,
+   "words": [
+    {
+     "w": "but",
+     "s": 65.68,
+     "e": 65.86
+    },
+    {
+     "w": "Pepsi",
+     "s": 65.86,
+     "e": 66.16
+    },
+    {
+     "w": "quietly",
+     "s": 66.16,
+     "e": 66.66
+    },
+    {
+     "w": "re",
+     "s": 66.66,
+     "e": 66.94
+    },
+    {
+     "w": "-aired",
+     "s": 66.94,
+     "e": 67.08
+    },
+    {
+     "w": "the",
+     "s": 67.08,
+     "e": 67.26
+    },
+    {
+     "w": "ad.",
+     "s": 67.26,
+     "e": 67.54
+    },
+    {
+     "w": "Same",
+     "s": 67.86,
+     "e": 68.08
+    },
+    {
+     "w": "jet.",
+     "s": 68.08,
+     "e": 68.34
+    },
+    {
+     "w": "New",
+     "s": 68.68,
+     "e": 68.8
+    },
+    {
+     "w": "price,",
+     "s": 68.8,
+     "e": 69.04
+    },
+    {
+     "w": "700",
+     "s": 69.3,
+     "e": 69.86
+    },
+    {
+     "w": "million",
+     "s": 69.86,
+     "e": 70.16
+    },
+    {
+     "w": "points.",
+     "s": 70.16,
+     "e": 70.64
+    },
+    {
+     "w": "That's",
+     "s": 70.88,
+     "e": 71.12
+    },
+    {
+     "w": "a",
+     "s": 71.12,
+     "e": 71.22
+    },
+    {
+     "w": "9",
+     "s": 71.22,
+     "e": 71.52
+    },
+    {
+     "w": ",900",
+     "s": 71.52,
+     "e": 72.2
+    },
+    {
+     "w": "%",
+     "s": 72.2,
+     "e": 72.7
+    },
+    {
+     "w": "price",
+     "s": 72.7,
+     "e": 72.98
+    },
+    {
+     "w": "hike.",
+     "s": 72.98,
+     "e": 73.3
+    },
+    {
+     "w": "Worst",
+     "s": 73.78,
+     "e": 73.78
+    },
+    {
+     "w": "inflation",
+     "s": 73.78,
+     "e": 74.24
+    },
+    {
+     "w": "in",
+     "s": 74.24,
+     "e": 74.46
+    },
+    {
+     "w": "history.",
+     "s": 74.46,
+     "e": 74.82
+    },
+    {
+     "w": "Plus",
+     "s": 75.12,
+     "e": 75.34
+    },
+    {
+     "w": "two",
+     "s": 75.34,
+     "e": 75.66
+    },
+    {
+     "w": "tiny",
+     "s": 75.66,
+     "e": 75.98
+    },
+    {
+     "w": "words",
+     "s": 75.98,
+     "e": 76.34
+    },
+    {
+     "w": "underneath.",
+     "s": 76.34,
+     "e": 76.66
+    }
+   ]
+  },
+  {
+   "id": "L20",
+   "who": "NAR",
+   "text": "\"Just kidding.\"",
+   "heard": "Just kidding.",
+   "wer": 0.0,
+   "take": "L20_NAR_406ce999e6.wav",
+   "start": 77.2,
+   "end": 77.94,
+   "words": [
+    {
+     "w": "Just",
+     "s": 77.2,
+     "e": 77.46
+    },
+    {
+     "w": "kidding.",
+     "s": 77.46,
+     "e": 77.72
+    }
+   ]
+  },
+  {
+   "id": "L21",
+   "who": "BUDDY",
+   "text": "\u2026So we're keeping the cans?",
+   "heard": "So, we're keeping the cans?",
+   "wer": 0.0,
+   "take": "L21_BUDDY_17a66076d6.wav",
+   "start": 78.39,
+   "end": 79.99,
+   "words": [
+    {
+     "w": "So,",
+     "s": 78.39,
+     "e": 78.75
+    },
+    {
+     "w": "we're",
+     "s": 79.05,
+     "e": 79.23
+    },
+    {
+     "w": "keeping",
+     "s": 79.23,
+     "e": 79.35
+    },
+    {
+     "w": "the",
+     "s": 79.35,
+     "e": 79.49
+    },
+    {
+     "w": "cans?",
+     "s": 79.49,
+     "e": 79.75
+    }
+   ]
+  }
+ ]
+}
