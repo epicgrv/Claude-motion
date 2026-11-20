@@ -570,3 +570,85 @@ def P21_flyby():
     con.track_axis = "TRACK_NEGATIVE_Z"
     con.up_axis = "UP_Y"
     return {"frames": 48, "spp": 14, "scale": 75}
+
+
+# ------------------------------------------------------------------------------------------------ v3 3-D sets
+def _bean_bag(loc, color=(0.28, 0.12, 0.42)):
+    import bpy
+    bb = sphere("BeanBag", 0.55, loc, noisy("BeanFabric", color, tuple(c * 0.7 for c in color), 60, 0.85, 0.4),
+                scale=(1.15, 1.05, 0.62))
+    d = bb.modifiers.new("disp", "DISPLACE")
+    tx = bpy.data.textures.new("beanTx", "CLOUDS")
+    tx.noise_scale = 0.35
+    d.texture = tx
+    d.strength = 0.12
+    return bb
+
+
+def P30_bedroom3d():
+    """90s teen bedroom at night for true 3-D shots. TV screen = 'TVScreen' quad (anchors), bean bag centre (0,0.6)."""
+    world((0.01, 0.012, 0.03), 1.0)
+    carpet = noisy("Carpet", (0.55, 0.3, 0.14), (0.16, 0.12, 0.2), 14, 0.95, 0.6, voronoi=True)
+    paper = stripes("BedWall", (0.42, 0.33, 0.24), (0.37, 0.29, 0.21), 22, 0.85, axis="X")
+    room(5.5, 5.5, 2.6, carpet, paper)
+    wood_ = wood("Dresser", (0.45, 0.24, 0.1), (0.28, 0.13, 0.05), 0.35, scale=3, coat=0.4)
+    box("Dresser", (1.3, 0.5, 0.75), (-1.7, 2.4, 0.375), wood_, bevel=0.02)
+    for i in range(3):
+        box("Drawer", (1.2, 0.02, 0.2), (-1.7, 2.14, 0.15 + i * 0.23), wood_, bevel=0.01)
+    beige = mat("TVBeige", (0.72, 0.66, 0.55), 0.45, coat=0.2)
+    box("TVBody", (0.72, 0.62, 0.6), (-1.7, 2.45, 1.06), beige, bevel=0.06)
+    box("TVBezel", (0.64, 0.04, 0.5), (-1.7, 2.13, 1.06), mat("TVDark", (0.03, 0.03, 0.035), 0.3), bevel=0.03)
+    plane("TVScreen", (0.54, 0.4), (-1.7, 2.105, 1.06), emit("TVGlow", (0.35, 0.55, 1.0), 2.2), rot=(math.radians(90), 0, 0))
+    area("TVLight", (-1.7, 1.9, 1.06), (0.5, -1, 0.9), 0.6, 60, (0.4, 0.6, 1.0))
+    for i in range(4):  # VHS stack
+        box("VHS", (0.19, 0.1, 0.025), (-1.15, 2.4, 0.77 + i * 0.028), mat(f"VHS{i % 2}", [(0.05, 0.05, 0.05), (0.6, 0.1, 0.1)][i % 2], 0.4), bevel=0.003)
+    # bed with plaid comforter
+    plaid = stripes("Plaid", (0.55, 0.12, 0.1), (0.85, 0.75, 0.55), 9, 0.9, axis="X")
+    box("BedFrame", (1.5, 2.1, 0.35), (1.9, 1.6, 0.2), wood_, bevel=0.03)
+    box("Comforter", (1.55, 1.9, 0.22), (1.9, 1.5, 0.48), plaid, bevel=0.08)
+    box("Pillow", (0.6, 0.35, 0.15), (1.9, 2.45, 0.62), mat("Pillow", (0.9, 0.88, 0.82), 0.8), bevel=0.06)
+    _bean_bag((0.0, 0.6, 0.3))
+    # desk + lamp + window
+    box("Desk", (1.1, 0.55, 0.06), (0.4, 2.45, 0.74), wood_, bevel=0.01)
+    for dx in (-0.5, 0.5):
+        box("DeskLeg", (0.05, 0.5, 0.72), (0.4 + dx, 2.45, 0.36), wood_, bevel=0.005)
+    cyl("LampBase", 0.08, 0.03, (0.75, 2.5, 0.78), mat("LampMetal", (0.2, 0.2, 0.22), 0.3, metal=0.8))
+    cyl("LampArm", 0.012, 0.35, (0.75, 2.5, 0.96), mat("LampMetal"))
+    cyl("LampShade", 0.1, 0.12, (0.72, 2.42, 1.12), mat("LampShadeM", (0.85, 0.6, 0.2), 0.4), r2=0.04)
+    point("LampWarm", (0.72, 2.4, 1.06), 70, (1.0, 0.65, 0.35), 0.05)
+    box("WinFrame", (1.2, 0.08, 1.0), (0.4, 2.73, 1.75), mat("WinWhite2", (0.85, 0.83, 0.78), 0.5), bevel=0.02)
+    box("WinGlass", (1.05, 0.02, 0.85), (0.4, 2.7, 1.75), emit("NightSky", (0.02, 0.04, 0.12), 0.6), bevel=0)
+    sphere("MoonB", 0.06, (0.6, 2.68, 1.98), emit("MoonB", (0.9, 0.95, 1.0), 8))
+    for i, c in enumerate([(0.8, 0.2, 0.3), (0.2, 0.5, 0.8), (0.95, 0.7, 0.15)]):  # posters (blank)
+        plane("Poster", (0.45, 0.6), (-0.6 + i * 0.55, 2.74, 1.9 - (i % 2) * 0.15), mat(f"Poster{i}", c, 0.7), rot=(math.radians(90), 0, 0))
+    box("Skateboard", (0.2, 0.8, 0.04), (1.0, 2.6, 0.45), mat("Deck", (0.85, 0.3, 0.1), 0.5), rot=(math.radians(-75), 0, 0), bevel=0.02)
+    area("MoonFill", (2.5, -2, 2.4), (0, 1, 0.8), 2, 8, (0.4, 0.5, 1.0))
+    area("WarmBounce", (1.5, 0.5, 2.5), (0, 1, 0), 2, 6, (1.0, 0.7, 0.45))
+    camera((0.6, -2.6, 1.2), (-0.4, 1.5, 0.9), lens=22)
+
+
+def P31_classroom3d():
+    """Sunny 90s classroom for true 3-D shots. Chalkboard = 'Board' (quad anchors), teacher spot at (-0.6, 2.6)."""
+    world((0.5, 0.6, 0.8), 0.6)
+    floor_ = wood("ClassFloor", (0.55, 0.36, 0.2), (0.4, 0.25, 0.13), 0.45, scale=3, planks=0.15, coat=0.3)
+    room(8.0, 8.0, 3.2, floor_, mat("ClassWall", (0.88, 0.82, 0.68), 0.75))
+    box("BoardFrame", (4.2, 0.08, 1.6), (0.3, 3.95, 1.75), wood("BoardWood", (0.5, 0.3, 0.15), (0.35, 0.2, 0.09), 0.4), bevel=0.02)
+    plane("Board", (4.0, 1.4), (0.3, 3.9, 1.75), noisy("Chalkboard", (0.12, 0.26, 0.18), (0.09, 0.2, 0.14), 6, 0.8, 0.05),
+          rot=(math.radians(90), 0, 0))
+    box("ChalkTray", (4.0, 0.12, 0.04), (0.3, 3.86, 0.96), wood("BoardWood"), bevel=0.01)
+    box("TeacherDesk", (1.5, 0.75, 0.75), (1.6, 3.0, 0.375), wood("TDesk", (0.6, 0.38, 0.18), (0.42, 0.25, 0.1), 0.35), bevel=0.03)
+    sphere("Globe", 0.18, (1.95, 3.0, 1.0), noisy("GlobeTex", (0.15, 0.45, 0.2), (0.1, 0.25, 0.6), 2.5, 0.3, 0.1))
+    cyl("GlobeStand", 0.025, 0.15, (1.95, 3.0, 0.82), mat("Brass", (0.8, 0.6, 0.25), 0.2, metal=1.0))
+    desk_w = wood("SDesk", (0.62, 0.42, 0.22), (0.45, 0.28, 0.12), 0.4)
+    for r_ in range(3):
+        for c_ in range(3):
+            x, y = -1.8 + c_ * 1.6, 0.6 - r_ * 1.3
+            box("StudentDesk", (0.9, 0.55, 0.04), (x, y, 0.72), desk_w, bevel=0.01)
+            for dx in (-0.4, 0.4):
+                cyl("StudentDeskLeg", 0.02, 0.7, (x + dx, y, 0.36), mat("DeskMetal", (0.3, 0.3, 0.32), 0.4, metal=0.7))
+            box("StudentChair", (0.42, 0.42, 0.04), (x, y - 0.45, 0.45), desk_w, bevel=0.01)
+    for y in (-1.5, 0.5, 2.5):  # sunny windows on the left wall
+        box("ClassWin", (0.05, 1.2, 1.4), (-3.97, y, 1.9), emit("ClassSun", (1.0, 0.92, 0.75), 6), bevel=0)
+    sun("Sun", (55, 0, -60), 4.0, (1.0, 0.85, 0.62))
+    area("Fill", (2, -3, 2.8), (0, 3, 1.5), 3, 250, (1.0, 0.92, 0.8))
+    camera((0.8, -2.5, 1.6), (0.2, 3.5, 1.6), lens=22)

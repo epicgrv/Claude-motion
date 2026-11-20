@@ -97,6 +97,35 @@ def _depth_np(name: str):
     return cv2.GaussianBlur(d, (0, 0), 3)
 
 
+SHOT_DIR = ROOT / "visuals" / "pepsi-jet" / "plates" / "shots"
+
+
+@lru_cache(maxsize=48)
+def _shot_img(sid: str, i: int) -> skia.Image:
+    return skia.Image.open(str(SHOT_DIR / sid / f"{i:04d}.png"))
+
+
+@lru_cache(maxsize=48)
+def _shot_fg(sid: str, i: int):
+    import cv2
+    m = SHOT_DIR / sid / f"m{i:04d}.png"
+    if not m.exists():
+        return None
+    rgb = cv2.cvtColor(cv2.imread(str(SHOT_DIR / sid / f"{i:04d}.png")), cv2.COLOR_BGR2RGB)
+    a = cv2.imread(str(m), cv2.IMREAD_GRAYSCALE).astype(np.float32)
+    a = np.clip((a - 20) * 4.0, 0, 255).astype(np.uint8)
+    return skia.Image.fromarray(np.ascontiguousarray(np.dstack([rgb, a])), colorType=skia.kRGBA_8888_ColorType)
+
+
+@lru_cache(maxsize=None)
+def _shot_anchors(sid: str):
+    return json.loads((SHOT_DIR / sid / "anchors.json").read_text())
+
+
+def shot_frames(sid: str) -> int:
+    return len(_shot_anchors(sid)["frames"])
+
+
 @lru_cache(None)
 def _grid():
     gx, gy = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32))
@@ -196,6 +225,35 @@ class Frame:
         c.scale(s, s)
         c.translate(-cx, -cy)
         return s
+
+    # --- true-3D shots ------------------------------------------------------------------------------
+    def shot3d(self, sid, i, shake=0.0):
+        """Draw frame i of a rendered 3D shot full-screen (screen space); remember it for anchors/occlusion."""
+        i = max(0, min(shot_frames(sid) - 1, int(i)))
+        self._s3 = (sid, i, shake)
+        c = self.c
+        dx = dy = 0.0
+        if shake:
+            n = self.t * 37.0
+            dx, dy = shake * math.sin(n * 1.7), shake * math.cos(n * 1.3)
+        self._s3off = (dx, dy)
+        c.drawImageRect(_shot_img(sid, i), skia.Rect.MakeXYWH(-12 + dx, -21 + dy, W + 24, H + 42), SAMP)
+
+    def anchor(self, name):
+        """Screen position (px) and pixels-per-metre of a named 3D anchor in the current 3D shot frame."""
+        sid, i, _ = self._s3
+        x, y, ppm, _z = _shot_anchors(sid)["frames"][i][name]
+        dx, dy = self._s3off
+        sx, sy = (W + 24) / W, (H + 42) / H
+        return -12 + dx + x * W * sx, -21 + dy + y * H * sy, ppm * H * sy
+
+    def occlude3d(self):
+        """Redraw the scene objects that stand in front of characters (from the shot's mask pass)."""
+        sid, i, _ = self._s3
+        fg = _shot_fg(sid, i)
+        if fg is not None:
+            dx, dy = self._s3off
+            self.c.drawImageRect(fg, skia.Rect.MakeXYWH(-12 + dx, -21 + dy, W + 24, H + 42), SAMP)
 
     def occlude(self, name, shape):
         """Redraw part of the plate on top (foreground furniture in front of a character). shape: Rect, RRect-able

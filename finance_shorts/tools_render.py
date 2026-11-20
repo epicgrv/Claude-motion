@@ -15,7 +15,8 @@ def main():
         segs = [(float(sys.argv[2]), float(sys.argv[3]))]
         rest = sys.argv[4:]
     silent = out.with_name(out.stem + "_v.mp4")
-    render("finance_shorts.visuals.pepsi_jet_shots", silent, TL, VO, 0, 0, segments=segs)
+    import os
+    render(os.environ.get("SHOTS_MODULE", "finance_shorts.visuals.pepsi_jet_shots"), silent, TL, VO, 0, 0, segments=segs)
     audio = Path(rest[0]) if rest else VO
     fl = "".join(f"[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,afade=t=out:st={b - a - 0.03:.3f}:d=0.03[a{i}];"
                  for i, (a, b) in enumerate(segs))

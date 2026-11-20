@@ -75,10 +75,10 @@ def gesture_weight(t, t0):
 def actor(fx, ch, who, x, y, r, tint=WARM, act=True, enter=None, **kw):
     """Place a character with automatic acting: breathing, talk nods, beat gestures, eye darts, entrances."""
     from finance_shorts.engine.character import POSES, lerp_pose
-    t = fx.t
+    t = math.floor(fx.t * 12) / 12  # animate on 2s/3s like hand-made cut-out animation
     sd = SEED.get(who, 9)
     kw.setdefault("blink", blink(t, sd))
-    kw.setdefault("mouth", talk(fx, who))
+    kw.setdefault("mouth", fx.audio.speaking(who, t))
     base = kw.pop("pose", "stand")
     pose = POSES[base] if isinstance(base, str) else base
     if act:
