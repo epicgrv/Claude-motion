@@ -386,18 +386,16 @@ def P13_courthouse():
 def P10_hq_tower():
     _sky((0.08, 0.3, 0.8), (0.4, 0.62, 0.95), (0.85, 0.85, 0.85), 1.3)
     plane("Plaza", (120, 120), (0, 20, 0), noisy("Plaza", (0.75, 0.72, 0.68), (0.6, 0.58, 0.55), 6, 0.6, 0.1))
-    glass_wall = mat("Curtain", (0.06, 0.12, 0.22), 0.25, metal=0.0, coat=0.8)
-    nodes = glass_wall.node_tree.nodes
-    br = nodes.new("ShaderNodeTexBrick")
-    br.inputs["Scale"].default_value = 0.6
-    br.inputs["Mortar Size"].default_value = 0.03
-    br.inputs["Bias"].default_value = 0.0
-    br.inputs["Brick Width"].default_value = 0.8
-    br.inputs["Row Height"].default_value = 0.6
-    br.inputs["Color1"].default_value = (0.08, 0.16, 0.3, 1)
-    br.inputs["Color2"].default_value = (0.12, 0.22, 0.38, 1)
-    br.inputs["Mortar"].default_value = (0.85, 0.86, 0.88, 1)
-    glass_wall.node_tree.links.new(br.outputs["Color"], nodes["Principled BSDF"].inputs["Base Color"])
+    glass_wall = brick("Curtain", (0.05, 0.12, 0.24), (0.08, 0.17, 0.3), (0.78, 0.8, 0.83), 0.3, 0.15)
+    gn = glass_wall.node_tree.nodes
+    for n in gn:
+        if n.bl_idname == "ShaderNodeTexBrick":
+            n.offset = 0.0
+            n.inputs["Brick Width"].default_value = 1.0
+            n.inputs["Row Height"].default_value = 0.35
+            n.inputs["Mortar Size"].default_value = 0.06
+            n.inputs["Bias"].default_value = 0.0
+    gn["Principled BSDF"].inputs["Coat Weight"].default_value = 0.7
     box("Tower", (22, 22, 140), (0, 30, 70), glass_wall, bevel=0.3)
     box("Crown", (23, 23, 3), (0, 30, 141), mat("Steel", (0.7, 0.72, 0.75), 0.3, metal=1.0), bevel=0.2)
     box("Lobby", (26, 26, 6), (0, 30, 3), glass("Lobby", (0.6, 0.7, 0.8), 0.05), bevel=0.1)
@@ -411,7 +409,7 @@ def P10_hq_tower():
     sun("Sun", (35, 0, 210), 5.0, (1.0, 0.92, 0.8))
     box("Side1", (14, 14, 70), (-26, 45, 35), noisy("Stone", (0.75, 0.7, 0.62), (0.6, 0.56, 0.5), 3, 0.6, 0.2), bevel=0.2)
     box("Side2", (14, 14, 55), (26, 42, 27.5), noisy("Stone", (0.75, 0.7, 0.62), (0.6, 0.56, 0.5)), bevel=0.2)
-    camera((3, -4, 1.2), (0, 30, 48), lens=15, dof=30, fstop=11)
+    camera((4, -48, 1.5), (0, 30, 52), lens=20, dof=60, fstop=11)
 
 
 # ------------------------------------------------------------------------------------------------ macros / top-down
@@ -471,7 +469,7 @@ def P17_store():
     box("Store", (40, 10, 9), (0, 18, 4.5), wall, bevel=0.05)
     box("RedBand", (40.2, 10.2, 1.2), (0, 18, 7.6), mat("StoreRed", (0.75, 0.06, 0.05), 0.4, coat=0.4), bevel=0.05)
     box("Banner", (14, 0.2, 1.6), (0, 12.85, 5.6), mat("BannerYel", (0.95, 0.8, 0.1), 0.5), bevel=0.03)
-    box("DoorGlow", (10, 0.2, 4.0), (0, 12.9, 2.0), emit("StoreInside", (1.0, 0.9, 0.72), 1.1), bevel=0)
+    box("DoorGlow", (10, 0.2, 4.0), (0, 12.9, 2.0), emit("StoreInside", (1.0, 0.9, 0.72), 0.6), bevel=0)
     for x in (-4, -1.3, 1.3, 4):
         box("DoorFrame", (0.12, 0.25, 4.0), (x, 12.8, 2.0), mat("Steel2", (0.6, 0.62, 0.65), 0.3, metal=1.0), bevel=0)
     area("DoorSpill", (0, 12.5, 2.0), (0, 0, 0.5), 10, 350, (1.0, 0.92, 0.78), size_y=4)

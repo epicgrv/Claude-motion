@@ -70,7 +70,12 @@ def font(name: str) -> skia.Typeface:
 @lru_cache(None)
 def plate(name: str) -> skia.Image:
     p = ROOT / "visuals" / "pepsi-jet" / "plates" / f"{name}.png"
-    return skia.Image.open(str(p))
+    img = skia.Image.open(str(p))
+    if img.width() != 1440:  # low-res preview: scale into plate space so coordinates stay valid
+        surf = skia.Surface(1440, 2560)
+        surf.getCanvas().drawImageRect(img, skia.Rect.MakeWH(1440, 2560), SAMP)
+        img = surf.makeImageSnapshot()
+    return img
 
 
 SAMP = skia.SamplingOptions(skia.FilterMode.kLinear, skia.MipmapMode.kLinear)
@@ -107,6 +112,18 @@ class Frame:
         if dim:
             c.drawRect(skia.Rect.MakeWH(img.width(), img.height()), skia.Paint(Color=skia.Color(0, 0, 0, int(255 * dim))))
         return s  # caller must self.end()
+
+    def occlude(self, name, shape):
+        """Redraw part of the plate on top (foreground furniture in front of a character). shape: Rect, RRect-able
+        rect or Path in plate coordinates. Call between plate() and end()."""
+        c = self.c
+        c.save()
+        if isinstance(shape, skia.Path):
+            c.clipPath(shape, doAntiAlias=True)
+        else:
+            c.clipRect(shape, doAntiAlias=True)
+        c.drawImage(plate(name), 0, 0, SAMP)
+        c.restore()
 
     def end(self):
         self.c.restore()
@@ -151,6 +168,23 @@ class Frame:
         return wdt
 
     # --- light
+    def rays(self, x, y, angle, spread, length, color="#FFE2B0", alpha=0.18, n=7, seed=0):
+        """Volumetric-looking light shafts fanning from (x,y) towards `angle` (deg, 90 = down)."""
+        c = self.c
+        rng = np.random.default_rng(seed)
+        for i in range(n):
+            a = math.radians(angle + (i / max(1, n - 1) - 0.5) * spread + math.sin(self.t * 0.6 + i) * 1.2)
+            wdt = math.radians(spread / n * rng.uniform(0.3, 0.9))
+            p = skia.Path()
+            p.moveTo(x, y)
+            p.lineTo(x + math.cos(a - wdt) * length, y + math.sin(a - wdt) * length)
+            p.lineTo(x + math.cos(a + wdt) * length, y + math.sin(a + wdt) * length)
+            p.close()
+            sh = skia.GradientShader.MakeLinear([skia.Point(x, y), skia.Point(x + math.cos(a) * length, y + math.sin(a) * length)],
+                                                [col(color, int(255 * alpha * rng.uniform(0.5, 1.0))), col(color, 0)])
+            c.drawPath(p, skia.Paint(AntiAlias=True, Shader=sh, BlendMode=skia.BlendMode.kScreen,
+                                     MaskFilter=skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, length * 0.012)))
+
     def glow(self, x, y, rad, color="#7FC8FF", alpha=0.35):
         c = self.c
         sh = skia.GradientShader.MakeRadial(skia.Point(x, y), rad, [col(color, int(255 * alpha)), col(color, 0)])
@@ -246,7 +280,27 @@ class Finisher:
             self.grain.append(skia.Image.fromarray(rgba, colorType=skia.kRGBA_8888_ColorType))
         self.dust = rng.random((70, 5))
 
-    def __call__(self, c: skia.Canvas, t: float, dust=0.6, vignette=0.42, warm=None):
+        self.small = skia.Surface(W // 4, H // 4)
+
+    def bloom(self, c: skia.Canvas, surf: skia.Surface, amount: float, thresh=0.72):
+        """Glow on bright areas: threshold -> quarter-res blur -> screen back over the frame."""
+        img = surf.makeImageSnapshot()
+        k = 1.0 / (1.0 - thresh)
+        m = [k, 0, 0, 0, -thresh * k, 0, k, 0, 0, -thresh * k, 0, 0, k, 0, -thresh * k, 0, 0, 0, 1, 0]
+        sc = self.small.getCanvas()
+        sc.clear(skia.Color(0, 0, 0, 0))
+        sc.drawImageRect(img, skia.Rect.MakeWH(W // 4, H // 4), SAMP,
+                         skia.Paint(ColorFilter=skia.ColorFilters.Matrix(m)))
+        glow = self.small.makeImageSnapshot()
+        sc.clear(skia.Color(0, 0, 0, 0))
+        sc.drawImage(glow, 0, 0, SAMP, skia.Paint(ImageFilter=skia.ImageFilters.Blur(9, 9)))
+        glow = self.small.makeImageSnapshot()
+        c.drawImageRect(glow, skia.Rect.MakeWH(W, H), SAMP,
+                        skia.Paint(BlendMode=skia.BlendMode.kScreen, Alpha=int(255 * min(1.0, amount))))
+
+    def __call__(self, c: skia.Canvas, t: float, dust=0.6, vignette=0.42, warm=None, surf=None, bloom=0.0):
+        if bloom and surf is not None:
+            self.bloom(c, surf, bloom)
         # dust motes (screen space, slow drift, depth-sized)
         if dust:
             for i, (px, py, sz, sp, ph) in enumerate(self.dust):
@@ -291,6 +345,7 @@ class Shot:
     dust: float = 0.5
     vignette: float = 0.4
     warm: tuple | None = None
+    bloom: float = 0.55
 
 
 def _render_range(args):
@@ -315,7 +370,7 @@ def _render_range(args):
         c.save()
         shot.draw(fx, t, u)
         c.restore()
-        fin(c, t, dust=shot.dust, vignette=shot.vignette, warm=shot.warm)
+        fin(c, t, dust=shot.dust, vignette=shot.vignette, warm=shot.warm, surf=surf, bloom=shot.bloom)
         if shot.cap_y is not None:
             for txt, s, e in caps:
                 if s <= t < e:

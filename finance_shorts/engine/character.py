@@ -31,8 +31,51 @@ def P(color, stroke=None, cap=skia.Paint.kRound_Cap, join=skia.Paint.kRound_Join
     return p
 
 
-def fill_outline(c: skia.Canvas, path: skia.Path, color, ow=OUT):
+_FAB = None
+
+
+def fabric_shader():
+    """Fine woven-noise texture in local (head-radius) units."""
+    global _FAB
+    if _FAB is None:
+        import numpy as np
+        rng = np.random.default_rng(11)
+        n = rng.random((128, 128))
+        weave = (np.sin(np.arange(128) * 1.6)[None, :] * np.sin(np.arange(128) * 1.6)[:, None]) * 0.25
+        a = np.clip((n * 0.7 + weave + 0.15) * 255, 0, 255).astype(np.uint8)
+        rgba = np.dstack([a, a, a, np.full_like(a, 255)])
+        img = skia.Image.fromarray(rgba, colorType=skia.kRGBA_8888_ColorType)
+        _FAB = img.makeShader(skia.TileMode.kRepeat, skia.TileMode.kRepeat,
+                              skia.SamplingOptions(skia.FilterMode.kLinear), skia.Matrix.Scale(0.012, 0.012))
+    return _FAB
+
+
+def shade_volume(c: skia.Canvas, path: skia.Path, bounds: skia.Rect, strength=0.32, fabric=True):
+    """Soft 3-D form on a flat shape: top-left key highlight, bottom-right core shadow, fabric grain."""
+    c.save()
+    c.clipPath(path, doAntiAlias=True)
+    cx, cy = bounds.centerX(), bounds.centerY()
+    rad = max(bounds.width(), bounds.height()) * 0.75
+    sh = skia.GradientShader.MakeRadial(skia.Point(cx - bounds.width() * 0.28, cy - bounds.height() * 0.3), rad,
+                                        [skia.Color(255, 255, 255, 70), skia.Color(255, 255, 255, 0),
+                                         skia.Color(30, 15, 40, int(255 * strength))], [0.0, 0.45, 1.0])
+    c.drawRect(bounds.makeOutset(0.2, 0.2), skia.Paint(Shader=sh, AntiAlias=True))
+    if fabric:
+        c.drawRect(bounds, skia.Paint(Shader=fabric_shader(), Alpha=34, BlendMode=skia.BlendMode.kOverlay))
+    # rim light on the shadow side edge
+    rim = skia.Paint(AntiAlias=True, Color=skia.Color(255, 240, 220, 70), Style=skia.Paint.kStroke_Style,
+                     StrokeWidth=0.09, MaskFilter=skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 0.03))
+    c.save()
+    c.clipRect(skia.Rect.MakeLTRB(cx + bounds.width() * 0.15, bounds.top(), bounds.right() + 1, bounds.bottom() + 1))
+    c.drawPath(path, rim)
+    c.restore()
+    c.restore()
+
+
+def fill_outline(c: skia.Canvas, path: skia.Path, color, ow=OUT, volume=True):
     c.drawPath(path, P(color))
+    if volume:
+        shade_volume(c, path, path.computeTightBounds(), 0.3, fabric=False)
     c.drawPath(path, P(INK, ow))
 
 
@@ -194,7 +237,11 @@ class Char:
         c.drawPath(path, P(col(cs.torso)))
         c.save()
         c.clipPath(path, doAntiAlias=True)
-        t2 = col(cs.torso2) if cs.torso2 else None
+        if cs.torso2:
+            t2 = col(cs.torso2)
+        else:
+            h_ = cs.torso.lstrip("#")
+            t2 = skia.Color(*(int(int(h_[i:i + 2], 16) * 0.6) for i in (0, 2, 4)))
         if cs.style == "windbreaker":
             c.drawRect(skia.Rect.MakeLTRB(-tw, neck + th * 0.42, tw, neck + th * 0.56), P(t2))
             c.drawLine(0, neck + 0.1, 0, hipy + 0.1, P(INK, 0.04))
@@ -237,6 +284,7 @@ class Char:
                 c.drawCircle(0.0, neck + 0.3 + 0.32 * k, 0.04, P(col("#E8C64A")))
             c.drawRect(skia.Rect.MakeLTRB(0.2, neck + 0.3, 0.45, neck + 0.42), P(t2))
         c.restore()
+        shade_volume(c, path, rect.rect(), 0.38)
         c.drawPath(path, P(INK, OUT))
 
     def _head(self, c, hx, hy, expr, mouth, look, blink, nerd):
@@ -258,6 +306,9 @@ class Char:
             c.drawCircle(hx, hy - 1.05, 0.38, P(INK, OUT))
         # head
         c.drawCircle(hx, hy, R, P(SKIN))
+        hp = skia.Path()
+        hp.addCircle(hx, hy, R)
+        shade_volume(c, hp, skia.Rect.MakeLTRB(hx - R, hy - R, hx + R, hy + R), 0.2, fabric=False)
         c.drawCircle(hx, hy, R, P(INK, OUT))
         # hair on top
         if cs.hair == "messy":
