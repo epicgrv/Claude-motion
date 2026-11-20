@@ -14,10 +14,10 @@ const X = (k: keyof typeof ROOM, p: V3): V3 => [p[0] + ROOM[k], p[1], p[2]];
 const [JX, , JZ] = A.jetLawn;
 export const BOARD: V3 = [JX - 4, 0.1, JZ + 4.5]; // price board base (faces +z toward the road)
 /** jet flight in S2: passes overhead at t = 4.4 */
-export const jetPass = (t: number): V3 => [8 - 62 * (4.4 - t), 11 + 0.8 * (4.4 - t), -1.5];
+export const jetPass = (t: number): V3 => [8 - 62 * (4.4 - t), 9.5 + 0.8 * (4.4 - t), -3.0];
 /** arrow tip height in S29 */
 export const arrowH = (t: number) => (t < 70.9 ? 0 : 4 + 90 * Math.pow(Math.min(1, (t - 70.9) / 3.6), 0.7));
-export const ARROW: V3 = [-58, 0, 0];
+export const ARROW: V3 = [-44, 0, -1];
 
 export const SHOTS: Shot[] = [
   // ---- hook ----
@@ -26,15 +26,15 @@ export const SHOTS: Shot[] = [
   { id: 2, name: "jet flyover", s: 2.55, e: 5.8, light: "day", dof: 0,
     cam: (t) => {
       const j = jetPass(t), k = Math.min(1, Math.max(0, (t - 3.2) / 1.6));
-      const base: V3 = [-30, 8, -4], look: V3 = [base[0] + (j[0] - base[0]) * k * 0.95, base[1] + (j[1] - base[1]) * k * 0.95, base[2] + (j[2] - base[2]) * k];
+      const base: V3 = [-30, 6, -4], look: V3 = [base[0] + (j[0] - base[0]) * k * 0.6, base[1] + (j[1] - base[1]) * k * 0.55, base[2] + (j[2] - base[2]) * k * 0.6];
       return { pos: [10, 1.1, 1.2], look, fov: 46, roll: 0.05 * Math.sin(t * 3) * k };
     } },
   { id: 3, name: "jet lands at school", s: 5.8, e: 9.5, light: "day", dof: 0,
     cam: { p0: [77, 1.2, 7.5], l0: [JX + 1, 7, JZ], p1: [74.5, 1.5, 3.5], l1: [JX + 1, 2.8, JZ], fov: [46, 42], ease: "io" } },
   { id: 4, name: "teen on jet", s: 9.5, e: 10.72, light: "day", dof: 10,
-    cam: { p0: [68.2, 4.6, -21.0], l0: [71.6, 3.9, -14.6], p1: [69.0, 4.4, -20.0], l1: [71.6, 3.9, -14.6], fov: [36, 33], ease: "o" } },
+    cam: { p0: [69.6, 3.4, -20.8], l0: [71.6, 3.75, -14.6], p1: [70.1, 3.4, -19.9], l1: [71.6, 3.75, -14.6], fov: [42, 39], ease: "o" } },
   { id: 5, name: "price drop", s: 10.72, e: 12.9, light: "day", dof: 0,
-    cam: { p0: [BOARD[0] + 1.5, 1.4, 3.2], l0: [BOARD[0] + 1, 6.4, BOARD[2]], p1: [BOARD[0] + 3, 1.2, 5.6], l1: [BOARD[0] + 1.5, 6.0, BOARD[2] - 2], fov: [46, 48], ease: "o" } },
+    cam: { p0: [BOARD[0], 1.3, BOARD[2] + 10.5], l0: [BOARD[0], 5.0, BOARD[2]], p1: [BOARD[0] + 0.8, 1.2, BOARD[2] + 13], l1: [BOARD[0] + 0.4, 4.8, BOARD[2]], fov: [46, 50], ease: "o" } },
   // ---- dorm ----
   { id: 6, name: "buddy cans", s: 12.9, e: 15.33, light: "day", dof: 8, sunAz: 160, sunEl: 62,
     cam: { p0: X("dorm", [0.6, 1.45, 2.8]), l0: X("dorm", [-2.4, 1.1, -1.6]), p1: X("dorm", [-0.6, 1.25, 1.2]), l1: X("dorm", [-2.6, 1.05, -1.4]), fov: [42, 38], ease: "io" } },
@@ -43,35 +43,35 @@ export const SHOTS: Shot[] = [
   { id: 8, name: "ten cents", s: 17.55, e: 19.85, light: "day", dof: 6, sunAz: 160, sunEl: 66,
     cam: { p0: X("dorm", [3.25, 1.95, -3.0]), l0: X("dorm", [3.28, 1.0, -3.68]), p1: X("dorm", [3.3, 1.62, -3.35]), l1: X("dorm", [3.36, 1.0, -3.72]), fov: [34, 30], ease: "io" } },
   { id: 9, name: "calculator", s: 19.85, e: 22.55, light: "day", dof: 14, sunAz: 160, sunEl: 62,
-    cam: { p0: X("dorm", [4.45, 1.42, -3.05]), l0: X("dorm", [3.92, 1.03, -3.7]), p1: X("dorm", [4.25, 1.3, -3.25]), l1: X("dorm", [3.93, 1.03, -3.68]), fov: [36, 32], ease: "io" } },
+    cam: { p0: X("dorm", [4.12, 1.42, -3.3]), l0: X("dorm", [3.974, 1.03, -3.77]), p1: X("dorm", [4.06, 1.36, -3.38]), l1: X("dorm", [3.974, 1.03, -3.77]), fov: [40, 36], ease: "io" } },
   { id: 10, name: "worth 20M", s: 22.55, e: 24.7, light: "day", dof: 0,
-    cam: { p0: [JX - 9, 1.0, JZ + 9], l0: [JX - 2, 2.4, JZ], p1: [JX + 1, 1.3, JZ + 10.5], l1: [JX + 1, 2.4, JZ], fov: [40, 38], ease: "io" } },
+    cam: { p0: [BOARD[0] - 3, 1.5, BOARD[2] + 17], l0: [BOARD[0] + 1, 4, BOARD[2] - 2], p1: [BOARD[0] + 1.5, 1.6, BOARD[2] + 15.5], l1: [BOARD[0] + 2.5, 4, BOARD[2] - 2], fov: [46, 44], ease: "io" } },
   { id: 11, name: "96% off", s: 24.7, e: 28.55, light: "day", dof: 4,
-    cam: { p0: [-30, 7.5, -3.5], l0: [-30, 3.0, 10.4], p1: [-27.6, 1.5, 1.6], l1: [-30.5, 2.4, 10.4], fov: [44, 40], ease: "io" } },
+    cam: { p0: [-30, 7.5, -3.5], l0: [-30, 3.0, 10.4], p1: [-28.5, 1.7, -2.2], l1: [-30.5, 3.0, 10.4], fov: [44, 40], ease: "io" } },
   // ---- class ----
   { id: 12, name: "arbitrage wide", s: 28.55, e: 30.3, light: "day", dof: 4, sunAz: 170, sunEl: 64,
-    cam: { p0: X("class", [-0.8, 1.7, 3.2]), l0: X("class", [0.4, 2.0, -5.9]), p1: X("class", [-0.4, 1.7, 1.6]), l1: X("class", [0.5, 2.0, -5.9]), fov: [44, 42], ease: "io" } },
+    cam: { p0: X("class", [1.0, 1.7, 5.0]), l0: X("class", [0.9, 1.9, -5.9]), p1: X("class", [0.9, 1.7, 3.6]), l1: X("class", [0.9, 1.95, -5.9]), fov: [48, 46], ease: "io" } },
   { id: 13, name: "arbitrage board", s: 30.3, e: 32.8, light: "day", dof: 6, sunAz: 170, sunEl: 64,
-    cam: { p0: X("class", [1.4, 1.9, -1.0]), l0: X("class", [0.3, 2.1, -5.9]), p1: X("class", [1.0, 2.0, -2.0]), l1: X("class", [0.3, 2.1, -5.9]), fov: [44, 44], ease: "io" } },
+    cam: { p0: X("class", [2.4, 1.9, -0.4]), l0: X("class", [2.1, 1.95, -5.9]), p1: X("class", [2.2, 1.95, -1.5]), l1: X("class", [2.1, 1.95, -5.9]), fov: [46, 46], ease: "io" } },
   { id: 14, name: "insanity", s: 32.8, e: 33.9, light: "day", dof: 12, sunAz: 170, sunEl: 64,
-    cam: { p0: X("class", [-1.0, 1.25, 1.4]), l0: X("class", [-1.4, 1.2, -1.2]), p1: X("class", [-1.15, 1.25, 0.9]), l1: X("class", [-1.4, 1.2, -1.2]), fov: [34, 30], roll: [0.08, -0.04], ease: "o" } },
+    cam: { p0: X("class", [-1.1, 1.4, 0.7]), l0: X("class", [-1.4, 1.3, -1.75]), p1: X("class", [-1.2, 1.4, 0.3]), l1: X("class", [-1.4, 1.3, -1.75]), fov: [34, 30], roll: [0.08, -0.04], ease: "o" } },
   // ---- boardroom ----
   { id: 15, name: "five investors", s: 33.9, e: 35.68, light: "day", dof: 6, sunAz: 165, sunEl: 64,
-    cam: { p0: X("board", [-4.2, 1.7, 1.4]), l0: X("board", [-1.8, 1.6, -3.2]), p1: X("board", [3.4, 1.7, 1.2]), l1: X("board", [1.6, 1.6, -3.2]), fov: [42, 42], ease: "io" } },
+    cam: { p0: X("board", [-4.2, 1.7, 2.6]), l0: X("board", [-1.8, 1.6, -3.2]), p1: X("board", [3.4, 1.7, 2.4]), l1: X("board", [1.6, 1.6, -3.2]), fov: [42, 42], ease: "io" } },
   { id: 16, name: "park it", s: 35.68, e: 36.8, light: "day", dof: 12, sunAz: 165, sunEl: 64,
     cam: { p0: X("board", [0.35, 1.85, -0.4]), l0: X("board", [0, 1.85, -3.2]), p1: X("board", [0.3, 1.85, -0.8]), l1: X("board", [0, 1.85, -3.2]), fov: [34, 32], ease: "o" } },
   { id: 17, name: "school?", s: 36.8, e: 37.6, light: "day", dof: 12, sunAz: 165, sunEl: 64,
-    cam: { p0: X("board", [3.6, 1.75, 0.6]), l0: X("board", [4.6, 1.75, -1.4]), p1: X("board", [3.75, 1.75, 0.2]), l1: X("board", [4.6, 1.75, -1.4]), fov: [34, 31], roll: [-0.05, 0.03], ease: "o" } },
+    cam: { p0: X("board", [3.3, 1.8, 1.4]), l0: X("board", [4.6, 1.75, -1.4]), p1: X("board", [3.5, 1.8, 0.9]), l1: X("board", [4.6, 1.75, -1.4]), fov: [34, 31], roll: [-0.05, 0.03], ease: "o" } },
   // ---- the cheque ----
   { id: 18, name: "cheque 700,008.50", s: 37.6, e: 41.7, light: "day", dof: 12,
-    cam: { p0: [4.9, 1.35, -3.9], l0: [3.3, 1.12, -6.5], p1: [4.2, 1.22, -5.0], l1: [3.3, 1.12, -6.6], fov: [38, 32], ease: "io" } },
+    cam: { p0: [5.3, 1.5, -3.0], l0: [3.0, 1.3, -6.3], p1: [4.6, 1.35, -4.2], l1: [3.1, 1.25, -6.4], fov: [40, 36], ease: "io" } },
   { id: 19, name: "HQ tower", s: 41.7, e: 44.3, light: "golden", dof: 0,
     cam: { p0: [-116, 1.4, -4], l0: [-130, 12, -31], p1: [-119, 2.4, -9], l1: [-130, 62, -31], fov: [50, 52], ease: "io" } },
   // ---- office ----
   { id: 20, name: "execs laugh", s: 44.3, e: 46.05, light: "day", dof: 6, sunAz: 165, sunEl: 62,
-    cam: { p0: X("office", [0.8, 1.6, 2.4]), l0: X("office", [0.3, 1.5, -2.8]), p1: X("office", [0.4, 1.6, 1.2]), l1: X("office", [0.3, 1.55, -2.8]), fov: [42, 40], ease: "io" } },
+    cam: { p0: X("office", [0.8, 1.6, 2.4]), l0: X("office", [0.3, 1.5, -2.8]), p1: X("office", [0.3, 1.6, 0.2]), l1: X("office", [0.3, 1.55, -2.8]), fov: [42, 40], ease: "io" } },
   { id: 21, name: "commercial kid", s: 46.05, e: 48.2, light: "day", dof: 14, sunAz: 165, sunEl: 62,
-    cam: { p0: X("office", [0.15, 1.9, -0.9]), l0: X("office", [-0.1, 1.9, -3.0]), p1: X("office", [0.12, 1.92, -1.25]), l1: X("office", [-0.1, 1.9, -3.0]), fov: [34, 30], roll: [0.04, -0.03], ease: "o" } },
+    cam: { p0: X("office", [0.15, 1.75, -0.4]), l0: X("office", [-0.1, 1.6, -3.0]), p1: X("office", [0.12, 1.75, -0.8]), l1: X("office", [-0.1, 1.62, -3.0]), fov: [34, 30], roll: [0.04, -0.03], ease: "o" } },
   // ---- porch ----
   { id: 22, name: "coupons", s: 48.2, e: 53.75, light: "day", dof: 8,
     cam: { p0: [2.6, 1.15, -3.2], l0: [0.0, 1.0, -7.9], p1: [1.1, 1.0, -5.4], l1: [0.0, 1.0, -7.9], fov: [42, 36], ease: "io" } },
@@ -83,22 +83,22 @@ export const SHOTS: Shot[] = [
   { id: 25, name: "unreasonable", s: 59.7, e: 61.8, light: "day", dof: 10, sunAz: 20, sunEl: 66,
     cam: { p0: X("court", [1.2, 1.55, -1.2]), l0: X("court", [2.5, 1.3, 2.1]), p1: X("court", [1.5, 1.5, -0.4]), l1: X("court", [2.5, 1.35, 2.1]), fov: [40, 36], ease: "io" } },
   { id: 26, name: "gavel", s: 61.8, e: 63.4, light: "day", dof: 12, sunAz: 170, sunEl: 66,
-    cam: { p0: X("court", [1.1, 2.15, -2.4]), l0: X("court", [0.1, 2.0, -4.8]), p1: X("court", [0.95, 2.1, -2.9]), l1: X("court", [0.1, 2.0, -4.8]), fov: [38, 34], ease: "o" } },
+    cam: { p0: X("court", [1.0, 2.25, -1.5]), l0: X("court", [0.25, 1.95, -5.0]), p1: X("court", [0.85, 2.2, -2.1]), l1: X("court", [0.25, 1.95, -5.0]), fov: [38, 34], ease: "o" } },
   // ---- bus ----
   { id: 27, name: "bus driver", s: 63.4, e: 65.6, light: "day", dof: 10,
     cam: { p0: [52.2, 2.5, -0.2], l0: [57.4, 2.35, 1.6], p1: [53.4, 2.45, 0.4], l1: [57.4, 2.35, 1.65], fov: [36, 32], ease: "io" } },
   // ---- re-air ----
   { id: 28, name: "tv re-air", s: 65.6, e: 68.5, light: "day", dof: 6, sunAz: 160, sunEl: 62,
     cam: { p0: X("dorm", [0.4, 1.5, 1.8]), l0: X("dorm", [0.4, 1.42, -4.5]), p1: X("dorm", [0.4, 1.45, -2.5]), l1: X("dorm", [0.4, 1.45, -4.5]), fov: [42, 40], ease: "i" } },
-  { id: 29, name: "700M", s: 68.5, e: 70.8, light: "golden", dof: 0,
-    cam: { p0: [BOARD[0] + 1.2, 1.6, 6.5], l0: [BOARD[0] + 0.6, 6.2, BOARD[2]], p1: [BOARD[0] + 0.8, 3.4, 4.0], l1: [BOARD[0] + 0.4, 6.3, BOARD[2]], fov: [46, 42], ease: "io" } },
-  { id: 30, name: "inflation arrow", s: 70.8, e: 75.05, light: "golden", dof: 0,
+  { id: 29, name: "700M", s: 68.5, e: 70.8, light: "day", dof: 0,
+    cam: { p0: [BOARD[0] + 1, 1.6, BOARD[2] + 14], l0: [BOARD[0], 5.2, BOARD[2]], p1: [BOARD[0] + 0.5, 3.0, BOARD[2] + 11], l1: [BOARD[0], 5.4, BOARD[2]], fov: [46, 44], ease: "io" } },
+  { id: 30, name: "inflation arrow", s: 70.8, e: 75.05, light: "day", dof: 0,
     cam: (t) => {
       const u = Math.min(1, Math.max(0, (t - 70.8) / 4.25)), e = u * u * (3 - 2 * u), h = arrowH(t);
-      return { pos: [-30 + 2 * e, 1.6 + 1.2 * e, 3.5 + 1.5 * e], look: [ARROW[0] + 1, Math.max(6, h * 0.82), ARROW[2]], fov: 50 + 6 * e, roll: 0 };
+      return { pos: [-28 + 2 * e, 1.5 + 1.0 * e, 7 + 2 * e], look: [ARROW[0] + 1, Math.max(5, h * 0.8), ARROW[2]], fov: 52 + 8 * e, roll: 0 };
     } },
-  { id: 31, name: "just kidding", s: 75.05, e: 78.2, light: "golden", dof: 0,
-    cam: { p0: [BOARD[0] + 1.0, 4.6, 4.0], l0: [BOARD[0] + 1.6, 5.0, BOARD[2]], p1: [BOARD[0] + 2.45, 4.32, BOARD[2] + 1.15], l1: [BOARD[0] + 2.45, 4.3, BOARD[2]], fov: [44, 34], ease: "i" } },
+  { id: 31, name: "just kidding", s: 75.05, e: 78.2, light: "day", dof: 0,
+    cam: { p0: [BOARD[0] + 0.5, 4.6, BOARD[2] + 9], l0: [BOARD[0] + 0.6, 5.2, BOARD[2]], p1: [BOARD[0] + 1.53, 3.71, BOARD[2] + 1.9], l1: [BOARD[0] + 1.53, 3.71, BOARD[2]], fov: [44, 34], ease: "i" } },
   // ---- button ----
   { id: 32, name: "keeping the cans", s: 78.2, e: TOTAL / FPS, light: "day", dof: 8, sunAz: 160, sunEl: 62,
     cam: { p0: X("dorm", [-1.4, 1.3, 0.8]), l0: X("dorm", [-2.5, 1.2, -1.0]), p1: X("dorm", [-0.4, 1.7, 2.6]), l1: X("dorm", [-2.5, 1.4, -1.4]), fov: [36, 44], ease: "io" } },

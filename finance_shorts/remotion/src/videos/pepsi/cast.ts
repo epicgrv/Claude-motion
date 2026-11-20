@@ -156,7 +156,7 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
     case 2: {
       const k = t > 3.6;
       P({ id: "JOHN" }, [5.6, 0.15, -4.6], { expr: k ? "shock" : "grin", look: k ? -0.4 : 0.3, headTilt: k ? -0.15 : 0, facing: -1 });
-      if (t > 4.0 && t < 4.9) speed(out, t, [-6, 9, -2.5], 30);
+      if (t > 4.0 && t < 4.7) speed(out, t, [-8, 8, -3], 16);
       break;
     }
     case 3: case 4: case 5: case 10: {
@@ -175,7 +175,7 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
         burst(out, t, 11.2, 0.45, [BOARD[0], 1.2, BOARD[2] + 0.8], 4.5, "#ffe7a0");
         puff(out, t, 11.22, 0.9, [BOARD[0] - 2.5, 0.5, BOARD[2] + 0.6], 3.5); puff(out, t, 11.22, 0.9, [BOARD[0] + 2.8, 0.5, BOARD[2] + 0.6], 3.5);
       }
-      if (id === 10) for (let i = 0; i < 3; i++) kid(i + 2, jx - 6 + i * 4.5, jz + 7.6, "shock");
+      if (id === 10) for (let i = 0; i < 3; i++) kid(i + 2, BOARD[0] - 3 + i * 3.5, BOARD[2] + 3.2, "shock");
       break;
     }
     case 6: {
@@ -197,7 +197,6 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
     case 8: break; // coin + page (sets)
     case 9: {
       P({ id: "JOHN" }, R("dorm", 2.4, 0, -4.2), { expr: t > 21.5 ? "shock" : "stern", look: 0.6, facing: 1 });
-      if (t > 21.6) burst(out, t, 21.6, 0.5, R("dorm", 3.93, 1.12, -3.75), 0.5);
       break;
     }
     case 11: {
@@ -205,17 +204,16 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
         const sh = t > 25.6;
         P({ id: "FOLK", o: FOLK[i], seed: i + 2, i: i + 10 }, [-36 + i * 3.0, 0.15, 7.6 + (i % 2) * 0.9], { expr: sh ? (i % 2 ? "shock" : "laugh") : "smile", wave: sh && i % 2 === 0 ? 0.5 + 0.5 * Math.sin(step(t) * 11 + i) : undefined, look: 0.4 * Math.sin(i * 2) });
       }
-      pop(out, t, 25.1, 28.55, [-30, 6.8, 9.6], 1.4, "96% OFF", "#fff36b", "#e2453c", -0.06);
       break;
     }
     case 12: case 13: {
-      P({ id: "JOHN" }, R("class", 2.55, 0, -4.9), { expr: "grin", talk: "relief_open", look: -0.6, facing: -1, wave: id === 13 ? 0.8 + 0.2 * Math.sin(step(t) * 6) : 0.3 });
-      if (id === 12) P({ id: "BUDDY" }, R("class", -1.4, 0, -1.2), { expr: "nervous", mode: "sit", look: 0.4, blob: false });
+      P({ id: "JOHN" }, R("class", 2.9, 0, -5.2), { expr: "grin", talk: "relief_open", look: -0.6, facing: -1, wave: id === 13 ? 0.8 + 0.2 * Math.sin(step(t) * 6) : 0.3 });
+      if (id === 12) P({ id: "BUDDY" }, R("class", -1.4, 0, -1.75), { expr: "nervous", mode: "sit", look: 0.4, blob: false });
       break;
     }
     case 14: {
-      P({ id: "BUDDY" }, R("class", -1.4, 0, -1.2), { expr: "shock", talk: "shock", mode: "sit", look: 0, blob: false, headTilt: 0.1 * Math.sin(step(t) * 20) });
-      sweat(out, t, R("class", -1.0, 1.85, -1.1), 0.3);
+      P({ id: "BUDDY" }, R("class", -1.4, 0, -1.75), { expr: "shock", talk: "shock", mode: "sit", look: 0, blob: false, headTilt: 0.1 * Math.sin(step(t) * 20) });
+      sweat(out, t, R("class", -1.0, 1.75, -1.6), 0.25);
       break;
     }
     case 15: case 16: case 17: {
@@ -230,7 +228,7 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
       break;
     }
     case 19: {
-      pop(out, t, 43.15, 44.3, [-130, 30, -30], 6, "CRIMINAL?!", "#ffffff", "#241726", -0.08);
+      pop(out, t, 43.15, 44.3, [-124.5, 22.4, -19.9], 3.6, "CRIMINAL?!", "#ffffff", "#241726", -0.08);
       break;
     }
     case 20: case 21: {
@@ -254,18 +252,18 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
     case 23: P({ id: "JOHN" }, [-74.2, 0.15 + Math.min(1.2, Math.max(0, (t - 53.8) * 0.9)), 13.5 + Math.min(4.8, Math.max(0, (t - 53.8) * 3.6))], { mode: "stroll", phase: step(t) * 1.6, expr: "stern", look: 0 }); break;
     case 24: case 25: case 26: {
       const strike = id === 26 ? (t < 61.98 ? 0 : Math.min(1, (t - 61.98) / 0.06)) : 0;
-      P({ id: "JUDGE" }, R("court", 0, 0.62, -5.1), { expr: id === 26 ? "stern" : "stern", look: id === 25 ? 0.7 : 0, blob: false, prop: id === 26 ? ["hammer", strike] : null });
+      P({ id: "JUDGE" }, R("court", 0, 0.85, -5.1), { expr: id === 26 ? "stern" : "stern", look: id === 25 ? 0.7 : 0, blob: false, prop: id === 26 ? ["hammer", strike] : null });
       if (id === 24) P({ id: "JOHN" }, R("court", -2.4, 0, -0.5), { expr: t > 57 ? "nervous" : "smile", look: -0.3, facing: 1 });
       if (id === 25 || id === 24) {
-        P({ id: "BUDDY" }, R("court", 2.5, 0, 2.15), { expr: "grin", talk: "relief_open", mode: "sit", wave: id === 25 ? 0.9 + 0.1 * Math.sin(step(t) * 9) : undefined, blob: false });
+        P({ id: "BUDDY" }, R("court", 2.5, 0, 2.35), { expr: "grin", talk: "relief_open", mode: id === 25 ? "stand" : "sit", wave: id === 25 ? 0.9 + 0.1 * Math.sin(step(t) * 9) : undefined, blob: false });
         for (let i = 0; i < 3; i++) P({ id: "FOLK", o: FOLK[i + 2], seed: i + 3, i: i + 30 }, R("court", -4.2 + i * 1.3 + (i > 1 ? 4.6 : 0), 0, 2.15 + (i % 2) * 1.6), { expr: id === 25 ? "nervous" : "neutral", mode: "sit", look: 0.6, blob: false });
       }
-      if (id === 26) { burst(out, t, 62.0, 0.4, R("court", -0.65, 1.8, -4.3), 1.4, "#fff3b0"); pop(out, t, 62.1, 63.4, R("court", 0.6, 2.85, -4.4), 0.42, "LOST", "#ffffff", "#e2453c", 0.1); }
+      if (id === 26) { burst(out, t, 62.0, 0.4, R("court", 0.6, 1.75, -4.75), 1.3, "#fff3b0"); pop(out, t, 62.1, 63.4, R("court", 0.55, 2.4, -3.6), 0.3, "LOST", "#ffffff", "#e2453c", 0.1); }
       break;
     }
     case 27: {
-      P({ id: "DRIVER" }, [57.65, 1.05, 1.7], { expr: t > 64.4 ? "relief" : "nervous", mode: "sit", look: 0.2, blob: false, headTilt: t > 64.4 ? -0.1 : 0 });
-      if (t > 64.4) puff(out, t, 64.45, 1.0, [57.0, 2.5, 1.7], 0.9);
+      P({ id: "DRIVER" }, [57.6, 1.42, 1.7], { expr: t > 64.4 ? "relief" : "nervous", mode: "sit", look: 0.2, blob: false, headTilt: t > 64.4 ? -0.1 : 0 });
+      if (t > 64.4) puff(out, t, 64.45, 1.0, [56.9, 2.55, 1.55], 0.8);
       break;
     }
     case 28: break;
@@ -277,7 +275,7 @@ export const stage = (id: number, t: number, light: Light, cam: CamInfo): Stage 
     case 30: {
       for (let i = 0; i < 4; i++) P({ id: "FOLK", o: FOLK[i], seed: i + 2, i: i + 40 }, [ARROW[0] + 8 + i * 2.6, 0.0, 3.0 + (i % 2) * 1.5], { expr: "shock", look: 0.2, headTilt: -0.15 });
       const h = arrowH(t);
-      if (t > 70.9) pop(out, t, 71.2, 75.05, [ARROW[0] + 1, h - 1.0, ARROW[2] + 2.2], 4.0, "+9,900%", "#ffffff", "#e2453c", 0.08);
+      if (t > 70.9) pop(out, t, 71.2, 75.05, [ARROW[0] + 3, Math.min(h * 0.75, 40), ARROW[2] + 5], 3.2, "+9,900%", "#ffffff", "#e2453c", 0.08);
       if (t > 70.9 && t < 71.6) burst(out, t, 70.9, 0.7, [ARROW[0], 2.5, ARROW[2] + 1.5], 10, "#ffe7a0");
       break;
     }

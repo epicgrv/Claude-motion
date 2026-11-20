@@ -158,7 +158,7 @@ export class World {
     hide(J.group, S.price, S.chequeBig, S.chequeB, S.letter, S.coin, S.gavel, S.arrow, S.dust);
     S.bus.visible = true;
     // bus: parked by the school unless driving in shot 27
-    S.bus.position.set(id === 27 ? 62.5 : 96, 0, 2.2); S.bus.rotation.y = 0;
+    S.bus.position.set(id === 27 ? 62.5 : id === 4 ? 72 : 96, 0, 2.2); S.bus.rotation.y = 0;
     S.mailFlag.rotation.z = 0;
     // ---- jet ----
     const [jx, , jz] = A.jetLawn;
@@ -220,7 +220,7 @@ export class World {
     if (id === 8) {
       S.coin.visible = t > 18.2;
       const u = clamp01((t - 18.2) / 0.5);
-      S.coin.position.set(ROOM.dorm + 3.05, 1.02 + 0.32 * (1 - (1 - u) ** 3), -3.5); S.coin.rotation.set(-0.5, (t - 18.2) * 9, 0); S.coin.scale.setScalar(0.11 * (0.4 + 0.6 * smooth(u)));
+      S.coin.position.set(ROOM.dorm + 3.33, 1.03 + 0.22 * (1 - (1 - u) ** 3), -3.6); S.coin.rotation.set(-0.9, (t - 18.2) * 6, 0); S.coin.scale.setScalar(0.12 * (0.4 + 0.6 * smooth(u)));
     }
     // ---- calculator display ----
     const calc = id === 9 ? (t < 20.4 ? "7000000" : t < 21.0 ? "7000000×" : t < 21.55 ? "×0.10" : "700,000.") : "0.";
@@ -234,7 +234,6 @@ export class World {
     S.tvTex.set(tvKey, (g, w, h) => drawAd(g, w, h, id === 28, Math.floor(t * 6) % 2));
     // ---- gavel ----
     if (id === 26) {
-      S.gavel.visible = true;
       const strike = t < 61.98 ? 0 : clamp01((t - 61.98) / 0.07);
       const raise = t < 61.98 ? smooth((t - 61.8) / 0.18) : 1 - strike;
       S.gavel.position.set(ROOM.court - 0.65, 1.95 + 0.55 * raise, -4.3); S.gavel.rotation.set(0, 0.3, -0.9 * raise);
@@ -244,8 +243,9 @@ export class World {
       S.arrow.visible = true;
       const h = arrowH(t);
       S.arrow.position.set(ARROW[0], 0, ARROW[2]);
-      S.arrowBody.scale.set(1, Math.max(0.01, h - 3), 1);
-      S.arrowHead.position.set(0, Math.max(1.7, h - 3 + 1.7), 0);
+      S.arrowBody.scale.set(1.8, Math.max(0.01, h - 4.5), 1.8);
+      S.arrowHead.scale.set(1.7, 1.5, 1.7);
+      S.arrowHead.position.set(0, Math.max(2.5, h - 4.5 + 2.5), 0);
       S.arrow.rotation.z = -0.08;
     }
   }

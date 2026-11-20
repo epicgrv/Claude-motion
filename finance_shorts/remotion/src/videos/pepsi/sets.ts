@@ -114,7 +114,7 @@ const canPile = (rows: number, s: number) => {
 export class Sets {
   root = new THREE.Group();
   jet: Jet;
-  priceTex = new DynTex(1024, 640);
+  priceTex = new DynTex(1024, 900);
   price = new THREE.Group();        // the giant price board (posts + board), posed per shot
   tvTex = new DynTex(800, 480);
   calcTex = new DynTex(640, 240);
@@ -135,8 +135,8 @@ export class Sets {
     // ---- giant price board ----
     const pb = new THREE.Group();
     const face = picMat(this.priceTex.tex);
-    const brd = board(9, 5.6, 0.35, face, "#c9a24a"); brd.position.y = 6.4; pb.add(brd);
-    for (const sx of [-3.2, 3.2]) pb.add(at(cyl(0.16, 0.2, 6.4, col("postY", "#5a5f70"), 10), sx, 3.2, -0.1));
+    const brd = board(5.6, 5.0, 0.35, face, "#c9a24a"); brd.position.y = 5.6; pb.add(brd);
+    for (const sx of [-2.0, 2.0]) pb.add(at(cyl(0.14, 0.18, 6.0, col("postY", "#5a5f70"), 10), sx, 3.0, -0.1));
     this.price = pb; R.add(pb);
     // ---- school bus ----
     this.buildBus(); R.add(this.bus);
@@ -184,12 +184,14 @@ export class Sets {
 
   private buildBus() {
     const B = this.bus, y = col("busY", "#f2b32c"), blk = col("busBlk", "#25252c");
-    B.add(at(box(11, 2.4, 2.5, y), 0, 1.75, 0));
+    B.add(at(box(11, 1.35, 2.5, y), 0, 1.22, 0));            // lower body, full length
+    B.add(at(box(9.9, 1.05, 2.5, y), 0.55, 2.42, 0));        // upper body behind the driver
+    for (const s of [-1, 1]) B.add(at(box(0.9, 1.05, 0.08, y), -5.05, 2.42, s * 1.21)); // cab pillars (open side window)
     B.add(at(box(1.6, 1.3, 2.4, y), -6.2, 1.2, 0)); // hood (front toward -x)
     B.add(at(box(11.02, 0.12, 2.52, blk), 0, 1.45, 0));
     B.add(at(box(11.02, 0.12, 2.52, blk), 0, 2.05, 0));
     const glass = col("busGlass", "#2c3e64");
-    for (let i = 0; i < 8; i++) for (const s of [-1, 1]) { const w = box(0.95, 0.75, 0.05, glass); at(w, -3.8 + i * 1.15, 2.42, s * 1.255); B.add(w); }
+    for (let i = 0; i < 8; i++) for (const s of [-1, 1]) { const w = box(0.95, 0.75, 0.05, glass); at(w, -3.6 + i * 1.15, 2.42, s * 1.255); B.add(w); }
     // windshield: an open frame so the driver card inside is visible
     B.add(at(box(0.06, 0.12, 2.4, blk), -5.52, 3.0, 0));
     B.add(at(box(0.06, 0.12, 2.4, blk), -5.52, 1.98, 0));
@@ -200,8 +202,7 @@ export class Sets {
     for (const sx of [-4.2, 3.2]) for (const sz of [-1.15, 1.15]) { const w = cyl(0.5, 0.5, 0.36, col("tyre", "#25252c"), 16); w.rotation.x = Math.PI / 2; at(w, sx, 0.5, sz); B.add(w); }
     // interior: floor + seat back so the driver sits in something
     B.add(at(box(0.6, 0.9, 0.7, col("seat", "#3a5a9a")), -4.2, 1.6, -0.5));
-    B.add(at(box(0.3, 0.3, 0.6, blk), -5.25, 2.15, -0.5)); // dash
-    const wheel = mesh(new THREE.TorusGeometry(0.22, 0.04, 8, 20), blk); wheel.rotation.y = Math.PI / 2; wheel.rotation.x = 0.5; at(wheel, -5.05, 2.35, -0.5); B.add(wheel);
+    const wheel = mesh(new THREE.TorusGeometry(0.2, 0.035, 8, 20), blk); wheel.rotation.y = Math.PI / 2; wheel.rotation.x = 0.6; at(wheel, -5.15, 1.98, -0.5); B.add(wheel);
   }
 
   // ================= TOWN =================
@@ -366,8 +367,8 @@ export class Sets {
   }
   private classroom() {
     const g = this.room(ROOM.class, 12, 6, 4.2, lam("classFloor", () => ({ map: woodFloor("classF", "#c09060") })), lam("classWall", () => ({ map: wallPaint("classW", "#f2e3c4", "#6a9a7a") })));
-    const cb = board(6.4, 2.4, 0.1, picMat(chalkboard(["ARBITRAGE", "BUY CHEAP: 10¢ points", "→ WORTH WAY MORE: $$$ JET"], "chalkArb")), "#6a4a2c");
-    at(cb, 0, 2.3, -5.92); g.add(cb);
+    const cb = board(4.6, 2.3, 0.1, picMat(chalkboard(["ARBITRAGE", "BUY CHEAP: 10¢ points", "→ WORTH WAY MORE: $$$ JET"], "chalkArb")), "#6a4a2c");
+    at(cb, 0, 2.2, -5.92); g.add(cb);
     g.add(at(box(2.0, 0.85, 0.9, col("tdesk", "#8a5a3c")), 2.8, 0.42, -4.2));
     g.add(at(canMesh(1.6), 2.4, 0.85, -4.1));
     for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
@@ -429,10 +430,10 @@ export class Sets {
 export const drawPrice = (g: CanvasRenderingContext2D, W: number, H: number, big: string, small: string, tiny: string, o?: Partial<SignOpts>) => {
   drawSign(g, W, H, [], { bg: o?.bg ?? "#fff36b", fg: "#e2453c", radius: 40 });
   g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillStyle = "#241726"; g.font = '900 86px "Arial Black", Arial'; g.fillText("PRICE:", W / 2, H * 0.16);
-  g.fillStyle = o?.fg ?? "#e2453c"; g.font = '900 150px "Arial Black", Arial';
+  g.fillStyle = "#241726"; g.font = '900 104px "Arial Black", Arial'; g.fillText("PRICE:", W / 2, H * 0.17);
+  g.fillStyle = o?.fg ?? "#e2453c"; g.font = '900 210px "Arial Black", Arial';
   let s = 1; const mw = g.measureText(big).width; if (mw > W * 0.92) s = (W * 0.92) / mw;
   g.save(); g.translate(W / 2, H * 0.43); g.scale(s, 1); g.fillText(big, 0, 0); g.restore();
-  g.fillStyle = "#241726"; g.font = '900 96px "Arial Black", Arial'; g.fillText(small, W / 2, H * 0.68);
+  g.fillStyle = "#241726"; g.font = '900 124px "Arial Black", Arial'; g.fillText(small, W / 2, H * 0.7);
   if (tiny) { g.fillStyle = "#6a6070"; g.font = '700 20px Arial'; g.fillText(tiny, W * 0.79, H * 0.92); }
 };
