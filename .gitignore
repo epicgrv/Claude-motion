@@ -11,3 +11,4 @@ finance_shorts/visuals/*/plates/*.png
 finance_shorts/visuals/*/out/
 finance_shorts/audio/*/takes/
 finance_shorts/deliverables/*.mp4
+finance_shorts/visuals/*/plates/**
