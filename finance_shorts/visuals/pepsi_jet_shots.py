@@ -289,8 +289,8 @@ def s13(fx, t, u):  # KA-CHING + dollar eyes
 def s14(fx, t, u):  # $20M tag vs $700K
     fx.plate("P04_school_jet", keys(t, [(22.67, 1000), (24.77, 1060)]), 1130, keys(t, [(22.67, 1.5), (24.77, 1.7)]))
     drop = spring(t - 23.0, 1.8, 5.0) if t > 23.0 else 0
-    tag(fx, 1180, 1050 - (1 - drop) * 900, "$20,000,000+", "ONE (1) JET", rot=12 - 6 * drop, w=560,
-        string_to=(1180, 820 - (1 - drop) * 900))
+    tag(fx, 700, 1080 - (1 - drop) * 900, "$20,000,000+", "ONE (1) JET", rot=8 - 6 * drop, w=600,
+        string_to=(760, 860 - (1 - drop) * 900))
     fx.end()
     c = fx.c
     if t > 23.6:  # tiny $700K sticky note
