@@ -45,7 +45,7 @@ def s12(fx, t, u):  # kitchen orbit: John behind the table hammering the calcula
     cx, cy, ppm = fx.anchor("CALC")
     keys_ = ["7", "×", "0", ".", "1", "="]
     k = keys_[int((t - 19.95) / 0.27) % len(keys_)]
-    calculator(fx, cx, cy - 0.12 * ppm, 0.3 * ppm, ["7000000", "7000000×", "0.1", "0.1", "0.1", "700000."][keys_.index(k)],
+    calculator(fx, cx, cy - 0.2 * ppm, 0.26 * ppm, ["7000000", "7000000×", "0.1", "0.1", "0.1", "700000."][keys_.index(k)],
                t, press=k)
     hx, hy = head_pos(x, y, r)
     sweat(fx, hx + r * 0.95, hy - r * 0.4 + (t * 120) % 50, r * 0.16)
@@ -77,5 +77,6 @@ THREE_D = {"S01": s01, "S12": s12, "S27": s27}
 SHOTS = []
 for sh in v2.SHOTS:
     fn = THREE_D.get(sh.name, sh.draw)
-    SHOTS.append(Shot(sh.name, sh.start, sh.end, fn, cap_y=sh.cap_y, dust=sh.dust, vignette=sh.vignette, warm=sh.warm,
+    cap = {"S01": 0.3}.get(sh.name, sh.cap_y)
+    SHOTS.append(Shot(sh.name, sh.start, sh.end, fn, cap_y=cap, dust=sh.dust, vignette=sh.vignette, warm=sh.warm,
                       bloom=sh.bloom, whip=0))  # the reference channels use 100% hard cuts
