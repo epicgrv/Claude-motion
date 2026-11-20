@@ -558,8 +558,15 @@ def P21_flyby():
     j.keyframe_insert("location", frame=47)
     j.keyframe_insert("rotation_euler", frame=47)
     sun("Sun", (82, 0, 180), 4.5, (1.0, 0.8, 0.55))
-    cam = camera((0.6, -6, 0.4), (0, 40, 9), lens=18)
-    cam.keyframe_insert("rotation_euler", frame=0)
-    cam.rotation_euler = (R(150), 0, R(178))
-    cam.keyframe_insert("rotation_euler", frame=47)
+    import bpy
+    cam = camera((0.6, -6, 0.5), (0, 40, 12), lens=16)
+    tgt = bpy.data.objects.new("CamTarget", None)
+    bpy.context.collection.objects.link(tgt)
+    for f, loc in ((0, (0, 60, 14)), (26, (0.3, 20, 11)), (38, (0.6, 2, 12)), (47, (0.8, -2, 16))):
+        tgt.location = loc
+        tgt.keyframe_insert("location", frame=f)
+    con = cam.constraints.new("TRACK_TO")
+    con.target = tgt
+    con.track_axis = "TRACK_NEGATIVE_Z"
+    con.up_axis = "UP_Y"
     return {"frames": 48, "spp": 14, "scale": 75}

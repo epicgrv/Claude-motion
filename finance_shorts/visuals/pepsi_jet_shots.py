@@ -434,6 +434,7 @@ def s14(fx, t, u):  # $20M tag vs $700K
     fx.plate("P04_school_jet", keys(t, [(22.67, 1000), (24.77, 1060)]), 1130, keys(t, [(22.67, 1.5), (24.77, 1.7)]),
              par=(-50 * u, math.sin(t * 5) * 12, 0.03 * u))
     drop = spring(t - 23.0, 1.8, 5.0) if t > 23.0 else 0
+    fx.fg()
     tag(fx, 700, 1080 - (1 - drop) * 900, "$20,000,000+", "ONE (1) JET", rot=8 - 6 * drop, w=600,
         string_to=(760, 860 - (1 - drop) * 900))
     fx.end()

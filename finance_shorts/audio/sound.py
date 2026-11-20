@@ -426,7 +426,17 @@ def main():
     sf.write(DIR / "mix_raw.wav", (mix / max(1.0, np.abs(mix).max() / 0.98)).astype(np.float32), SR)
     import subprocess
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(DIR / "mix_raw.wav"), "-af",
-                    "loudnorm=I=-14:TP=-1.0:LRA=9", "-ar", "48000", str(DIR / "mix.wav")], check=True)
+                    "volume=2.5dB,alimiter=limit=0.85:attack=3:release=60:level=disabled,loudnorm=I=-14:TP=-1.0:LRA=11", "-ar", "48000", str(DIR / "mix.wav")], check=True)
+    # exact loudness: measure, apply gain, true-peak limit; twice to converge on -14 LUFS
+    import re as _re
+    for _ in range(2):
+        out = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(DIR / "mix.wav"), "-af", "ebur128=framelog=quiet", "-f", "null", "-"],
+                             capture_output=True, text=True).stderr
+        cur = float(_re.findall(r"I:\s+(-?[0-9.]+) LUFS", out)[-1])
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(DIR / "mix.wav"), "-af",
+                        f"volume={-14.0 - cur:.2f}dB,alimiter=limit=0.89:attack=2:release=40:level=disabled",
+                        "-ar", "48000", str(DIR / "mix_tmp.wav")], check=True)
+        (DIR / "mix_tmp.wav").replace(DIR / "mix.wav")
     print("mix ok", total)
 
 
