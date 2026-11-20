@@ -81,6 +81,28 @@ def plate(name: str) -> skia.Image:
 SAMP = skia.SamplingOptions(skia.FilterMode.kLinear, skia.MipmapMode.kLinear)
 
 
+@lru_cache(None)
+def _plate_np(name: str):
+    import cv2
+    p = ROOT / "visuals" / "pepsi-jet" / "plates" / f"{name}.png"
+    im = cv2.cvtColor(cv2.imread(str(p), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGBA)
+    return np.ascontiguousarray(im)
+
+
+@lru_cache(None)
+def _depth_np(name: str):
+    import cv2
+    p = ROOT / "visuals" / "pepsi-jet" / "plates" / f"{name}_depth.png"
+    d = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE).astype(np.float32) / 255.0
+    return cv2.GaussianBlur(d, (0, 0), 3)
+
+
+@lru_cache(None)
+def _grid():
+    gx, gy = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32))
+    return gx, gy
+
+
 # ------------------------------------------------------------------------------------------------ frame context
 class Frame:
     def __init__(self, canvas: skia.Canvas, t: float, audio: "AudioInfo"):
@@ -89,8 +111,19 @@ class Frame:
         self.audio = audio
 
     # --- plates / camera
-    def plate(self, name, cx, cy, zoom, rot=0.0, shake=0.0, blur=0.0, dim=0.0):
-        img = plate(name)
+    def plate(self, name, cx, cy, zoom, rot=0.0, shake=0.0, blur=0.0, dim=0.0, par=(0.0, 0.0, 0.0)):
+        """Draw a plate with a virtual camera (centre cx,cy in plate px; zoom 1 = full width).
+        par = parallax (dx, dy, dz): layered sets move their foreground layer by (dx,dy) px and dz extra zoom;
+        single-image sets with a depth map warp per pixel. Leaves the canvas in plate space; call end()."""
+        self._fg = None
+        has_layers = (ROOT / "visuals" / "pepsi-jet" / "plates" / f"{name}_fg.png").exists()
+        has_depth = (ROOT / "visuals" / "pepsi-jet" / "plates" / f"{name}_depth.png").exists()
+        if any(par) and not has_layers and has_depth and not blur and not rot:
+            s_ = self.plate_warp(name, cx, cy, zoom, par, shake)
+            if dim:
+                self.c.drawRect(skia.Rect.MakeWH(5000, 5000), skia.Paint(Color=skia.Color(0, 0, 0, int(255 * dim))))
+            return s_
+        img = plate(name + "_bg") if has_layers else plate(name)
         c = self.c
         s = (W / img.width()) * max(1.0, zoom)
         hw, hh = W / (2 * s), H / (2 * s)
@@ -111,7 +144,58 @@ class Frame:
         c.drawImage(img, 0, 0, SAMP, paint)
         if dim:
             c.drawRect(skia.Rect.MakeWH(img.width(), img.height()), skia.Paint(Color=skia.Color(0, 0, 0, int(255 * dim))))
+        if has_layers:
+            self._fg = (name, cx, cy, par, paint, dim)
         return s  # caller must self.end()
+
+    def fg(self):
+        """Draw the pending foreground layer now (call before drawing characters that stand in front of it)."""
+        if not self._fg:
+            return
+        name, cx, cy, par, paint, dim = self._fg
+        self._fg = None
+        c = self.c
+        img = plate(name + "_fg")
+        c.save()
+        c.translate(cx, cy)
+        k = 1.0 + par[2]
+        c.scale(k, k)
+        c.translate(-cx + par[0] / k, -cy + par[1] / k)
+        c.drawImage(img, 0, 0, SAMP, paint)
+        if dim:
+            c.drawImage(img, 0, 0, SAMP, skia.Paint(ColorFilter=skia.ColorFilters.Blend(skia.Color(0, 0, 0, int(255 * dim)),
+                                                                                       skia.BlendMode.kSrcATop)))
+        c.restore()
+
+    def plate_warp(self, name, cx, cy, zoom, par=(0.0, 0.0, 0.0), shake=0.0):
+        """2.5-D parallax for a single-image plate using its depth map (plates/<name>_depth.png, 1 = near).
+        par = (dx, dy, dz): near pixels shift by up to dx,dy plate px and zoom by dz extra relative to far ones.
+        Leaves the canvas in plate space (like plate()); call end() afterwards."""
+        import cv2
+        img, dep = _plate_np(name), _depth_np(name)
+        ph, pw = dep.shape
+        s = (W / pw) * max(1.0, zoom)
+        hw, hh = W / (2 * s), H / (2 * s)
+        cx = min(max(cx, hw), pw - hw)
+        cy = min(max(cy, hh), ph - hh)
+        if shake:
+            n = self.t * 37.0
+            cx += shake * (math.sin(n * 1.7) + 0.5 * math.sin(n * 3.1)) / s
+            cy += shake * (math.cos(n * 1.3) + 0.5 * math.sin(n * 2.3)) / s
+        gx, gy = _grid()
+        px = (cx + (gx - W / 2) / s).astype(np.float32)
+        py = (cy + (gy - H / 2) / s).astype(np.float32)
+        d = cv2.remap(dep, px, py, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE) - 0.5
+        mx = px - par[0] * d - (px - cx) * par[2] * d
+        my = py - par[1] * d - (py - cy) * par[2] * d
+        out = cv2.remap(img, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        self.c.drawImage(skia.Image.fromarray(out, colorType=skia.kRGBA_8888_ColorType), 0, 0)
+        c = self.c
+        c.save()
+        c.translate(W / 2, H / 2)
+        c.scale(s, s)
+        c.translate(-cx, -cy)
+        return s
 
     def occlude(self, name, shape):
         """Redraw part of the plate on top (foreground furniture in front of a character). shape: Rect, RRect-able
@@ -126,6 +210,8 @@ class Frame:
         c.restore()
 
     def end(self):
+        if getattr(self, "_fg", None):
+            self.fg()
         self.c.restore()
 
     # --- character integration in plate space
@@ -346,6 +432,16 @@ class Shot:
     vignette: float = 0.4
     warm: tuple | None = None
     bloom: float = 0.55
+    whip: int = 0  # whip-pan into this shot: +1 from the right, -1 from the left
+
+
+def _whip(surf: skia.Surface, k: float, direction: int):
+    """Directional motion-blur slide for the first frames of a shot (k: 1 -> 0)."""
+    img = surf.makeImageSnapshot()
+    c = surf.getCanvas()
+    c.clear(skia.Color(0, 0, 0))
+    c.drawImage(img, direction * W * 0.18 * k * k, 0, SAMP,
+                skia.Paint(ImageFilter=skia.ImageFilters.Blur(90 * k, 2, skia.TileMode.kClamp)))
 
 
 def _render_range(args):
@@ -370,6 +466,8 @@ def _render_range(args):
         c.save()
         shot.draw(fx, t, u)
         c.restore()
+        if shot.whip and t - shot.start < 0.13:
+            _whip(surf, 1 - (t - shot.start) / 0.13, shot.whip)
         fin(c, t, dust=shot.dust, vignette=shot.vignette, warm=shot.warm, surf=surf, bloom=shot.bloom)
         if shot.cap_y is not None:
             for txt, s, e in caps:

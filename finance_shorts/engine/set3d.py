@@ -467,25 +467,35 @@ def chair(loc, rotz=0, seat_m=None, frame_m=None):
     def p(dx, dy, dz):
         return (x + dx * c - dy * s, y + dx * s + dy * c, z + dz)
 
-    box("Seat", (0.42, 0.42, 0.05), p(0, 0, 0.45), seat_m, rot=(0, 0, rotz))
-    box("Back", (0.42, 0.04, 0.42), p(0, 0.2, 0.72), seat_m, rot=(0, 0, rotz))
+    box("ChairSeat", (0.42, 0.42, 0.05), p(0, 0, 0.45), seat_m, rot=(0, 0, rotz))
+    box("ChairBack", (0.42, 0.04, 0.42), p(0, 0.2, 0.72), seat_m, rot=(0, 0, rotz))
     for dx in (-0.18, 0.18):
         for dy in (-0.18, 0.18):
-            cyl("Leg", 0.018, 0.45, p(dx, dy, 0.225), frame_m)
+            cyl("ChairLeg", 0.018, 0.45, p(dx, dy, 0.225), frame_m)
 
 
 def tree(loc, h=5.0, canopy=(0.25, 0.42, 0.12), seed=0):
+    import random as _r
+    rnd = _r.Random(seed)
     x, y, z = loc
-    cyl("Trunk", 0.18, h * 0.5, (x, y, z + h * 0.25), noisy("Bark", (0.25, 0.17, 0.11), (0.12, 0.08, 0.05), 20))
-    leaf = noisy(f"Leaf{seed}", canopy, tuple(c * 0.55 for c in canopy), 6, 0.7, 0.8)
-    for i, (dx, dy, dz, r) in enumerate([(0, 0, 0.62, 0.32), (0.25, 0.1, 0.52, 0.24), (-0.22, -0.05, 0.55, 0.25),
-                                         (0.05, 0.2, 0.75, 0.22), (-0.1, -0.2, 0.7, 0.2)]):
-        s = sphere("Canopy", h * r, (x + dx * h, y + dy * h, z + dz * h), leaf, sub=2)
-        d = s.modifiers.new("disp", "DISPLACE")
+    cyl("Trunk", 0.16, h * 0.55, (x, y, z + h * 0.27), noisy("Bark", (0.25, 0.17, 0.11), (0.12, 0.08, 0.05), 20), r2=0.1)
+    for k in range(3):  # branches
+        a = rnd.uniform(0, 6.28)
+        cyl("Branch", 0.06, h * 0.25, (x + math.cos(a) * 0.3, y + math.sin(a) * 0.3, z + h * 0.55), mat("BarkB", (0.2, 0.14, 0.09), 0.8),
+            rot=(math.cos(a) * 0.6, math.sin(a) * 0.6, 0))
+    shades = [canopy, tuple(c * 0.75 for c in canopy), tuple(min(1, c * 1.2) for c in canopy)]
+    for i in range(16):
+        r = h * rnd.uniform(0.11, 0.2)
+        a = rnd.uniform(0, 6.28)
+        d = h * rnd.uniform(0.0, 0.28)
+        zz = z + h * rnd.uniform(0.55, 0.95)
+        leaf = noisy(f"Leaf{seed % 3}_{i % 3}", shades[i % 3], tuple(c * 0.5 for c in shades[i % 3]), 9, 0.75, 0.9)
+        sp = sphere("Canopy", r, (x + math.cos(a) * d, y + math.sin(a) * d, zz), leaf, sub=2)
+        dm = sp.modifiers.new("disp", "DISPLACE")
         tx = bpy.data.textures.new(f"cl{seed}{i}", "CLOUDS")
-        tx.noise_scale = 0.6
-        d.texture = tx
-        d.strength = 0.35
+        tx.noise_scale = 0.25
+        dm.texture = tx
+        dm.strength = r * 0.45
 
 
 def house(loc, w=9, d=8, h=3.2, wall=(0.85, 0.82, 0.74), roof=(0.25, 0.22, 0.24), rotz=0, door=(0.75, 0.15, 0.12)):
@@ -510,26 +520,161 @@ def car(loc, color=(0.6, 0.12, 0.1), rotz=0):
             cyl("Wheel", 0.36, 0.25, (x + dx, y + dy, z + 0.36), tire, rot=(0, math.radians(90), 0))
 
 
-def jet(loc, rot=(0, 0, 0), scale=1.0):
-    """Stylised toy-like Harrier-ish jump jet built from primitives (grey, chunky, bevelled)."""
-    grey = mat("JetGrey", (0.32, 0.35, 0.38), 0.45, coat=0.3)
-    dark = mat("JetDark", (0.1, 0.11, 0.12), 0.5)
-    can = glass("Canopy", (0.25, 0.3, 0.35), 0.03)
+def _mesh(name, verts, faces, m=None):
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.update()
+    ob = _link(bpy.data.objects.new(name, me))
+    if m:
+        ob.data.materials.append(m)
+    return ob
+
+
+def _smooth(ob, sub=1):
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    if sub:
+        mod = ob.modifiers.new("sub", "SUBSURF")
+        mod.levels = mod.render_levels = sub
+
+
+def jet_paint():
+    """Two-tone grey camouflage + panel lines + roughness wear."""
+    if "JetCamo" in _MATS:
+        return _MATS["JetCamo"]
+    m = mat("JetCamo", rough=0.42, coat=0.35)
+    nodes, links, b = _nodes(m)
+    nt = m.node_tree
+    nz = nodes.new("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = 0.55
+    nz.inputs["Detail"].default_value = 2
+    links.new(_coord(nt), nz.inputs["Vector"])
+    ramp = nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.interpolation = "CONSTANT"
+    _ramp(ramp, [(0.0, (0.14, 0.17, 0.19)), (0.52, (0.33, 0.36, 0.38))])
+    links.new(nz.outputs["Fac"], ramp.inputs[0])
+    br = nodes.new("ShaderNodeTexBrick")
+    br.inputs["Scale"].default_value = 2.2
+    br.inputs["Mortar Size"].default_value = 0.004
+    br.inputs["Color1"].default_value = (1, 1, 1, 1)
+    br.inputs["Color2"].default_value = (0.93, 0.93, 0.93, 1)
+    br.inputs["Mortar"].default_value = (0.62, 0.62, 0.62, 1)
+    links.new(_coord(nt), br.inputs["Vector"])
+    mm = nodes.new("ShaderNodeMix")
+    mm.data_type = "RGBA"
+    mm.blend_type = "MULTIPLY"
+    mm.inputs[0].default_value = 1.0
+    links.new(ramp.outputs[0], mm.inputs[6])
+    links.new(br.outputs["Color"], mm.inputs[7])
+    links.new(mm.outputs[2], b.inputs["Base Color"])
+    bp = nodes.new("ShaderNodeBump")
+    bp.inputs["Strength"].default_value = 0.15
+    links.new(br.outputs["Fac"], bp.inputs["Height"])
+    links.new(bp.outputs[0], b.inputs["Normal"])
+    return m
+
+
+def jet(loc, rot=(0, 0, 0), scale=1.0, glow=1.0):
+    """Detailed stylised Harrier-style jump jet. Nose points to -Y. Returns the root empty."""
+    paint = jet_paint()
+    dark = mat("JetDark", (0.05, 0.05, 0.06), 0.5)
+    metal = mat("JetMetal", (0.45, 0.42, 0.4), 0.3, metal=1.0)
     parts = []
-    parts.append(cyl("Fuse", 0.75, 9.0, (0, 0, 0), grey, rot=(math.radians(90), 0, 0), r2=0.55))
-    parts.append(cyl("Nose", 0.55, 2.2, (0, -5.6, 0.05), grey, rot=(math.radians(-90), 0, 0), r2=0.02))
-    parts.append(sphere("Cockpit", 0.62, (0, -3.2, 0.55), can, scale=(0.8, 2.1, 0.8)))
-    parts.append(box("Wing", (9.0, 2.4, 0.16), (0, 0.6, 0.35), grey, bevel=0.06))
-    parts.append(box("Tail", (0.14, 2.0, 2.2), (0, 4.0, 1.2), grey, bevel=0.05, rot=(math.radians(-15), 0, 0)))
-    parts.append(box("Stab", (4.0, 1.4, 0.12), (0, 4.2, 0.2), grey, bevel=0.04))
-    for s in (-1, 1):
-        parts.append(cyl("Intake", 0.55, 2.0, (s * 0.95, -1.6, 0.0), dark, rot=(math.radians(90), 0, 0)))
-        parts.append(cyl("Nozzle", 0.32, 0.8, (s * 1.0, 0.2, -0.7), dark, rot=(0, 0, 0), r2=0.38))
-        parts.append(sphere("Glow", 0.3, (s * 1.0, 0.2, -1.15), emit("Afterburn", (1.0, 0.55, 0.2), 25)))
+    # fuselage: lofted rings with an oval, flat-bottomed section and a raised spine behind the cockpit
+    rings, n = [], 40
+    ys = [-7.2 + 13.6 * (i / 38) ** 1.0 for i in range(39)]
+    for y in ys:
+        if y < -3.0:
+            r = 0.9 * max(0.0, (y + 7.2) / 4.2) ** 0.62
+        elif y < 2.0:
+            r = 0.9
+        else:
+            r = 0.9 - 0.52 * ((y - 2.0) / 4.4) ** 1.15
+        spine = 0.18 * math.exp(-((y + 0.5) / 2.2) ** 2)
+        ring = []
+        for k in range(n):
+            a = 2 * math.pi * k / n
+            x = math.cos(a) * r * 1.05
+            z = math.sin(a) * r * (0.82 if math.sin(a) < 0 else 0.95) + (spine if math.sin(a) > 0.3 else 0)
+            if math.sin(a) < -0.6:
+                z = max(z, -r * 0.7)
+            ring.append((x, y, z))
+        rings.append(ring)
+    verts = [(0, -7.35, -0.05)] + [v for ring in rings for v in ring] + [(0, 6.5, 0.05)]
+    faces = [(0, 1 + (k + 1) % n, 1 + k) for k in range(n)]
+    for i in range(len(rings) - 1):
+        for k in range(n):
+            a0, a1 = 1 + i * n + k, 1 + i * n + (k + 1) % n
+            faces.append((a0, a1, a1 + n, a0 + n))
+    last = 1 + (len(rings) - 1) * n
+    faces += [(last + k, last + (k + 1) % n, len(verts) - 1) for k in range(n)]
+    fus = _mesh("Fuselage", verts, faces, paint)
+    _smooth(fus, 1)
+    parts.append(fus)
+    # nose cone tip (dark radome)
+    parts.append(cyl("Radome", 0.28, 0.9, (0, -7.0, -0.03), dark, rot=(math.radians(90), 0, 0), r2=0.02))
+
+    def slab(name, pts, thick, m):
+        top = [(x, y, z + thick / 2) for x, y, z in pts]
+        bot = [(x, y, z - thick / 2) for x, y, z in pts]
+        nn = len(pts)
+        f = [tuple(range(nn)), tuple(range(2 * nn - 1, nn - 1, -1))]
+        f += [(i, (i + 1) % nn, nn + (i + 1) % nn, nn + i) for i in range(nn)]
+        ob = _mesh(name, top + bot, f, m)
+        bv = ob.modifiers.new("bev", "BEVEL")
+        bv.width = min(0.05, thick * 0.45)
+        bv.segments = 3
+        _smooth(ob, 0)
+        return ob
+
+    for s in (-1, 1):  # swept, drooping wings
+        parts.append(slab("Wing", [(s * 0.6, -0.6, 0.55), (s * 4.7, 2.3, -0.35), (s * 4.7, 3.3, -0.35), (s * 0.6, 2.8, 0.55)],
+                          0.16, paint))
+        parts.append(cyl("Outrigger", 0.07, 0.8, (s * 4.55, 2.9, -0.65), dark))
+        parts.append(slab("Stab", [(s * 0.3, 4.7, 0.2), (s * 2.3, 6.0, -0.25), (s * 2.3, 6.5, -0.25), (s * 0.3, 6.4, 0.2)],
+                          0.1, paint))
+        # intakes: bulbous cheeks with dark mouths
+        ik = sphere("Intake", 0.62, (s * 0.95, -1.0, 0.15), paint, scale=(0.75, 2.4, 0.95))
+        parts.append(ik)
+        parts.append(cyl("IntakeMouth", 0.45, 0.06, (s * 1.02, -2.35, 0.15), dark, rot=(math.radians(90), 0, 0)))
+        for yy in (-0.6, 1.3):  # four swivel nozzles
+            parts.append(cyl("Nozzle", 0.3, 0.75, (s * 1.18, yy, -0.45), metal, rot=(math.radians(18), 0, 0), r2=0.34, bevel=0.02))
+            parts.append(cyl("NozzleIn", 0.24, 0.05, (s * 1.18, yy + 0.11, -0.82), dark, rot=(math.radians(18), 0, 0)))
+            if glow:
+                parts.append(sphere("HeatCore", 0.18, (s * 1.18, yy + 0.12, -0.84), emit("Heat", (1.0, 0.5, 0.15), 18 * glow)))
+    parts.append(slab("Fin", [(0, 3.9, 0.7), (0, 5.4, 2.6), (0, 6.2, 2.6), (0, 6.3, 0.6)], 0.12, paint))
+    # rotate the fin slab: it was built flat in XY-ish; build it properly in YZ
+    fin = parts[-1]
+    fin.rotation_euler = (0, math.radians(90), 0)
+    fin.location = (0, 0, 0)
+    me = fin.data
+    for v in me.vertices:
+        x, y, z = v.co
+        v.co = (z * 0 + (x * 0) + (0.06 if z > 0 else -0.06), y, abs(z) if False else z)
+    fin.rotation_euler = (0, 0, 0)
+    for v in me.vertices:  # map original (0,y,zfin) with thickness on z -> thickness on x
+        pass
+    bpy.data.objects.remove(fin)
+    parts.pop()
+    fin_pts = [(3.9, 0.7), (5.4, 2.6), (6.2, 2.6), (6.3, 0.6)]
+    fv = [(0.07, y, z) for y, z in fin_pts] + [(-0.07, y, z) for y, z in fin_pts]
+    ff = [(0, 1, 2, 3), (7, 6, 5, 4)] + [(i, (i + 1) % 4, 4 + (i + 1) % 4, 4 + i) for i in range(4)]
+    fin = _mesh("Fin", fv, ff, paint)
+    bvm = fin.modifiers.new("bev", "BEVEL")
+    bvm.width = 0.04
+    bvm.segments = 3
+    parts.append(fin)
+    # canopy + frame
+    parts.append(sphere("Canopy", 0.55, (0, -3.1, 0.72), glass("CanopyGlass", (0.75, 0.6, 0.3), 0.02), scale=(0.95, 2.3, 0.85)))
+    # tail cone / nozzle + antenna
+    parts.append(cyl("TailCone", 0.38, 0.6, (0, 6.55, 0.05), metal, rot=(math.radians(90), 0, 0), r2=0.18))
+    parts.append(cyl("Pitot", 0.02, 0.8, (0, -7.7, -0.03), metal, rot=(math.radians(90), 0, 0)))
+    for i, c in enumerate([(1.0, 0.15, 0.1), (0.1, 1.0, 0.25)]):  # nav lights
+        parts.append(sphere("Nav", 0.07, ((-1 if i == 0 else 1) * 4.72, 2.8, -0.33), emit(f"Nav{i}", c, 30)))
     root = bpy.data.objects.new("Jet", None)
     _link(root)
-    for p in parts:
-        p.parent = root
+    for p_ in parts:
+        p_.parent = root
     root.location = loc
     root.rotation_euler = rot
     root.scale = (scale, scale, scale)
@@ -537,14 +682,70 @@ def jet(loc, rot=(0, 0, 0), scale=1.0):
 
 
 # ------------------------------------------------------------------------------------------------ CLI
+def _descendants(names):
+    out = set()
+    for ob in bpy.data.objects:
+        if ob.type not in ("MESH", "EMPTY"):
+            continue
+        o = ob
+        while o is not None:
+            if any(o.name == n or o.name.startswith(n + ".") or o.name.startswith(n) for n in names):
+                out.add(ob)
+                break
+            o = o.parent
+    return out
+
+
+def render_layers(name, fg_prefixes, spp=64, scale=100):
+    """<name>_bg.png: set without the foreground objects (true background behind them).
+    <name>_fg.png: only the foreground objects, alpha, still lit/shadowed by the full scene."""
+    fg = _descendants(fg_prefixes)
+    sc = bpy.context.scene
+    for ob in fg:
+        ob.hide_render = True
+    render(name + "_bg", spp, scale)
+    for ob in fg:
+        ob.hide_render = False
+    for ob in bpy.data.objects:
+        if ob.type == "MESH" and ob not in fg:
+            ob.is_holdout = True
+    sc.render.film_transparent = True
+    render(name + "_fg", spp, scale)
+    sc.render.film_transparent = False
+    for ob in bpy.data.objects:
+        ob.is_holdout = False
+
+
+def render_anim(name, frames, spp=16, scale=75, motion_blur=True):
+    """Render frames [0, frames) of an animated set to plates/<name>/####.png."""
+    sc = bpy.context.scene
+    sc.frame_start, sc.frame_end = 0, frames - 1
+    sc.render.fps = 30
+    sc.render.use_motion_blur = motion_blur
+    sc.render.motion_blur_shutter = 0.5
+    sc.cycles.samples = spp
+    sc.cycles.adaptive_threshold = 0.04
+    sc.render.resolution_percentage = scale
+    sc.render.image_settings.file_format = "PNG"
+    (OUT / name).mkdir(parents=True, exist_ok=True)
+    sc.render.filepath = str(OUT / name / "####")
+    bpy.ops.render.render(animation=True)
+
+
 def main():
     from finance_shorts.engine import sets_pepsi
     name = sys.argv[1]
     spp = int(sys.argv[sys.argv.index("--spp") + 1]) if "--spp" in sys.argv else 64
     scale = int(sys.argv[sys.argv.index("--scale") + 1]) if "--scale" in sys.argv else 100
     reset()
-    getattr(sets_pepsi, name)()
-    render(name, spp, scale)
+    spec = getattr(sets_pepsi, name)()
+    if isinstance(spec, dict) and spec.get("frames"):
+        render_anim(name, spec["frames"], spec.get("spp", spp), spec.get("scale", scale))
+    elif isinstance(spec, dict) and spec.get("fg") and "--flat" not in sys.argv:
+        render(name, spp, scale)
+        render_layers(name, spec["fg"], spp, scale)
+    else:
+        render(name, spp, scale)
 
 
 if __name__ == "__main__":

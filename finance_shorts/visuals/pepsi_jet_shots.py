@@ -33,10 +33,88 @@ def talk(fx, who):
     return fx.audio.speaking(who, fx.t)
 
 
-def actor(fx, ch, who, x, y, r, tint=WARM, **kw):
-    kw.setdefault("blink", blink(fx.t, SEED.get(who, 9)))
+# ------------------------------------------------------------------------------- acting system
+GESTURES = {"JOHN": ["present", "point", "shrug", "hold2", "point_up"], "BUDDY": ["hold", "shrug"],
+            "EXEC": ["hips", "present", "arms_up"], "INVESTOR": ["point", "relaxed"], "TEEN": ["point_up", "present"],
+            "JUDGE": ["present"], "DRIVER": ["arms_up"]}
+_BEATS = {}
+
+
+def beats(fx, who):
+    """Stressed-word times for a speaker: long words, words before punctuation, ALL-CAPS script words."""
+    if who in _BEATS:
+        return _BEATS[who]
+    out = []
+    for ln in fx.audio.tl["lines"]:
+        if ln["who"] != who and not (who == "JOHN" and ln["who"] == "NAR"):
+            continue
+        caps = {w.strip(".,?!:;\"").lower() for w in ln["text"].split() if w.isupper() and len(w) > 2}
+        for w in ln["words"]:
+            word = w["w"].strip(".,?!:;\"-").lower()
+            dur = w["e"] - w["s"]
+            if dur > 0.3 or w["w"][-1:] in ".?!" or len(word) >= 7 or word in caps:
+                out.append((w["s"], ln["who"] == who))
+    _BEATS[who] = out
+    return out
+
+
+def gesture_weight(t, t0):
+    """Anticipation dip -> hit -> hold -> settle, around a beat at t0."""
+    d = t - t0
+    if d < -0.12 or d > 0.75:
+        return 0.0, 0.0
+    if d < 0:
+        return 0.0, -0.6 * (1 + d / 0.12) * (-d / 0.12)  # tiny anticipation squash
+    if d < 0.12:
+        return ease(d / 0.12, "out"), 1.0 - d / 0.12
+    if d < 0.4:
+        return 1.0, 0.0
+    return 1.0 - ease((d - 0.4) / 0.35), 0.0
+
+
+def actor(fx, ch, who, x, y, r, tint=WARM, act=True, enter=None, **kw):
+    """Place a character with automatic acting: breathing, talk nods, beat gestures, eye darts, entrances."""
+    from finance_shorts.engine.character import POSES, lerp_pose
+    t = fx.t
+    sd = SEED.get(who, 9)
+    kw.setdefault("blink", blink(t, sd))
     kw.setdefault("mouth", talk(fx, who))
-    fx.char(ch, x, y, r, tint=tint, **kw)
+    base = kw.pop("pose", "stand")
+    pose = POSES[base] if isinstance(base, str) else base
+    if act:
+        speaking = kw["mouth"] > 0 or fx.audio.speaking(who, t + 0.15) > 0
+        # breathing + idle sway
+        kw["bob"] = kw.get("bob", 0.0) + 0.035 * math.sin(t * 2.4 + sd)
+        pose = dict(pose)
+        pose["lean"] = pose.get("lean", 0) + 1.8 * math.sin(t * 0.9 + sd)
+        # beat gestures (strong when this character speaks; soft when the narrator talks about John)
+        if not pose.get("sit") and base not in ("kick", "jaw_drop", "slump", "walk_a", "walk_b"):
+            best = (0.0, 0.0, None)
+            for i, (bt, own) in enumerate(beats(fx, who)):
+                w, sq = gesture_weight(t, bt)
+                if w > best[0] or sq < best[1]:
+                    best = (w * (1.0 if own else 0.55), sq, i)
+            w, sq, i = best
+            if i is not None and w > 0:
+                g = GESTURES.get(who, ["present"])
+                pose = lerp_pose(pose, POSES[g[i % len(g)]], w)
+            kw["squash"] = kw.get("squash", 1.0) * (1.0 + 0.05 * sq + (0.03 * w if w else 0))
+        # talking head nod / tilt
+        if speaking:
+            kw["head_tilt"] = kw.get("head_tilt", 0.0) + 5 * math.sin(t * 7.3 + sd) * (0.4 + kw["mouth"])
+        # eye darts (saccades) unless the shot fixes the gaze hard
+        lx, ly = kw.get("look", (0.0, 0.0))
+        k = int(t * 1.1 + sd)
+        jitter = ((k * 7919 % 13) / 13 - 0.5) * 0.5, ((k * 104729 % 11) / 11 - 0.5) * 0.3
+        kw["look"] = (max(-1, min(1, lx + jitter[0])), max(-1, min(1, ly + jitter[1])))
+    if enter:  # ("left"|"right"|"bottom", t0, dur) slide/hop in with overshoot
+        side, t0, dur = enter
+        k = spring(t - t0, 1.6, 6.0) if t > t0 else 0.0
+        off = (1 - k) * {"left": -900, "right": 900, "bottom": 0}[side]
+        x += off
+        if side == "bottom":
+            y += (1 - k) * 1200
+    fx.char(ch, x, y, r, tint=tint, pose=pose, **kw)
 
 
 def head_pos(x, y, r, pose="stand", face=1):
@@ -77,7 +155,30 @@ def flying_papers(fx, t, n, box, seed=1, size=40, wind=(300, -60)):
         c.restore()
 
 
-def tv_full(fx, t, u, content, push=0.05):
+def back_heads(fx, t, glow=1.0):
+    """Over-the-shoulder foreground: backs of John's (cap) and Buddy's (shaggy hair) heads, rim-lit by the TV."""
+    c = fx.c
+    for (x, y, r, kind) in ((290, 1730, 270, "cap"), (810, 1760, 280, "hair")):
+        bob = math.sin(t * 2.3 + x) * 6
+        y += bob
+        c.drawCircle(x, y, r, P(col("#16110F")))
+        if kind == "cap":
+            p = skia.Path()
+            p.moveTo(x - r * 0.95, y - r * 0.25)
+            p.cubicTo(x - r * 0.9, y - r * 1.2, x + r * 0.9, y - r * 1.2, x + r * 0.95, y - r * 0.25)
+            p.close()
+            c.drawPath(p, P(col("#5A1512")))
+            c.drawRect(skia.Rect.MakeXYWH(x - r * 0.22, y - r * 0.4, r * 0.44, r * 0.18), P(col("#3A0E0C")))
+        else:
+            for k in range(9):
+                a = math.pi * (1.05 + k * 0.11)
+                c.drawCircle(x + math.cos(a) * r * 0.92, y + math.sin(a) * r * 0.92, r * 0.28, P(col("#4A3F22")))
+        rim = skia.Paint(AntiAlias=True, Color=col("#8EC9FF", int(150 * glow * tv_flicker(t))), Style=skia.Paint.kStroke_Style,
+                         StrokeWidth=10, MaskFilter=skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 8))
+        c.drawArc(skia.Rect.MakeXYWH(x - r, y - r, 2 * r, 2 * r), 200, 140, False, rim)
+
+
+def tv_full(fx, t, u, content, push=0.05, ots=True):
     """Full-screen CRT on a blurred dark bedroom background."""
     fx.plate("P03_bedroom", 360, 1300, 3.2, blur=26, dim=0.5)
     fx.end()
@@ -91,6 +192,8 @@ def tv_full(fx, t, u, content, push=0.05):
     crt(fx, rect, content, t)
     fx.glow(W / 2, 860, 900, "#7FB0FF", 0.16 * tv_flicker(t))
     c.restore()
+    if ots:
+        back_heads(fx, t)
     return rect
 
 
@@ -115,16 +218,40 @@ def hearts(fx, x, y, t, n=4):
 
 
 # ===================================================================================== shots
-def s01(fx, t, u):  # cheque slapped on the counter
-    fx.plate("P16_countertop", 720, 1280, 1.0 + 0.15 * ease(u))
-    slide = spring(t - 0.05, 2.2, 6.0)
-    cy = 1280 + (1 - slide) * 1400
-    cheque(fx, skia.Rect.MakeXYWH(170, cy - 260, 1100, 520), t, rot=-4 + 3 * (1 - slide), write=1.0)
-    if t < 0.6:
-        hand_arm(fx, 1500, cy + 700, 900, cy + 180, 60)
+def giant_cheque(fx, x, y, w, rot=0.0):
+    """Novelty-size cheque held up by John (drawn in plate space)."""
+    cheque(fx, skia.Rect.MakeXYWH(x - w / 2, y - w * 0.24, w, w * 0.48), fx.t, rot=rot, write=1.0)
+
+
+def dust_swirl(fx, t, cx, cy, n=60, spread=900, seed=3, color="#FFD9A0"):
+    c = fx.c
+    rng = np.random.default_rng(seed)
+    for i in range(n):
+        a0, r0, sp, sz = rng.uniform(0, 6.28), rng.uniform(80, spread), rng.uniform(0.6, 1.8), rng.uniform(2, 9)
+        a = a0 + t * sp * 0.8
+        x = cx + math.cos(a) * r0 * 1.3
+        y = cy + math.sin(a) * r0 * 0.35 - (t * 60 * sp) % 300
+        c.drawCircle(x, y, sz, skia.Paint(AntiAlias=True, Color=col(color, int(150 * rng.uniform(0.3, 1))),
+                                          MaskFilter=skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, sz * 0.7),
+                                          BlendMode=skia.BlendMode.kScreen))
+
+
+def s01(fx, t, u):  # HOOK: John + giant cheque, Harrier hovering behind him at golden hour
+    k = ease(u, "out")
+    fx.plate("P20_hero_street", 720, keys(t, [(0, 1600), (1.42, 1560)]), 1.2 + 0.16 * k, par=(-40 * k, 10 * k, 0.05 * k))
+    fx.rays(720, 1150, 90, 160, 2400, "#FFC27A", 0.2, 11, seed=1)
+    c = fx.c
+    c.save()  # jet bobs in its downwash
+    c.translate(0, math.sin(t * 5.5) * 10)
+    fx.fg()
+    c.restore()
+    fx.glow(720, 1180, 520, "#FFB060", 0.35)
+    dust_swirl(fx, t, 720, 1900, 70, 800)
+    actor(fx, JOHN, "JOHN", 700, 2700, 210, tint=(1.08, 0.94, 0.82), pose="hold2", expr="grin", look=(0, 0.3),
+          act=True, mouth=0.0)
+    giant_cheque(fx, 700, 2370 + math.sin(t * 3) * 6, 900, rot=-3 + 2 * math.sin(t * 2))
+    flying_papers(fx, t, 6, (0, 1250, 1440, 1800), seed=9, size=38, wind=(420, -90))
     fx.end()
-    if 0.05 < t < 0.3:
-        fx.c.drawRect(skia.Rect.MakeWH(W, H), skia.Paint(Color=skia.Color(255, 255, 255, int(120 * (0.3 - t) / 0.25))))
 
 
 def s02(fx, t, u):  # John kisses the envelope and posts it
@@ -151,16 +278,27 @@ def s03(fx, t, u):  # push into the amount
     fx.end()
 
 
-def s04(fx, t, u):  # jet flyby over the street
-    fx.plate("P02_street_jet", 720, keys(t, [(4.26, 1500), (5.86, 1150)]), keys(t, [(4.26, 1.05), (5.86, 1.32)]),
-             shake=18 * math.sin(u * math.pi), rot=keys(t, [(4.26, -2), (5.86, 3)]))
-    fx.rays(1100, 300, 115, 70, 2400, "#FFE0B0", 0.16, 9, seed=4)
-    fx.end()
-    speed_lines(fx, W / 2, H * 0.3, t, 30, 420, 0.35 * math.sin(u * math.pi))
+def anim_frame(name, i):
+    from finance_shorts.engine.comp import ROOT
+    from functools import lru_cache
+    p = ROOT / "visuals" / "pepsi-jet" / "plates" / name / f"{i:04d}.png"
+    return skia.Image.open(str(p))
+
+
+def s04(fx, t, u):  # REAL 3-D flyby (Blender animation, motion blur) + shake + speed lines
+    i = max(0, min(47, int((t - 4.26) * 30)))
+    img = anim_frame("P21_flyby", i)
+    c = fx.c
+    shake = 22 * math.exp(-((t - 5.35) / 0.25) ** 2)
+    c.save()
+    c.translate(math.sin(t * 61) * shake, math.cos(t * 53) * shake)
+    c.drawImageRect(img, skia.Rect.MakeXYWH(-20, -36, W + 40, H + 72), SAMP)
+    c.restore()
+    speed_lines(fx, W / 2, H * 0.3, t, 34, 420, 0.4 * math.exp(-((t - 5.35) / 0.35) ** 2))
 
 
 def s05(fx, t, u):  # bedroom wide
-    fx.plate("P03_bedroom", 690, 1560, 1.45 + 0.12 * ease(u))
+    fx.plate("P03_bedroom", 690, 1560, 1.45 + 0.12 * ease(u), par=(60 * ease(u), 0, 0.08 * ease(u)))
     scr = skia.Rect.MakeLTRB(292, 1228, 392, 1352)
     crt(fx, scr, lambda f, w, h, tt: plate_in(f, "P04_school_jet", w, h, 900, 1100, 2.2), t, bezel=False)
     fx.glow(340, 1290, 520, "#6FB8FF", 0.30 * tv_flicker(t))
@@ -210,7 +348,7 @@ def s08(fx, t, u):  # price card
 
 
 def s09(fx, t, u):  # Buddy: drink Pepsi forever; a can falls off the pyramid
-    fx.plate("P03_bedroom", 900, 1560, 2.25 + 0.2 * ease(u))
+    fx.plate("P03_bedroom", 900, 1560, 2.25 + 0.2 * ease(u), par=(-50 * ease(u), 0, 0.06 * ease(u)))
     fx.glow(340, 1290, 700, "#6FB8FF", 0.22 * tv_flicker(t))
     fall = max(0.0, t - 14.35)
     for row, n in enumerate((4, 3, 2, 1)):
@@ -265,9 +403,8 @@ def s11(fx, t, u):  # magnifier on the fine print
 
 
 def s12(fx, t, u):  # kitchen: calculator frenzy
-    fx.plate("P06_kitchen", 700, 1250, 1.55 + 0.1 * ease(u), shake=3 if t > 20.0 else 0)
+    fx.plate("P06_kitchen", 700, 1250, 1.55 + 0.1 * ease(u), shake=3 if t > 20.0 else 0, par=(-60 * u, 20 * u, 0.04 * u))
     actor(fx, JOHN, "JOHN", 700, 1640, 110, tint=WARM, pose="hold2", expr="squint", look=(0, 0.6))
-    fx.occlude("P06_kitchen", skia.Rect.MakeLTRB(0, 1300, 1440, 2560))
     keys_ = ["7", "×", "0", ".", "1", "="]
     k = keys_[int((t - 19.95) / 0.27) % len(keys_)]
     calculator(fx, 980, 1720, 260, ["7000000", "7000000×", "0.1", "0.1", "0.1", "700000."][keys_.index(k)], t, press=k)
@@ -287,7 +424,8 @@ def s13(fx, t, u):  # KA-CHING + dollar eyes
 
 
 def s14(fx, t, u):  # $20M tag vs $700K
-    fx.plate("P04_school_jet", keys(t, [(22.67, 1000), (24.77, 1060)]), 1130, keys(t, [(22.67, 1.5), (24.77, 1.7)]))
+    fx.plate("P04_school_jet", keys(t, [(22.67, 1000), (24.77, 1060)]), 1130, keys(t, [(22.67, 1.5), (24.77, 1.7)]),
+             par=(-50 * u, math.sin(t * 5) * 12, 0.03 * u))
     drop = spring(t - 23.0, 1.8, 5.0) if t > 23.0 else 0
     tag(fx, 700, 1080 - (1 - drop) * 900, "$20,000,000+", "ONE (1) JET", rot=8 - 6 * drop, w=600,
         string_to=(760, 860 - (1 - drop) * 900))
@@ -323,7 +461,7 @@ def s15(fx, t, u):  # 96% OFF tag swings in; John sweats
 
 
 def s16(fx, t, u):  # Black Friday crowd turns to stare
-    fx.plate("P17_store", 720, 1520, 1.5 + 0.08 * ease(u))
+    fx.plate("P17_store", 720, 1520, 1.5 + 0.08 * ease(u), par=(60 * u, 0, 0.05 * u))
     turn = t > 27.6
     for i, ch in enumerate(EXTRAS):
         x = 330 + i * 95 + (i % 2) * 20
@@ -340,7 +478,7 @@ def s16(fx, t, u):  # Black Friday crowd turns to stare
 def s17(fx, t, u):  # classroom: arbitrage
     zoom = keys(t, [(28.6, 1.22), (32.85, 1.3)])
     cx = keys(t, [(28.6, 900), (32.85, 940)])
-    fx.plate("P07_classroom", cx, 1330, zoom)
+    fx.plate("P07_classroom", cx, 1330, zoom, par=(70 * u, 0, 0.05 * u))
     fx.rays(150, 700, 30, 40, 1800, "#FFE2B0", 0.12, 6, seed=2)
     chalk_text(fx, "ARBITRAGE", 935, 975, 150, (t - 29.35) / 0.8, align="center")
     chalk_text(fx, "BUY 10¢", 480, 1170, 100, (t - 30.3) / 0.5)
@@ -353,7 +491,7 @@ def s17(fx, t, u):  # classroom: arbitrage
 
 
 def s18(fx, t, u):  # Buddy: "This is insanity." + paper airplane bonk
-    fx.plate("P07_classroom", 800, 1900, 1.75 + 0.1 * u)
+    fx.plate("P07_classroom", 800, 1900, 1.75 + 0.1 * u, par=(-40 * u, 0, 0.05 * u))
     hit = t > 33.2
     actor(fx, BUDDY, "BUDDY", 800, 2330, 150, tint=WARM, pose="hold", expr="dead" if hit else "deadpan",
           prop={"kind": "bowl", "hand": "r"}, head_tilt=-6 if hit else 0)
@@ -381,7 +519,7 @@ def s18(fx, t, u):  # Buddy: "This is insanity." + paper airplane bonk
 
 
 def s19(fx, t, u):  # diner: five investors crammed in one booth
-    fx.plate("P08_diner", 720, 1360, 1.2 + 0.06 * ease(u))
+    fx.plate("P08_diner", 720, 1360, 1.3 + 0.08 * ease(u), par=(80 * ease(u), 0, 0.05 * ease(u)))
     actor(fx, JOHN, "JOHN", 290, 1520, 92, tint=WARM, pose="sit_hold", expr="grin", look=(1, 0),
           prop={"kind": "napkin", "hand": "r"}, face=1)
     for i, ch in enumerate(EXTRAS[:4]):
@@ -389,7 +527,6 @@ def s19(fx, t, u):  # diner: five investors crammed in one booth
                 tint=WARM, pose="sit" if i != 3 else "stand", expr="squint" if i % 2 else "neutral", look=(-1, 0),
                 blink=blink(t, 11 + i), face=-1)
     actor(fx, INV, "INVESTOR", 990, 1530, 92, tint=WARM, pose="sit", expr="smug", look=(-1, 0), face=-1)
-    fx.occlude("P08_diner", skia.Rect.MakeLTRB(300, 1180, 1100, 1300))
     fx.end()
 
 
@@ -409,7 +546,7 @@ def s21(fx, t, u):  # John: "...School?" + crickets
 
 
 def s22(fx, t, u):  # cheque written for $700,008.50
-    fx.plate("P16_countertop", 720, 1280, 1.35 + 0.1 * ease(u))
+    fx.plate("P16_countertop", 720, 1280, 1.35 + 0.1 * ease(u), par=(0, 0, 0.05 * u))
     w = max(0.0, min(1.0, (t - 37.7) / 2.6))
     cheque(fx, skia.Rect.MakeXYWH(170, 1020, 1100, 520), t, rot=-2, write=w)
     pen_x = 300 + (w * 6 % 1) * 700
@@ -471,18 +608,17 @@ def s25(fx, t, u):  # "What is he, a criminal?" halo + choir
 
 
 def s26(fx, t, u):  # HQ tower crane-up
-    fx.plate("P10_hq_tower", 720, keys(t, [(44.34, 1900), (46.1, 1300)]), keys(t, [(44.34, 1.25), (46.1, 1.1)]))
+    fx.plate("P10_hq_tower", 720, keys(t, [(44.34, 1900), (46.1, 1300)]), keys(t, [(44.34, 1.25), (46.1, 1.1)]), par=(0, -90 * u, 0.1 * u))
     fx.rays(1200, 200, 120, 40, 2200, "#FFFFFF", 0.12, 6, seed=9)
     fx.end()
 
 
 def s27(fx, t, u):  # exec spit-take + laugh kick
-    fx.plate("P11_exec_office", 720, 1330, 1.95 + 0.12 * ease(u), shake=6 if t > 46.4 else 0)
+    fx.plate("P11_exec_office", 720, 1330, 1.95 + 0.12 * ease(u), shake=6 if t > 46.4 else 0, par=(0, 30 * u, 0.06 * u))
     spit = 46.1 <= t < 46.5
     pose = "hold" if t < 46.4 else ("kick" if int(t * 6) % 2 else "hips")
     actor(fx, EXEC, "EXEC", 720, 1700, 120, tint=WARM, pose=pose, expr="laugh" if t > 46.4 else "wide", look=(0, 0),
           prop={"kind": "mug", "hand": "r"} if t < 46.4 else None)
-    fx.occlude("P11_exec_office", skia.Rect.MakeLTRB(0, 1440, 1440, 2560))
     hx, hy = head_pos(720, 1700, 120)
     c = fx.c
     if spit:  # coffee spray
@@ -499,7 +635,7 @@ def s27(fx, t, u):  # exec spit-take + laugh kick
 
 
 def s28(fx, t, u):  # envelope back through the slot; coupons cascade
-    fx.plate("P12_porch", 700, 1650, 1.6 + 0.1 * u)
+    fx.plate("P12_porch", 700, 1650, 1.6 + 0.1 * u, par=(50 * u, 0, 0.06 * u))
     c = fx.c
     rng = np.random.default_rng(12)
     for i in range(36):
@@ -525,18 +661,18 @@ def s28(fx, t, u):  # envelope back through the slot; coupons cascade
 
 
 def s29(fx, t, u):  # FREE 2-LITER + jet progress bar
-    fx.plate("P12_porch", 720, 1700, 1.55 + 0.06 * u)
+    fx.plate("P12_porch", 720, 1700, 1.55 + 0.06 * u, par=(-40 * u, 0, 0.05 * u))
     actor(fx, JOHN, "JOHN", 720, 2330, 165, tint=DAY, pose="present", expr="dead", look=(0, 0.2),
           prop={"kind": "coupon", "hand": "r"})
     fx.end()
-    frac = 0.0 if t < 52.6 else 0.004
-    progress_bar(fx, 110, 330, 860, 80, frac, "JET PROGRESS", "0.00000%" if t < 52.6 else "0.00004%")
+    frac = 0.0 if t < 50.9 else 0.004
+    progress_bar(fx, 110, 330, 860, 80, frac, "JET PROGRESS", "0.00000%" if t < 50.9 else "0.00004%")
     if t > 50.4:
         fx.text("FREE 2-LITER", W * 0.68, H * 0.6, 54, "anton-400", "#B23A2E", stroke=6, stroke_col="#FFF4C7")
 
 
 def s30(fx, t, u):  # courthouse, crane down, John marching up the steps
-    fx.plate("P13_courthouse", 720, keys(t, [(53.82, 900), (55.18, 1400)]), 1.2)
+    fx.plate("P13_courthouse", 720, keys(t, [(53.82, 900), (55.18, 1400)]), 1.2, par=(0, -80 * u, 0.06 * u))
     k = (t - 53.82) / 1.36
     actor(fx, JOHN, "JOHN", 850 + k * 30, 1960 - k * 140, 60, tint=(0.95, 0.95, 1.0), pose="walk_a" if int(t * 5) % 2 else "walk_b",
           expr="squint", look=(0, -1))
@@ -544,10 +680,9 @@ def s30(fx, t, u):  # courthouse, crane down, John marching up the steps
 
 
 def s31(fx, t, u):  # courtroom ruling
-    fx.plate("P14_courtroom", 720, keys(t, [(55.18, 1250), (59.75, 1180)]), keys(t, [(55.18, 1.35), (59.75, 1.55)]))
-    actor(fx, JUDGE, "JUDGE", 720, 1450, 92, tint=WARM, pose="hold2", expr="neutral", look=(0, 0.4),
+    fx.plate("P14_courtroom", 720, keys(t, [(55.18, 1250), (59.75, 1200)]), keys(t, [(55.18, 1.6), (59.75, 1.85)]), par=(0, 40 * u, 0.08 * u))
+    actor(fx, JUDGE, "JUDGE", 720, 1450, 100, tint=WARM, pose="hold2", expr="neutral", look=(0, 0.4),
           prop={"kind": "paper", "hand": "r"})
-    fx.occlude("P14_courtroom", skia.Rect.MakeLTRB(60, 1265, 1380, 1900))
     fx.rays(0, 900, 20, 30, 1800, "#FFE2B0", 0.14, 6, seed=5)
     fx.end()
     rev = max(0.0, min(1.0, (t - 56.0) / 3.3))
@@ -556,9 +691,8 @@ def s31(fx, t, u):  # courtroom ruling
 
 
 def s32(fx, t, u):  # Buddy: "Unreasonable person, right here."
-    fx.plate("P14_courtroom", 720, 1350, 1.25 + 0.05 * u)
+    fx.plate("P14_courtroom", 720, 1350, 1.25 + 0.05 * u, par=(-50 * u, 0, 0.04 * u))
     actor(fx, JUDGE, "JUDGE", 720, 1450, 92, tint=WARM, pose="stand", expr="wide", look=(-0.6, 0.5))
-    fx.occlude("P14_courtroom", skia.Rect.MakeLTRB(60, 1265, 1380, 1900))
     up = t > 59.9
     actor(fx, BUDDY, "BUDDY", 330, 2560, 210, tint=WARM, pose="raise_hand" if up else "hold", expr="grin",
           prop={"kind": "bowl", "hand": "l"}, look=(0.3, 0), face=1)
@@ -575,7 +709,7 @@ def s33(fx, t, u):  # GAVEL
 
 
 def s34(fx, t, u):  # bus driver: sigh of relief, hugs the wheel
-    fx.plate("P18_school_bus", 580, 1250, keys(t, [(62.7, 2.0), (65.68, 2.6)]))
+    fx.plate("P18_school_bus", 580, 1250, keys(t, [(62.7, 2.0), (65.68, 2.6)]), par=(0, 0, 0.12 * u))
     relief = t > 64.3
     actor(fx, DRIVER, "DRIVER", 560, 1335, 62, tint=DAY, pose="hold2" if relief else "hold",
           expr="happy" if relief else "neutral", look=(0, 0), mouth=0.4 if 64.3 < t < 65.4 else 0.0,
@@ -698,24 +832,24 @@ def s41(fx, t, u):  # "So, we're keeping the cans?"
 
 
 SHOTS = [
-    Shot("S01", 0.0, 1.42, s01, cap_y=0.84), Shot("S02", 1.42, 2.86, s02, cap_y=0.84), Shot("S03", 2.86, 4.26, s03, cap_y=0.8),
-    Shot("S04", 4.26, 5.86, s04, cap_y=0.66, bloom=0.8), Shot("S05", 5.86, 7.44, s05, cap_y=0.84),
+    Shot("S01", 0.0, 1.42, s01, cap_y=0.5, bloom=0.5, vignette=0.5), Shot("S02", 1.42, 2.86, s02, cap_y=0.84, whip=1), Shot("S03", 2.86, 4.26, s03, cap_y=0.8),
+    Shot("S04", 4.26, 5.86, s04, cap_y=0.72, bloom=0.8, dust=0.2, whip=-1), Shot("S05", 5.86, 7.44, s05, cap_y=0.84),
     Shot("S06", 7.44, 9.56, s06, cap_y=0.79, dust=0.25), Shot("S07", 9.56, 10.77, s07, cap_y=0.79, dust=0.25),
-    Shot("S08", 10.77, 12.97, s08, cap_y=0.79, dust=0.25), Shot("S09", 12.97, 15.39, s09, cap_y=0.84),
+    Shot("S08", 10.77, 12.97, s08, cap_y=0.79, dust=0.25), Shot("S09", 12.97, 15.39, s09, cap_y=0.84, whip=1),
     Shot("S10", 15.39, 17.63, s10, cap_y=0.84), Shot("S11", 17.63, 19.95, s11, cap_y=0.86, dust=0.2),
-    Shot("S12", 19.95, 21.57, s12, cap_y=0.78), Shot("S13", 21.57, 22.67, s13, cap_y=0.3),
-    Shot("S14", 22.67, 24.77, s14, cap_y=0.72), Shot("S15", 24.77, 26.69, s15, cap_y=0.8),
-    Shot("S16", 26.69, 28.6, s16, cap_y=0.62, bloom=0.8), Shot("S17", 28.6, 32.85, s17, cap_y=0.66, dust=0.7),
-    Shot("S18", 32.85, 33.96, s18, cap_y=0.62, dust=0.7), Shot("S19", 33.96, 35.71, s19, cap_y=0.66),
+    Shot("S12", 19.95, 21.57, s12, cap_y=0.78), Shot("S13", 21.57, 22.67, s13, cap_y=0.3, whip=-1),
+    Shot("S14", 22.67, 24.77, s14, cap_y=0.72), Shot("S15", 24.77, 26.69, s15, cap_y=0.8, whip=1),
+    Shot("S16", 26.69, 28.6, s16, cap_y=0.62, bloom=0.8, whip=-1), Shot("S17", 28.6, 32.85, s17, cap_y=0.66, dust=0.7),
+    Shot("S18", 32.85, 33.96, s18, cap_y=0.62, dust=0.7), Shot("S19", 33.96, 35.71, s19, cap_y=0.66, whip=1),
     Shot("S20", 35.71, 36.95, s20, cap_y=0.66), Shot("S21", 36.95, 37.64, s21, cap_y=0.84),
     Shot("S22", 37.64, 40.4, s22, cap_y=0.82), Shot("S23", 40.4, 41.82, s23, cap_y=0.66),
-    Shot("S24", 41.82, 43.2, s24, cap_y=0.86, dust=0.2), Shot("S25", 43.2, 44.34, s25, cap_y=0.66, bloom=0.9),
-    Shot("S26", 44.34, 46.1, s26, cap_y=0.66, bloom=0.7), Shot("S27", 46.1, 48.24, s27, cap_y=0.62),
+    Shot("S24", 41.82, 43.2, s24, cap_y=0.86, dust=0.2, whip=-1), Shot("S25", 43.2, 44.34, s25, cap_y=0.66, bloom=0.9),
+    Shot("S26", 44.34, 46.1, s26, cap_y=0.66, bloom=0.7), Shot("S27", 46.1, 48.24, s27, cap_y=0.62, whip=1),
     Shot("S28", 48.24, 50.34, s28, cap_y=0.62), Shot("S29", 50.34, 53.82, s29, cap_y=0.78),
     Shot("S30", 53.82, 55.18, s30, cap_y=0.62), Shot("S31", 55.18, 59.75, s31, cap_y=0.48),
-    Shot("S32", 59.75, 61.84, s32, cap_y=0.6), Shot("S33", 61.84, 62.7, s33, cap_y=0.75, bloom=0.8),
+    Shot("S32", 59.75, 61.84, s32, cap_y=0.6), Shot("S33", 61.84, 62.7, s33, cap_y=0.75, bloom=0.8, whip=-1),
     Shot("S34", 62.7, 65.68, s34, cap_y=0.66, bloom=0.8), Shot("S35", 65.68, 68.68, s35, cap_y=0.84),
-    Shot("S36", 68.68, 70.88, s36, cap_y=0.79, dust=0.25), Shot("S37", 70.88, 73.78, s37, cap_y=0.79, dust=0.25),
-    Shot("S38", 73.78, 75.12, s38, cap_y=0.84), Shot("S39", 75.12, 77.2, s39, cap_y=0.84, dust=0.2),
-    Shot("S40", 77.2, 78.39, s40, cap_y=None, dust=0.0), Shot("S41", 78.39, 80.6, s41, cap_y=0.84),
+    Shot("S36", 68.68, 70.88, s36, cap_y=0.79, dust=0.25, whip=1), Shot("S37", 70.88, 73.78, s37, cap_y=0.79, dust=0.25),
+    Shot("S38", 73.78, 75.12, s38, cap_y=0.84, whip=-1), Shot("S39", 75.12, 77.2, s39, cap_y=0.84, dust=0.2),
+    Shot("S40", 77.2, 78.39, s40, cap_y=None, dust=0.0), Shot("S41", 78.39, 80.6, s41, cap_y=0.84, whip=1),
 ]

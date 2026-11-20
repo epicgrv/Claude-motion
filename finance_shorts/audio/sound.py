@@ -213,9 +213,29 @@ def sfx_lib():
     return L
 
 
+REAL = Path(__file__).resolve().parent / "sfx_real"
+REAL_MAP = {"jet": "jet", "kaching": "kaching", "gavel": "gavel", "scratch": "scratch", "spray": "spray",
+            "stampede": "crowd", "trombone": "trombone", "choir": "choir", "slots": "slots", "glass": "glass",
+            "crickets": "crickets", "flutter": "paper"}
+
+
+def load_real(lib):
+    """Replace synthesized effects with real generated recordings where available."""
+    import subprocess
+    for key, fn in REAL_MAP.items():
+        f = REAL / f"{fn}.mp3"
+        if not f.exists():
+            continue
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(f), "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                             capture_output=True, check=True).stdout
+        x = np.frombuffer(raw, np.float32).astype(np.float64)
+        lib[key] = norm(x)
+    return lib
+
+
 # (time, sfx, gain dB, pan -1..1)
 CUES = [
-    (0.05, "slap", -4, 0), (0.15, "click", -16, 0.2),
+    (0.0, "hover", -10, 0), (0.0, "engine", -12, 0), (0.0, "flutter", -14, 0.3), (0.6, "flutter", -16, -0.3),
     (1.45, "whoosh", -10, -0.2), (2.95, "flap", -10, 0.2), (3.2, "ding", -16, 0),
     (4.15, "jet", 0, 0), (4.4, "whoosh", -6, 0.3),
     (5.86, "click", -10, -0.3), (5.9, "crt", -16, -0.3), (7.44, "hover", -14, 0), (9.5, "hiss", -12, 0.2),
@@ -245,7 +265,7 @@ CUES = [
     (70.9, "rocket", -7, 0), (72.45, "glass", -6, 0),
     (73.8, "thud", -8, 0), (74.2, "clink", -8, 0.2),
     (75.12, "crt", -14, 0), (76.35, "type", -10, 0), (76.5, "type", -10, 0), (76.65, "type", -10, 0), (76.8, "type", -10, 0),
-    (77.12, "scratch", -6, 0),
+    (77.12, "scratch", -3, 0),
     (79.95, "canclank", -8, 0.2),
 ]
 
@@ -341,7 +361,10 @@ def main():
     assert sr == SR
     vo = vo if vo.ndim == 1 else vo.mean(1)
     total = len(vo) / SR + 0.4
-    lib = sfx_lib()
+    lib = load_real(sfx_lib())
+    whips = [1.42, 4.26, 12.97, 21.57, 24.77, 26.69, 33.96, 41.82, 46.1, 61.84, 68.68, 73.78, 78.39]
+    for w in whips:
+        CUES.append((w - 0.06, "swish", -11, 0))
     sfx = np.zeros((int(total * SR) + SR, 2))
     for at, name, gdb, pn in CUES:
         place(sfx, lib[name], at, 10 ** (gdb / 20), pn)

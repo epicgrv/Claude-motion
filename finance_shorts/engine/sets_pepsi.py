@@ -70,6 +70,7 @@ def P06_kitchen():
     area("WindowSpill", (1.7, 2.7, 1.75), (0.3, 0, 0.6), 1.0, 25, (0.35, 0.5, 1.0))
     area("MoonRim", (-3.0, -1.5, 2.5), (0, 1, 1), 2.0, 35, (0.4, 0.5, 1.0))
     camera((-0.35, -2.5, 1.2), (-0.15, 0.9, 0.95), lens=21, dof=3.2, fstop=3.5)
+    return {"fg": ["Table", "Chair", "Mug", "Apple", "Notepad", "Pencil"]}
 
 
 def P08_diner():
@@ -116,6 +117,7 @@ def P08_diner():
         point("PLight", (x, 1.4, 2.25), 80, (1, 0.75, 0.45), 0.1)
     area("Fill", (0, -3, 2.5), (0, 1, 1), 3, 80, (0.6, 0.7, 1.0))
     camera((0.2, -2.6, 1.35), (0, 1.5, 0.95), lens=20, dof=3.6, fstop=4)
+    return {"fg": ["Booth", "Table", "Mug", "Coffee", "Napkins", "Ketchup", "Mustard"]}
 
 
 def P11_exec_office():
@@ -161,6 +163,7 @@ def P11_exec_office():
     area("Key", (2.5, -2.0, 3.0), (0, 1, 1), 2.5, 500, (1.0, 0.85, 0.7))
     area("WinFill", (0, 3.5, 2.0), (0, 0, 1), 5, 300, (0.75, 0.85, 1.0))
     camera((0.2, -3.6, 1.15), (0, 1.2, 1.2), lens=22, dof=4.5, fstop=4)
+    return {"fg": ["Desk", "Blotter", "Lamp", "Pen", "Opener", "Trophy"]}
 
 
 def P14_courtroom():
@@ -204,6 +207,7 @@ def P14_courtroom():
         point("BLampL", (x, 3.9, 2.15), 40, (1, 0.8, 0.5), 0.05)
     area("Fill", (0, -5, 4), (0, 3, 1.5), 4, 400, (0.8, 0.85, 1.0))
     camera((0.3, -4.8, 1.55), (0, 3.0, 1.9), lens=22, dof=6, fstop=5)
+    return {"fg": ["Bench", "Inset", "Counsel", "Mic", "Rail", "Baluster", "BLamp"]}
 
 
 def P18_school_bus():
@@ -266,9 +270,10 @@ def P02_street_jet():
             tree((s * 8.5, 10 + i * 16, 0), 6.5, seed=i * 2 + (s > 0))
     car((-3.4, 6, 0), (0.6, 0.1, 0.08))
     car((3.4, 20, 0), (0.15, 0.3, 0.6), rotz=R(180))
-    jet((0, 10, 13), rot=(R(-8), R(10), R(0)), scale=1.2)
+    jet((0, 10, 13), rot=(R(-8), R(10), R(180)), scale=1.2)
     sun("Sun", (82, 0, 180), 4.5, (1.0, 0.8, 0.55))
     camera((0.6, -6, 0.35), (0, 20, 8), lens=17, dof=12, fstop=8)
+    return {"fg": ["Jet"]}
 
 
 def P04_school_jet():
@@ -297,7 +302,7 @@ def P04_school_jet():
     box("Canton", (0.05, 1.3, 1.0), (-9.01, 14.75, 13.25), mat("Canton", (0.08, 0.12, 0.35), 0.7), bevel=0)
     for x in (-15, 13, 19):
         tree((x, 12, 0), 7.5, seed=int(x))
-    jet((1.5, 9, 6.5), rot=(R(4), R(-6), R(-25)), scale=1.0)
+    jet((1.5, 9, 6.0), rot=(R(4), R(-6), R(155)), scale=0.95)
     # blank papers blowing around
     random.seed(7)
     pap = mat("PaperW", (0.96, 0.95, 0.9), 0.6)
@@ -306,6 +311,7 @@ def P04_school_jet():
             rot=(random.uniform(0, 3), random.uniform(0, 3), random.uniform(0, 3)), bevel=0)
     sun("Sun", (50, 0, 215), 4.5, (1.0, 0.88, 0.7))
     camera((0, -9, 1.5), (0, 8, 4.8), lens=19, dof=16, fstop=8)
+    return {"fg": ["Jet"]}
 
 
 def P09_mailbox():
@@ -496,6 +502,64 @@ def P17_store():
     camera((2.5, -12, 1.6), (0.5, 12, 4.0), lens=20, dof=18, fstop=5)
 
 
-SETS = ["P06_kitchen", "P08_diner", "P11_exec_office", "P14_courtroom", "P18_school_bus", "P02_street_jet",
+SETS = ["P20_hero_street", "P06_kitchen", "P08_diner", "P11_exec_office", "P14_courtroom", "P18_school_bus", "P02_street_jet",
         "P04_school_jet", "P09_mailbox", "P12_porch", "P13_courthouse", "P10_hq_tower", "P15_gavel", "P16_countertop",
         "P17_store"]
+
+
+def JET_TEST():
+    _sky((0.15, 0.35, 0.8), (0.5, 0.7, 0.95), (1.0, 0.8, 0.6), 1.2)
+    plane("G", (200, 200), (0, 0, -3), noisy("Grass2", (0.32, 0.58, 0.16), (0.16, 0.38, 0.08), 60, 0.9, 0.7))
+    jet((0, 0, 1.5), rot=(R(5), 0, R(-35)), scale=1.0)
+    sun("Sun", (50, 0, 215), 4.5, (1.0, 0.88, 0.7))
+    camera((22, -30, 6), (0, 0, 1.0), lens=60)
+
+
+def P20_hero_street():
+    """Golden-hour street, Harrier hovering over the road, sun behind it (hook shot). Jet = foreground layer."""
+    _sky((0.22, 0.28, 0.62), (0.95, 0.5, 0.42), (1.0, 0.58, 0.22), 1.6)
+    _street(0.25)
+    cols = [(0.86, 0.82, 0.72), (0.65, 0.78, 0.85), (0.92, 0.88, 0.7), (0.75, 0.62, 0.55)]
+    for i in range(6):
+        for s_ in (-1, 1):
+            house((s_ * 15, 6 + i * 16, 0), wall=cols[(i + (s_ > 0)) % 4], rotz=R(90 if s_ < 0 else -90))
+            tree((s_ * 8.8, 12 + i * 16, 0), 7.0, (0.28, 0.42, 0.12), seed=i * 2 + (s_ > 0))
+    for i in range(10):  # power-line poles
+        cyl("PowerPole", 0.12, 9, (6.8, -2 + i * 12, 4.5), wood("Pole", (0.35, 0.25, 0.16), (0.25, 0.17, 0.1), 0.8))
+    car((-3.4, 4, 0), (0.6, 0.1, 0.08))
+    car((3.4, 26, 0), (0.15, 0.3, 0.6), rotz=R(180))
+    jet((0, 16, 4.2), rot=(R(3), R(-4), R(180)), scale=1.0)
+    sun("Sun", (84, 0, 180), 5.0, (1.0, 0.62, 0.3), angle=1.5)
+    sphere("SunDisc", 3.0, (0, 140, 14), emit("SunDisc", (1.0, 0.75, 0.4), 30))
+    area("Bounce", (0, -6, 4), (0, 10, 2), 10, 400, (1.0, 0.7, 0.45))
+    camera((0.3, -5.5, 1.0), (0, 14, 3.6), lens=24, dof=20, fstop=5.6)
+    return {"fg": ["Jet"]}
+
+
+def P21_flyby():
+    """Animated: Harrier screams low over the street, camera tilts to follow (48 frames @30fps, motion blur)."""
+    _sky((0.12, 0.35, 0.85), (0.5, 0.7, 0.95), (1.0, 0.72, 0.45), 1.2)
+    _street()
+    cols = [(0.86, 0.82, 0.72), (0.65, 0.78, 0.85), (0.92, 0.88, 0.7), (0.75, 0.62, 0.55)]
+    for i in range(6):
+        for s_ in (-1, 1):
+            house((s_ * 15, 4 + i * 16, 0), wall=cols[(i + (s_ > 0)) % 4], rotz=R(90 if s_ < 0 else -90))
+            tree((s_ * 8.5, 10 + i * 16, 0), 6.5, seed=i * 2 + (s_ > 0))
+    car((-3.4, 6, 0), (0.6, 0.1, 0.08))
+    j = jet((0, 95, 16), rot=(R(-4), 0, R(180)), scale=1.1)
+    j.keyframe_insert("location", frame=0)
+    j.keyframe_insert("rotation_euler", frame=0)
+    j.location = (0.5, -2, 8.5)
+    j.rotation_euler = (R(-8), R(14), R(180))
+    j.keyframe_insert("location", frame=34)
+    j.keyframe_insert("rotation_euler", frame=34)
+    j.location = (1.0, -45, 7)
+    j.rotation_euler = (R(-6), R(22), R(180))
+    j.keyframe_insert("location", frame=47)
+    j.keyframe_insert("rotation_euler", frame=47)
+    sun("Sun", (82, 0, 180), 4.5, (1.0, 0.8, 0.55))
+    cam = camera((0.6, -6, 0.4), (0, 40, 9), lens=18)
+    cam.keyframe_insert("rotation_euler", frame=0)
+    cam.rotation_euler = (R(150), 0, R(178))
+    cam.keyframe_insert("rotation_euler", frame=47)
+    return {"frames": 48, "spp": 14, "scale": 75}
