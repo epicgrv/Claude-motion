@@ -255,12 +255,12 @@ def s01(fx, t, u):  # HOOK: John + giant cheque, Harrier hovering behind him at 
 
 
 def s02(fx, t, u):  # John kisses the envelope and posts it
-    fx.plate("P09_mailbox", 860, 1450, 1.35 + 0.1 * ease(u))
+    fx.plate("P22_mailbox_ai", 820, 1560, 1.4 + 0.1 * ease(u), par=(50 * ease(u), 0, 0.06 * ease(u)))
     kiss = 1.75 < t < 2.3
-    actor(fx, JOHN, "JOHN", 640, 1860, 118, tint=DUSK, pose="hold" if t < 2.35 else "present",
+    actor(fx, JOHN, "JOHN", 560, 2160, 138, tint=DUSK, pose="hold" if t < 2.35 else "present",
           expr="happy" if kiss else "grin", prop={"kind": "envelope", "hand": "r"} if t < 2.6 else None, look=(0.5, 0))
     if kiss:
-        hearts(fx, 700, 1330, t)
+        hearts(fx, 640, 1560, t)
     fx.glow(1000, 900, 700, "#FFB060", 0.15)
     fx.end()
 
@@ -559,12 +559,12 @@ def s22(fx, t, u):  # cheque written for $700,008.50
 
 
 def s23(fx, t, u):  # envelope into the mailbox slot
-    fx.plate("P09_mailbox", 1080, 1330, 3.2 + 0.2 * u)
+    fx.plate("P22_mailbox_ai", 960, 1400, 2.6 + 0.2 * u, par=(30 * u, 0, 0.04 * u))
     c = fx.c
     k = min(1.0, (t - 40.45) / 0.35)
     c.save()
-    c.clipRect(skia.Rect.MakeLTRB(0, 0, 1440, 1318))
-    r = skia.Rect.MakeXYWH(990, 1150 + k * 220, 190, 120)
+    c.clipRect(skia.Rect.MakeLTRB(0, 0, 868, 2560))
+    r = skia.Rect.MakeXYWH(560 + k * 420, 1330, 190, 120)
     c.drawRect(r, P(col("#F3EBD9")))
     c.drawRect(r, P(INK, 5))
     c.restore()
@@ -599,11 +599,11 @@ def s24(fx, t, u):  # order form: S&H $10.00 ticked
 
 
 def s25(fx, t, u):  # "What is he, a criminal?" halo + choir
-    fx.plate("P09_mailbox", 760, 1420, 1.7)
-    fx.rays(640, 300, 90, 50, 1700, "#FFF3C4", 0.25, 9, seed=7)
-    actor(fx, JOHN, "JOHN", 640, 1860, 128, tint=(1.1, 1.05, 0.95), pose="hold2", expr="happy", look=(0, 0))
-    hx, hy = head_pos(640, 1860, 128)
-    halo(fx, hx, hy - 150, 90, t)
+    fx.plate("P22_mailbox_ai", 700, 1620, 1.6, par=(0, 0, 0.05 * u))
+    fx.rays(600, 300, 90, 55, 1900, "#FFF3C4", 0.25, 9, seed=7)
+    actor(fx, JOHN, "JOHN", 560, 2160, 145, tint=(1.1, 1.05, 0.95), pose="hold2", expr="happy", look=(0, 0))
+    hx, hy = head_pos(560, 2160, 145)
+    halo(fx, hx, hy - 170, 100, t)
     fx.end()
 
 
@@ -635,7 +635,7 @@ def s27(fx, t, u):  # exec spit-take + laugh kick
 
 
 def s28(fx, t, u):  # envelope back through the slot; coupons cascade
-    fx.plate("P12_porch", 700, 1650, 1.6 + 0.1 * u, par=(50 * u, 0, 0.06 * u))
+    fx.plate("P23_porch_ai", 720, 1500, 1.5 + 0.1 * u, par=(50 * u, 0, 0.06 * u))
     c = fx.c
     rng = np.random.default_rng(12)
     for i in range(36):
@@ -643,8 +643,8 @@ def s28(fx, t, u):  # envelope back through the slot; coupons cascade
         if t < t0:
             continue
         k = t - t0
-        x = 690 + rng.uniform(-60, 60) + rng.uniform(-260, 260) * min(1, k * 1.5)
-        y = min(1320 + 900 * k * k * 2.2, 1900 + rng.uniform(-30, 40))
+        x = 724 + rng.uniform(-50, 50) + rng.uniform(-300, 300) * min(1, k * 1.5)
+        y = min(1200 + 900 * k * k * 2.2, 1800 + rng.uniform(-60, 60))
         c.save()
         c.translate(x, y)
         c.rotate(rng.uniform(-180, 180) * min(1, k * 2))
@@ -654,15 +654,15 @@ def s28(fx, t, u):  # envelope back through the slot; coupons cascade
                                  PathEffect=skia.DashPathEffect.Make([8, 5], 0)))
         c.restore()
     if t < 48.7:
-        e = skia.Rect.MakeXYWH(600, 1300 + (t - 48.24) * 300, 180, 90)
+        e = skia.Rect.MakeXYWH(634, 1190 + (t - 48.24) * 300, 180, 90)
         c.drawRect(e, P(col("#F3EBD9")))
         c.drawRect(e, P(INK, 4))
     fx.end()
 
 
 def s29(fx, t, u):  # FREE 2-LITER + jet progress bar
-    fx.plate("P12_porch", 720, 1700, 1.55 + 0.06 * u, par=(-40 * u, 0, 0.05 * u))
-    actor(fx, JOHN, "JOHN", 720, 2330, 165, tint=DAY, pose="present", expr="dead", look=(0, 0.2),
+    fx.plate("P23_porch_ai", 720, 1720, 1.45 + 0.06 * u, par=(-40 * u, 0, 0.05 * u))
+    actor(fx, JOHN, "JOHN", 720, 2440, 185, tint=DAY, pose="present", expr="dead", look=(0, 0.2),
           prop={"kind": "coupon", "hand": "r"})
     fx.end()
     frac = 0.0 if t < 50.9 else 0.004

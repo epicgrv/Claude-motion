@@ -334,7 +334,7 @@ def score(total):
                 if b in (1, 3):
                     place(buf, snare(), bt, 0.45)
                 for k in range(2 if not any(a <= bt < e for a, e in lift) else 4):
-                    place(buf, hat(), bt + k * BEAT / (2 if k < 2 and not any(a <= bt < e for a, e in lift) else 4), 0.18, 0.3)
+                    place(buf, hat(), bt + k * BEAT / (2 if k < 2 and not any(a <= bt < e for a, e in lift) else 4) + (0.035 if k % 2 else 0), 0.18, 0.3)
             # bass: syncopated
             for off, mul, du in ((0, 1, 0.35), (0.75, 1, 0.15), (1.5, 2, 0.2)):
                 place(buf, bass(root * mul, du), bt + off * BEAT / 2, 0.35 if not intro else 0.2)
@@ -349,6 +349,25 @@ def score(total):
                 place(buf, pizz(f * 1.5, 0.15), bt + BEAT / 2, 0.06, 0.35)
         t += bar
         n_bar += 1
+    # warm pad (filtered detuned saws) following the progression, plus sub-bass
+    t = 0.0
+    n_bar = 0
+    while t < total:
+        root, ch = prog[n_bar % 4]
+        if not (t < 4.2):
+            pad = sum(osc(f, bar, "saw") + osc(f * 1.004, bar, "saw") for f in ch[:3]) / 6
+            pad = filt(pad, "low", 1400) * env(int(bar * SR), 0.4, 0.2, 0.8, 0.5)
+            place(buf, pad, t, 0.05, -0.2)
+            place(buf, osc(root / 2, bar) * env(int(bar * SR), 0.02, 0.2, 0.7, 0.2), t, 0.12)
+        t += bar
+        n_bar += 1
+    for a, b in stops:
+        ia, ib = int(a * SR), int(b * SR)
+        buf[ia:ib] *= 0.0
+    # space: stereo reverb send + gentle tape saturation
+    wet = np.stack([reverb(buf[:, 0], 1.4, 1.0)[: len(buf)], reverb(np.roll(buf[:, 1], 300), 1.6, 1.0)[: len(buf)]], 1)
+    buf = buf + 0.18 * wet
+    buf = np.tanh(buf * 1.3) / 1.3
     # ending button after Buddy's last line
     place(buf, kick(0.6), 80.1, 0.9)
     place(buf, pluck(146.8, 0.5, 1500), 80.1, 0.9)
@@ -369,7 +388,28 @@ def main():
     for at, name, gdb, pn in CUES:
         place(sfx, lib[name], at, 10 ** (gdb / 20), pn)
     sfx = sfx[: int(total * SR)]
-    mus = score(total)
+    real_music = Path(__file__).resolve().parent / "music_real" / "score.mp3"
+    if real_music.exists():
+        import subprocess
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(real_music), "-ac", "2", "-ar", str(SR), "-f", "f32le", "-"],
+                             capture_output=True, check=True).stdout
+        m = np.frombuffer(raw, np.float32).astype(np.float64).reshape(-1, 2)
+        m = np.pad(m, ((0, max(0, int(total * SR) - len(m))), (0, 0)))[: int(total * SR)]
+        m = m / (np.abs(m).max() + 1e-9) * 0.9
+        # comic stops: music drops out on the gavel and on the record scratch, then returns
+        g = np.ones(len(m))
+        for a, b in ((61.75, 62.75), (77.1, 78.4)):
+            ia, ib = int(a * SR), int(b * SR)
+            g[ia:ib] = 0.0
+            r = int(0.25 * SR)
+            g[ib:ib + r] = np.linspace(0, 1, len(g[ib:ib + r]))
+            f = int(0.03 * SR)
+            g[ia - f:ia] = np.linspace(1, 0, f)
+        tail = int((total - 0.6) * SR)
+        g[tail:] *= np.linspace(1, 0, len(g[tail:]))
+        mus = m * g[:, None] * 1.6
+    else:
+        mus = score(total)
     # sidechain duck music under voice
     n = int(total * SR)
     v = np.pad(vo, (0, n - len(vo)))
