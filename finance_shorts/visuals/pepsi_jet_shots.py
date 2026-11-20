@@ -286,7 +286,14 @@ def anim_frame(name, i):
 
 
 def s04(fx, t, u):  # REAL 3-D flyby (Blender animation, motion blur) + shake + speed lines
+    from finance_shorts.engine.comp import ROOT
     i = max(0, min(47, int((t - 4.26) * 30)))
+    if not (ROOT / "visuals" / "pepsi-jet" / "plates" / "P21_flyby" / "0047.png").exists():  # animation not finished
+        fx.plate("P02_street_jet", 720, keys(t, [(4.26, 1500), (5.86, 1150)]), keys(t, [(4.26, 1.05), (5.86, 1.32)]),
+                 shake=18 * math.sin(u * math.pi), rot=keys(t, [(4.26, -2), (5.86, 3)]))
+        fx.end()
+        speed_lines(fx, W / 2, H * 0.3, t, 30, 420, 0.35 * math.sin(u * math.pi))
+        return
     img = anim_frame("P21_flyby", i)
     c = fx.c
     shake = 22 * math.exp(-((t - 5.35) / 0.25) ** 2)
