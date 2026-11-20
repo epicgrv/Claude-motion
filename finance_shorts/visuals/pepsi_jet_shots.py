@@ -287,7 +287,7 @@ def anim_frame(name, i):
 
 def s04(fx, t, u):  # REAL 3-D flyby (Blender animation, motion blur) + shake + speed lines
     from finance_shorts.engine.comp import ROOT
-    i = max(0, min(47, int((t - 4.26) * 30)))
+    i = max(0, min(36, int(36.9 * max(0.0, u) ** 0.8)))  # end on the overhead pass, skip the empty sky
     if not (ROOT / "visuals" / "pepsi-jet" / "plates" / "P21_flyby" / "0047.png").exists():  # animation not finished
         fx.plate("P02_street_jet", 720, keys(t, [(4.26, 1500), (5.86, 1150)]), keys(t, [(4.26, 1.05), (5.86, 1.32)]),
                  shake=18 * math.sin(u * math.pi), rot=keys(t, [(4.26, -2), (5.86, 3)]))
@@ -296,12 +296,12 @@ def s04(fx, t, u):  # REAL 3-D flyby (Blender animation, motion blur) + shake + 
         return
     img = anim_frame("P21_flyby", i)
     c = fx.c
-    shake = 22 * math.exp(-((t - 5.35) / 0.25) ** 2)
+    shake = 26 * math.exp(-((t - 5.7) / 0.22) ** 2)
     c.save()
     c.translate(math.sin(t * 61) * shake, math.cos(t * 53) * shake)
     c.drawImageRect(img, skia.Rect.MakeXYWH(-20, -36, W + 40, H + 72), SAMP)
     c.restore()
-    speed_lines(fx, W / 2, H * 0.3, t, 34, 420, 0.4 * math.exp(-((t - 5.35) / 0.35) ** 2))
+    speed_lines(fx, W / 2, H * 0.3, t, 34, 420, 0.45 * math.exp(-((t - 5.7) / 0.3) ** 2))
 
 
 def s05(fx, t, u):  # bedroom wide
