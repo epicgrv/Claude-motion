@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
+    "@fontsource/montserrat": "^5.0.19",
+    "@fontsource/noto-color-emoji": "^5.0.22",
     "@react-three/fiber": "^8.18.0",
     "@react-three/postprocessing": "^2.19.1",
     "@remotion/bundler": "^4.0.545",

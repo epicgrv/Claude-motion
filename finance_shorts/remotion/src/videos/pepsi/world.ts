@@ -7,7 +7,7 @@ import { NOINK } from "../bridge/ink";
 import { cloudHD } from "../bridge/paint";
 import { Pool, Actor, Fx } from "../bridge/cast";
 import { Sets, ROOM, A, drawPrice } from "./sets";
-import { FPS, SHOTS, Shot, camAt, shotAt, BOARD, jetPass, arrowH, ARROW } from "./story";
+import { FPS, Shot, camAt, shotAt, BOARD, arrowH, ARROW, ROOF_JET, jetHero, jetLand } from "./story";
 import { stage } from "./cast";
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -111,11 +111,12 @@ export class World {
       const m = this.clouds[i]; m.lookAt(cam.position.x, m.position.y, cam.position.z);
       (m.material as THREE.MeshBasicMaterial).map = this.cloudMaps[s.light][i % 4];
     }
-    // ---- props ----
-    this.poseProps(s.id, t);
+    // ---- props (story time tl: shots < 100 keep their v4 timings) ----
+    const tl = t - (s.off ?? 0);
+    this.poseProps(s.id, tl, t);
     // ---- cast ----
     const right = V(0, 0, 0).setFromMatrixColumn(cam.matrixWorld, 0);
-    const st = stage(s.id, t, s.light, { pos: cam.position, right, sun: sunDir });
+    const st = stage(s.id, tl, t, s.s, s.light, { pos: cam.position, right, sun: sunDir });
     this.frustum.setFromProjectionMatrix(this.m4.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     let ai = 0;
     const used: Actor[] = [];
@@ -152,26 +153,33 @@ export class World {
     return focus;
   }
 
-  private poseProps(id: number, t: number) {
+  private poseProps(id: number, t: number, tr: number) {
     const S = this.sets, J = S.jet;
     const hide = (...o: THREE.Object3D[]) => o.forEach((x) => (x.visible = false));
     hide(J.group, S.price, S.chequeBig, S.chequeB, S.letter, S.coin, S.gavel, S.arrow, S.dust);
-    S.bus.visible = true;
-    // bus: parked by the school unless driving in shot 27
-    S.bus.position.set(id === 27 ? 62.5 : id === 4 ? 72 : 96, 0, 2.2); S.bus.rotation.y = 0;
-    S.mailFlag.rotation.z = 0;
-    // ---- jet ----
-    const [jx, , jz] = A.jetLawn;
+    S.bus.visible = true; S.bus.rotation.y = 0;
+    S.bus.position.set(id === 27 ? 62.5 : id === 106 ? 76 - 2.2 * (tr - 9.68) : 96, 0, 2.2);
+    S.mailFlag.rotation.z = 0; S.mailDoor.rotation.x = 0;
+    S.catalog.rotation.z = 0;
+    // ---- jet: always nose-first (local +z = nose; yaw +90 deg points it along +x) ----
+    J.group.rotation.order = "YXZ";
     const noz = (a: number) => J.nozzles.forEach((n) => (n.rotation.x = a));
-    if (id === 2) {
-      const p = jetPass(t);
-      J.group.visible = true; J.group.position.set(...p); J.group.rotation.set(0.04, -Math.PI / 2, 0.25 * Math.sin(t * 1.3)); J.gear.visible = false; noz(-1.2);
-    } else if ([3, 4, 5, 10, 29, 31].includes(id)) {
-      J.group.visible = true; J.gear.visible = true;
-      let y = 0.1;
-      if (id === 3) { const u = clamp01((t - 5.8) / 2.8); y = 0.1 + 13 * (1 - smooth(u)) + 0.08 * Math.sin(t * 9) * (1 - u); }
-      J.group.position.set(jx, y, jz); J.group.rotation.set(0, Math.PI / 2, id === 3 ? 0.04 * Math.sin(t * 2.3) : 0); noz(0);
-      if (id === 3 && t > 7.2) { S.dust.visible = true; const u = clamp01((t - 7.2) / 2.2); S.dust.position.set(jx, 0.16, jz); S.dust.scale.setScalar(2 + 9 * u); (S.dust.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - u); }
+    if (id === 102) {
+      const p = jetHero(tr);
+      J.group.visible = true; J.group.position.set(...p); J.group.rotation.set(-0.03, Math.PI / 2, 0.22 * Math.sin(tr * 1.6)); J.gear.visible = false; noz(-1.3);
+    } else if (id === 105) {
+      const L = jetLand(tr);
+      J.group.visible = true; J.group.position.set(...L.p); J.group.rotation.set(L.pitch, Math.PI / 2, 0.05 * Math.sin(tr * 2.3) * (L.p[1] > 12 ? 1 : 0)); noz(L.noz);
+      J.gear.visible = tr > 8.4;
+      if (tr > 9.0) { S.dust.visible = true; const u = clamp01((tr - 9.0) / 0.9); S.dust.position.set(ROOF_JET[0], ROOF_JET[1] + 0.05, ROOF_JET[2]); S.dust.scale.setScalar(2 + 8 * u); (S.dust.material as THREE.MeshBasicMaterial).opacity = 0.5 * (1 - u); }
+    } else if ([106, 5, 10, 29, 31].includes(id)) {
+      J.group.visible = true; J.gear.visible = true; J.group.position.set(...ROOF_JET); J.group.rotation.set(0, Math.PI / 2, 0); noz(0);
+    }
+    // ---- mailbox door (shot 18): open 39.3 -> 39.6, cheque goes in, close 40.0 -> 40.25, flag up 40.3 ----
+    if (id === 18) {
+      const open = smooth((t - 39.25) / 0.3) * (1 - smooth((t - 40.0) / 0.25));
+      S.mailDoor.rotation.x = 1.55 * open;
+      if (t > 40.3) S.mailFlag.rotation.z = -Math.min(1.45, (t - 40.3) * 14) + 0.12 * Math.sin((t - 40.3) * 30) * Math.exp(-(t - 40.3) * 5);
     }
     // ---- price board ----
     if ([5, 10, 29, 31].includes(id)) {
@@ -190,20 +198,6 @@ export class World {
       } else S.priceTex.set("7m", (g, w, h) => drawPrice(g, w, h, "7,000,000", "POINTS", ""));
       if (id === 29) { const k = t > 69.3 && t < 69.5 ? 1 - Math.abs(t - 69.4) * 10 : 0; S.price.rotation.x = -0.25 * k; }
     }
-    // ---- mailbox cheques ----
-    if (id === 1) {
-      S.chequeBig.visible = true;
-      const u = clamp01((t - 0.3) / 2.1), e = smooth(u);
-      S.chequeBig.position.set(2.75 + 0.75 * e, 1.18 + 0.02 * Math.sin(t * 20) * (u > 0.4 ? 1 : 0), -6.2 - 0.85 * e);
-      S.chequeBig.rotation.set(-0.15, 0.95 - 0.4 * e, 0.05 * Math.sin(Math.floor(t * 12) * 2.1) * (u > 0.5 ? 1 : 0));
-      S.chequeBig.scale.set(1 - 0.1 * e, 1, 1);
-    }
-    if (id === 18) {
-      S.chequeB.visible = true;
-      const u = clamp01((t - 39.9) / 0.6);
-      S.chequeB.position.set(3.05 + 0.35 * u, 1.16, -6.45 - 0.7 * u); S.chequeB.rotation.set(-0.1, 0.75, 0); S.chequeB.scale.setScalar(0.7);
-      if (t > 40.3) S.mailFlag.rotation.z = -Math.min(1.45, (t - 40.3) * 14) + 0.12 * Math.sin((t - 40.3) * 30) * Math.exp(-(t - 40.3) * 5);
-    }
     if (id === 19) { // the envelope flying into the tower
       S.letter.visible = true; const u = clamp01((t - 41.7) / 2.4);
       S.letter.position.set(-118 - 12 * u, 2.0 + 30 * u * u, -10 - 20 * u); S.letter.rotation.set(0.3, t * 4, 0.2); S.letter.scale.setScalar(4);
@@ -212,15 +206,12 @@ export class World {
       S.chequeB.visible = true;
       S.chequeB.position.set(ROOM.office + 0.55, 1.42 + 0.03 * Math.sin(Math.floor(t * 12) * 1.7), -2.75); S.chequeB.rotation.set(0, 0, 0.12); S.chequeB.scale.setScalar(0.42);
     }
-    if (id === 22) {
-      S.letter.visible = t < 50; S.letter.position.set(0.1, 1.0, -7.6); S.letter.rotation.set(0, 0, 0.2); S.letter.scale.setScalar(1);
-      S.chequeB.visible = t > 49.2; S.chequeB.position.set(-0.55, 1.05, -7.55); S.chequeB.rotation.set(0, 0.1, -0.25); S.chequeB.scale.setScalar(0.4);
-    }
+    if (id === 22) { S.letter.visible = t < 50; S.letter.position.set(0.35, 0.95, -7.55); S.letter.rotation.set(0, 0, 0.2); S.letter.scale.setScalar(1); }
     // ---- coin (shot 8) ----
     if (id === 8) {
       S.coin.visible = t > 18.2;
       const u = clamp01((t - 18.2) / 0.5);
-      S.coin.position.set(ROOM.dorm + 3.33, 1.03 + 0.22 * (1 - (1 - u) ** 3), -3.6); S.coin.rotation.set(-0.9, (t - 18.2) * 6, 0); S.coin.scale.setScalar(0.12 * (0.4 + 0.6 * smooth(u)));
+      S.coin.position.set(ROOM.dorm + 3.47, 1.03 + 0.12 * (1 - (1 - u) ** 3), -3.5); S.coin.rotation.set(-0.9, (t - 18.2) * 6, 0); S.coin.scale.setScalar(0.065 * (0.4 + 0.6 * smooth(u)));
     }
     // ---- calculator display ----
     const calc = id === 9 ? (t < 20.4 ? "7000000" : t < 21.0 ? "7000000×" : t < 21.55 ? "×0.10" : "700,000.") : "0.";
@@ -230,8 +221,8 @@ export class World {
       g.fillStyle = "#1c2418"; g.font = '700 120px "Courier New", monospace'; g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(calc, w - 20, h / 2 + 6);
     });
     // ---- TV ----
-    const tvKey = id === 28 ? `re${Math.floor(t * 6) % 2}` : "ad";
-    S.tvTex.set(tvKey, (g, w, h) => drawAd(g, w, h, id === 28, Math.floor(t * 6) % 2));
+    const tvKey = id === 28 ? `re${Math.floor(t * 4) % 2}` : "ad";
+    S.tvTex.set(tvKey, (g, w, h) => drawAd(g, w, h, id === 28, Math.floor(t * 4) % 2));
     // ---- gavel ----
     if (id === 26) {
       const strike = t < 61.98 ? 0 : clamp01((t - 61.98) / 0.07);

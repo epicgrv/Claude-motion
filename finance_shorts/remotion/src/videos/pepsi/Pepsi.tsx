@@ -1,8 +1,8 @@
 // "The Kid Who Tried to Buy a Jet With Soda Points": flat 2D cast in a real three.js toon world (claude-animated-shorts
 // look engine: ink pass -> lens blur -> bloom -> neutral tone map -> grade), hard cuts, word-by-word captions.
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
-import { AbsoluteFill, getInputProps, useCurrentFrame } from "remotion";
+import { AbsoluteFill, continueRender, delayRender, getInputProps, useCurrentFrame } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
@@ -13,6 +13,7 @@ import { GradeEffect, GRADES, GRADE_STRENGTH, gradeFor } from "../bridge/grade";
 import { World } from "./world";
 import { TOTAL, FPS, shotAt } from "./story";
 import { LINES, Word } from "./vo";
+import "@fontsource/montserrat/900.css";
 
 export const PEPSI_FRAMES = TOTAL;
 
@@ -87,31 +88,60 @@ const CHUNKS: Chunk[] = (() => {
   out.forEach((c, i) => { const n = out[i + 1]; c.e = n ? Math.min(n.s, c.e + 0.5) : c.e + 0.6; });
   return out;
 })();
-const clean = (w: string) => w.replace(/^(\d{3}),/, "$$$1,").replace(/\.$/, (m) => m);
-const HOT = /(\d|jet|million|grand|free|sued|lost|kidding|arbitrage|insanity|criminal|school|forever|discount|inflation)/i;
+const clean = (w: string) => w.replace(/^(\d{3}),/, "$$$1,");
+const HOT = /(\d|\$|jet|million|grand|free|sued|lost|kidding|arbitrage|insanity|criminal|school|forever|discount|inflation|loophole|fine|cheap|joke|cans|judge|points)/i;
+const EMOJI: [RegExp, string][] = [
+  [/loophole/i, "🔍"], [/fine/i, "🔍"], [/jet/i, "✈️"], [/million|grand|\$/i, "💰"], [/cents/i, "🪙"], [/forever/i, "😵"], [/friday|discount/i, "🛍️"],
+  [/arbitrage/i, "🧠"], [/insanity/i, "🤯"], [/investors/i, "🤝"], [/school/i, "🏫"], [/criminal/i, "🚨"], [/joke|commercial/i, "😂"],
+  [/coupons/i, "🎟️"], [/sued|judge/i, "⚖️"], [/lost/i, "❌"], [/relief/i, "😮‍💨"], [/inflation|hike/i, "📈"], [/kidding/i, "🤡"], [/cans/i, "🥤"], [/bus/i, "🚌"],
+];
+const FONT = '"Montserrat", "Arial Black", "Noto Color Emoji", sans-serif';
 
 const Captions: React.FC<{ t: number }> = ({ t }) => {
   const c = CHUNKS.find((k) => t >= k.s - 0.03 && t < k.e);
   if (!c) return null;
-  const pop = Math.min(1, (t - c.s + 0.03) / 0.09);
-  const sc = 0.82 + 0.18 * pop + 0.04 * Math.sin(Math.min(1, pop) * Math.PI);
+  const age = t - c.s + 0.03, pop = Math.min(1, age / 0.1);
+  const sc = 0.72 + 0.28 * pop + 0.07 * Math.sin(Math.min(1, age / 0.16) * Math.PI);
+  let emo = "";
+  for (const w of c.words) if (t >= w.s - 0.03) for (const [re, e] of EMOJI) if (re.test(w.w)) { emo = e; break; }
+  const eAge = (() => { const w = c.words.find((w) => EMOJI.some(([re]) => re.test(w.w))); return w ? t - w.s : 0; })();
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "63%" }}>
-      <div style={{ transform: `scale(${sc})`, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 22px", maxWidth: 940, textAlign: "center" }}>
+    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "61%" }}>
+      {emo ? <div style={{ fontFamily: '"Noto Color Emoji"', fontSize: 118, lineHeight: 1, marginBottom: 6,
+        transform: `scale(${0.4 + 0.6 * Math.min(1, eAge / 0.12) + 0.12 * Math.sin(Math.min(1, eAge / 0.2) * Math.PI)}) rotate(${-8 + 16 * Math.sin(eAge * 3)}deg)`,
+        filter: "drop-shadow(0 6px 0 rgba(20,12,24,.55))" }}>{emo}</div> : null}
+      <div style={{ transform: `scale(${sc})`, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 20px", maxWidth: 960, textAlign: "center" }}>
         {c.words.map((w, i) => {
           const live = t >= w.s - 0.03;
           const cur = live && (i === c.words.length - 1 || t < c.words[i + 1].s - 0.03);
-          const txt = w.w.startsWith("$") || w.w.startsWith(",") || w.w.startsWith(".") ? w.w : w.w;
-          const hot = HOT.test(txt);
+          const hot = HOT.test(w.w);
+          const bg = cur ? (hot ? "#ffd91a" : "#26d07c") : "transparent";
           return (
             <span key={i} style={{
-              fontFamily: '"Arial Black", "Helvetica Neue", Arial, sans-serif', fontWeight: 900, fontSize: 92, lineHeight: 1.08, letterSpacing: -1,
-              color: cur ? (hot ? "#ffe14a" : "#ffffff") : hot ? "#ffe14a" : "#ffffff", opacity: live ? 1 : 0,
-              WebkitTextStroke: "14px #1b1220", paintOrder: "stroke fill", textTransform: "uppercase",
-              textShadow: "0 8px 0 rgba(27,18,32,0.55)", display: "inline-block", transform: cur ? "translateY(-6px) scale(1.06)" : "none",
-            }}>{clean(txt)}</span>
+              fontFamily: FONT, fontWeight: 900, fontSize: 96, lineHeight: 1.12, letterSpacing: -1.5, textTransform: "uppercase",
+              color: cur ? "#140c18" : hot ? "#ffd91a" : "#ffffff", opacity: live ? 1 : 0,
+              WebkitTextStroke: cur ? "0px" : "13px #140c18", paintOrder: "stroke fill",
+              background: bg, borderRadius: 22, padding: cur ? "0 16px" : "0 2px", boxShadow: cur ? "0 8px 0 rgba(20,12,24,0.6)" : "none",
+              textShadow: cur ? "none" : "0 8px 0 rgba(20,12,24,0.6)", display: "inline-block",
+              transform: cur ? `rotate(${i % 2 ? 2 : -2}deg) scale(1.08)` : "none",
+            }}>{clean(w.w)}</span>
           );
         })}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+/** on-screen hook headline for the first seconds (topic clarity + contrast) */
+const HookTitle: React.FC<{ t: number }> = ({ t }) => {
+  if (t > 3.3) return null;
+  const k = Math.min(1, t / 0.18), out = t > 3.05 ? 1 - (t - 3.05) / 0.25 : 1;
+  return (
+    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "9%" }}>
+      <div style={{ transform: `scale(${0.6 + 0.4 * k}) rotate(-2deg)`, opacity: out, fontFamily: FONT, fontWeight: 900, fontSize: 66, lineHeight: 1.08,
+        textTransform: "uppercase", textAlign: "center", color: "#fff", background: "#e2453c", padding: "18px 30px", borderRadius: 26,
+        border: "8px solid #140c18", boxShadow: "0 12px 0 rgba(20,12,24,.6)", maxWidth: 920 }}>
+        $20M fighter jet<br /><span style={{ color: "#ffd91a" }}>for $700K?!</span> ✈️
       </div>
     </AbsoluteFill>
   );
@@ -120,6 +150,8 @@ const Captions: React.FC<{ t: number }> = ({ t }) => {
 const dprOverride = () => (getInputProps() as { post?: { dpr?: number } }).post?.dpr;
 export const PepsiShort: React.FC = () => {
   const f = useCurrentFrame();
+  const [fh] = useState(() => delayRender("fonts"));
+  useEffect(() => { Promise.all([document.fonts.load('900 96px "Montserrat"'), document.fonts.load('96px "Noto Color Emoji"', "✈️")]).finally(() => continueRender(fh)); }, [fh]);
   const on = toggles();
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
@@ -128,6 +160,7 @@ export const PepsiShort: React.FC = () => {
         <Inner />
       </ThreeCanvas>
       {on.captions ? <Captions t={f / FPS} /> : null}
+      {on.captions ? <HookTitle t={f / FPS} /> : null}
     </AbsoluteFill>
   );
 };

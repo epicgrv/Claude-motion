@@ -76,12 +76,31 @@ const lamp = (b: THREE.Group, x: number, z: number) => {
   b.add(at(box(0.36, 0.18, 0.5, col("lampHead", "#f4f1ea")), x, 4.85, z + (z > 0 ? -0.8 : 0.8)));
 };
 const car = (b: THREE.Group, x: number, z: number, ry: number, c: string) => {
-  const g = new THREE.Group();
-  g.add(at(box(4.2, 0.8, 1.8, col("car" + c, c)), 0, 0.65, 0));
-  g.add(at(box(2.3, 0.7, 1.6, col("car" + c, c)), -0.2, 1.4, 0));
-  g.add(at(box(2.36, 0.5, 1.64, col("carGlass", "#2c3e64")), -0.2, 1.42, 0));
-  for (const sx of [-1.35, 1.35]) for (const sz of [-0.9, 0.9]) { const w = cyl(0.36, 0.36, 0.28, col("tyre", "#25252c"), 14); w.rotation.x = Math.PI / 2; at(w, sx, 0.36, sz); g.add(w); }
+  const g = new THREE.Group(), body = twoTone(new THREE.MeshPhongMaterial({ color: c, specular: "#ffffff", shininess: 70 }));
+  const glass = twoTone(new THREE.MeshPhongMaterial({ color: "#2c3e64", specular: "#cfe6ff", shininess: 90 }));
+  // rounded lower body + cabin
+  const lo = mesh(new THREE.CapsuleGeometry(0.45, 3.4, 6, 16).rotateZ(Math.PI / 2), body); lo.scale.set(1, 0.95, 1.95); lo.position.y = 0.72; g.add(lo);
+  const cab = mesh(new THREE.CapsuleGeometry(0.42, 1.5, 6, 12).rotateZ(Math.PI / 2), glass); cab.scale.set(1, 1.05, 1.8); cab.position.set(-0.25, 1.28, 0); g.add(cab);
+  const roofC = mesh(new THREE.BoxGeometry(1.5, 0.08, 1.4), body); roofC.position.set(-0.25, 1.7, 0); g.add(roofC);
+  for (const sx of [-1.35, 1.35]) for (const sz of [-0.86, 0.86]) {
+    const w = cyl(0.36, 0.36, 0.26, col("tyre", "#25252c"), 18); w.rotation.x = Math.PI / 2; at(w, sx, 0.36, sz); g.add(w);
+    const hub = cyl(0.18, 0.18, 0.28, col("hub", "#d7d9de"), 12); hub.rotation.x = Math.PI / 2; at(hub, sx, 0.36, sz); g.add(hub);
+  }
+  for (const sz of [-0.55, 0.55]) { g.add(at(box(0.06, 0.16, 0.34, col("headL", "#fff6c9")), 2.33, 0.8, sz)); g.add(at(box(0.06, 0.14, 0.3, col("tailL", "#d8323c")), -2.33, 0.82, sz)); }
+  g.add(at(box(0.1, 0.12, 1.7, col("bumper", "#d7d9de")), 2.35, 0.5, 0)); g.add(at(box(0.1, 0.12, 1.7, col("bumper", "#d7d9de")), -2.35, 0.5, 0));
   b.add(at(g, x, 0, z, ry));
+};
+const hydrant = (b: THREE.Group, x: number, z: number) => {
+  const m = col("hydrant", "#d8323c");
+  b.add(at(cyl(0.16, 0.19, 0.6, m, 12), x, 0.45, z)); b.add(at(mesh(new THREE.SphereGeometry(0.17, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), m), x, 0.75, z));
+  const n = cyl(0.07, 0.07, 0.42, m, 8); n.rotation.z = Math.PI / 2; at(n, x, 0.55, z); b.add(n);
+};
+const bin = (b: THREE.Group, x: number, z: number) => { b.add(at(cyl(0.3, 0.26, 0.95, col("bin", "#3f6a4a"), 14), x, 0.62, z)); b.add(at(cyl(0.33, 0.33, 0.06, col("binLid", "#2f4f38"), 14), x, 1.12, z)); };
+const bush = (b: THREE.Group, x: number, z: number, s = 1) => { for (let i = 0; i < 3; i++) b.add(at(mesh(new THREE.IcosahedronGeometry(0.5 * s, 1), col("leaf" + i, ["#5fae4a", "#4f9a44", "#72b853"][i])), x + (i - 1) * 0.45 * s, 0.4 * s + 0.1, z + (i % 2) * 0.2)); };
+const fence = (b: THREE.Group, x0: number, x1: number, z: number) => {
+  const m = col("fence", "#f4f1ea");
+  for (let x = x0; x <= x1; x += 0.35) b.add(at(box(0.09, 0.9, 0.05, m), x, 0.55, z));
+  b.add(at(box(x1 - x0, 0.08, 0.05, m), (x0 + x1) / 2, 0.75, z + 0.04)); b.add(at(box(x1 - x0, 0.08, 0.05, m), (x0 + x1) / 2, 0.35, z + 0.04));
 };
 /** our soda can (generic brand), 0.12 m tall at s = 1 */
 export const canMesh = (s = 1) => {
@@ -118,7 +137,7 @@ export class Sets {
   price = new THREE.Group();        // the giant price board (posts + board), posed per shot
   tvTex = new DynTex(800, 480);
   calcTex = new DynTex(640, 240);
-  mailFlag = new THREE.Group();
+  mailFlag = new THREE.Group(); mailDoor = new THREE.Group();
   bus = new THREE.Group();
   arrow = new THREE.Group(); arrowBody: THREE.Mesh; arrowHead: THREE.Mesh;
   chequeBig: THREE.Group; chequeB: THREE.Group; letter = new THREE.Group();
@@ -250,16 +269,35 @@ export class Sets {
     T.add(at(box(0.4, 0.2, 0.55, col("mbox", "#2f5fa8")), mx, 1.1, mz));
     const fl = new THREE.Group(); fl.add(at(box(0.03, 0.34, 0.04, col("flagR", "#e2453c")), 0, 0.17, 0)); fl.add(at(box(0.03, 0.12, 0.16, col("flagR", "#e2453c")), 0, 0.3, 0.08));
     at(this.mailFlag, mx + 0.21, 1.05, mz - 0.1); this.mailFlag.add(fl); T.add(this.mailFlag);
+    // front door hinged at the bottom (opens toward the street) + the dark inside it reveals
+    const mouthM = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.36), new THREE.MeshBasicMaterial({ color: "#14101a" }));
+    at(mouthM, mx, 1.19, mz + 0.276); T.add(mouthM);
+    const door = new THREE.Group();
+    const plate = mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.03, 24, 1, false, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2).translate(0, 0.0, 0), col("mboxDoor", "#27509a"));
+    plate.position.set(0, 0.2, 0.015); door.add(plate);
+    door.add(at(box(0.41, 0.2, 0.03, col("mboxDoor", "#27509a")), 0, 0.1, 0.015));
+    door.add(at(box(0.1, 0.035, 0.05, col("mboxHandle", "#d7d9de")), 0, 0.33, 0.04));
+    at(this.mailDoor, 0, 1.0, 0); this.mailDoor.add(door);
+    const doorPivot = new THREE.Group(); at(doorPivot, mx, 0, mz + 0.28); doorPivot.add(this.mailDoor); T.add(doorPivot);
     // lamps, cars
     for (let x = -230; x < 240; x += 26) { lamp(T, x, 5.9); lamp(T, x + 13, -5.9); }
     car(T, -12, 2.2, 0, "#3f6fb5"); car(T, 24, -2.2, Math.PI, "#c0353a"); car(T, -52, -2.2, Math.PI, "#5d7a3a"); car(T, 118, 2.2, 0, "#7b5ac9");
+    car(T, 14, 2.4, 0, "#e8b33a"); car(T, -26, 2.4, 0, "#2f5f6a"); car(T, 40, -2.4, Math.PI, "#f4f1ea"); car(T, -88, 2.4, 0, "#e2453c");
+    for (const [x, z] of [[-6, 6.0], [30, -6.0], [-44, 6.0], [86, -6.0]] as [number, number][]) hydrant(T, x, z);
+    for (const [x, z] of [[8, -6.1], [-18, 6.1], [46, 6.1], [-62, -6.1]] as [number, number][]) bin(T, x, z);
+    fence(T, -4.6, -1.4, -8.0); fence(T, 4.2, 5.8, -8.0);
+    for (const x of [-5.6, -3, 5.2]) bush(T, x, -11.6, 1.0);
     // ---- school ----
     const sb = lam("schoolBrick", () => ({ map: schoolBrick() }));
     b.add(boxGeo(V(48, 0, -38), V(92, 11, -25), 6), sb);
     const winM = lam("schoolWin", () => ({ color: "#2c4a7a" }));
     for (let fl2 = 0; fl2 < 3; fl2++) for (let x = 51; x < 90; x += 3.2) if (Math.abs(x + 1 - 70) > 4) b.add(boxGeo(V(x, 1.4 + fl2 * 3.3, -25.0), V(x + 2, 3.2 + fl2 * 3.3, -24.9), 0), winM);
     for (let fl2 = 0; fl2 < 3; fl2++) for (let x = 51; x < 90; x += 3.2) if (Math.abs(x + 1 - 70) > 4) b.add(boxGeo(V(x - 0.15, 1.25 + fl2 * 3.3, -24.95), V(x + 2.15, 1.4 + fl2 * 3.3, -24.75), 0), col("trimW", "#f4f1ea"));
-    b.add(boxGeo(V(47.6, 11, -38.4), V(92.4, 11.6, -24.6), 0), col("trimW", "#f4f1ea"));
+    b.add(boxGeo(V(47.6, 11, -38.4), V(92.4, 11.6, -24.6), 0), col("roofTop", "#b9b4ac"));
+    for (const [x0, x1, z0, z1] of [[47.6, 92.4, -24.9, -24.6], [47.6, 92.4, -38.4, -38.1], [47.6, 47.9, -38.4, -24.6], [92.1, 92.4, -38.4, -24.6]]) b.add(boxGeo(V(x0, 11.6, z0), V(x1, 12.1, z1), 0), col("trimW", "#f4f1ea"));
+    for (const x of [52, 56, 86]) { b.add(boxGeo(V(x, 11.6, -36.8), V(x + 2.2, 12.9, -34.8), 0), col("acUnit", "#cfd3da")); }
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(6.2, 48), picMat(signTex("helipad", ["H"], { bg: "#3a3d4a", fg: "#f2c94c", w: 512, h: 512, radius: 256, sizes: [330], border: "#f2c94c", shadow: false })));
+    pad.rotation.x = -Math.PI / 2; at(pad, 70, 11.625, -31.5); pad.rotation.z = Math.PI / 2; this.root.add(pad);
     // portico
     b.add(boxGeo(V(64, 0.1, -25), V(76, 0.5, -21.5), 2), col("step", "#efe3c8"));
     for (const x of [64.8, 67.6, 72.4, 75.2]) T.add(at(cyl(0.38, 0.42, 6.5, col("column", "#f4f1ea"), 16), x, 3.75, -22.2));

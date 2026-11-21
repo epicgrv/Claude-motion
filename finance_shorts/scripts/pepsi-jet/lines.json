@@ -1,189 +1,189 @@
 {
-  "title": "He Tried to Buy a Fighter Jet With Pepsi Points",
-  "version": 2,
-  "model": "s2.1-pro-free",
-  "voices": {
-    "NAR": {
-      "id": "802e3bc2b27e49c2995d23ef70e6ac89",
-      "name": "Energetic Male (Fish library)",
-      "speed": 1.08
-    },
-    "JOHN": {
-      "id": "711cf3ed00ab441a8f54a45058047b7a",
-      "name": "Verity (young, energetic)",
-      "speed": 1.04
-    },
-    "BUDDY": {
-      "id": "d9ce1833c191476db346efb50aa20722",
-      "name": "boy (relaxed, casual)",
-      "speed": 1.04
-    },
-    "EXEC": {
-      "id": "e686ae649ee44f219a108aacba206c1a",
-      "name": "calm storyteller male (deep)",
-      "speed": 1.04
-    },
-    "INVESTOR": {
-      "id": "bf322df2096a46f18c579d0baa36f41d",
-      "name": "Adrian (deep, serious)",
-      "speed": 1.04
-    },
-    "TEEN": {
-      "id": "e97dc5d2b681445784aa4cd1cdd3ad5f",
-      "name": "BOY BOY BOY (ad-style)",
-      "speed": 1.04
-    }
+ "title": "He Tried to Buy a Fighter Jet With Pepsi Points",
+ "version": 3,
+ "model": "s2.1-pro-free",
+ "voices": {
+  "NAR": {
+   "id": "802e3bc2b27e49c2995d23ef70e6ac89",
+   "name": "Energetic Male (Fish library)",
+   "speed": 1.08
   },
-  "lines": [
-    {
-      "id": "L01",
-      "who": "NAR",
-      "gap": 0.0,
-      "text": "In 1996, a college kid mailed Pepsi a check for $700,000… to buy a fighter jet.",
-      "tts": "In nineteen ninety-six, a college kid mailed Pepsi a check for seven hundred thousand dollars... to buy a fighter jet."
-    },
-    {
-      "id": "L02",
-      "who": "NAR",
-      "gap": 0.12,
-      "text": "Pepsi's TV ad showed a teen landing a Harrier jet at school.",
-      "tts": "Pepsi's TV ad showed a teen landing a Harrier jet... at school."
-    },
-    {
-      "id": "L03",
-      "who": "TEEN",
-      "gap": 0.1,
-      "text": "Sure beats the bus.",
-      "tts": "Sure beats the bus!"
-    },
-    {
-      "id": "L04",
-      "who": "NAR",
-      "gap": 0.1,
-      "text": "Price: seven million Pepsi Points.",
-      "tts": "Price? Seven MILLION Pepsi Points."
-    },
-    {
-      "id": "L05",
-      "who": "BUDDY",
-      "gap": 0.12,
-      "text": "Dude. You'd have to drink Pepsi forever.",
-      "tts": "Dude. You'd have to drink Pepsi... forever."
-    },
-    {
-      "id": "L06",
-      "who": "NAR",
-      "gap": 0.12,
-      "text": "But John? He read the fine print. Extra points cost… ten cents each. Seven million times ten cents… seven hundred grand. For a jet worth over twenty million. That's a 96% discount. Not even Black Friday goes that hard.",
-      "tts": "But John? He read the fine print. Extra points cost... ten cents each. Seven million times ten cents... seven hundred grand. For a jet worth over twenty million. That's a ninety-six percent discount. Not even Black Friday goes that hard."
-    },
-    {
-      "id": "L07",
-      "who": "JOHN",
-      "gap": 0.12,
-      "text": "Class, this is arbitrage: buy something cheap that's worth way more somewhere else.",
-      "tts": "Class, this is arbitrage. Buy something cheap... that's worth way more somewhere else."
-    },
-    {
-      "id": "L08",
-      "who": "BUDDY",
-      "gap": 0.08,
-      "text": "This is insanity.",
-      "tts": "This is insanity."
-    },
-    {
-      "id": "L09",
-      "who": "NAR",
-      "gap": 0.12,
-      "text": "So he lined up five investors.",
-      "tts": "So he lined up five investors."
-    },
-    {
-      "id": "L10",
-      "who": "INVESTOR",
-      "gap": 0.08,
-      "text": "Where do we park it?",
-      "tts": "Where do we park it?"
-    },
-    {
-      "id": "L11",
-      "who": "JOHN",
-      "gap": 0.3,
-      "text": "…School?",
-      "tts": "School?"
-    },
-    {
-      "id": "L12",
-      "who": "NAR",
-      "gap": 0.15,
-      "text": "And he mailed Pepsi a check for $700,008.50. He even paid the shipping. What is he, a criminal?",
-      "tts": "And he mailed Pepsi a check for seven hundred thousand and eight dollars... and fifty cents. He even paid the shipping. What is he, a criminal?"
-    },
-    {
-      "id": "L13",
-      "who": "NAR",
-      "gap": 0.12,
-      "text": "Pepsi said the jet was a joke.",
-      "tts": "Pepsi said the jet was a joke."
-    },
-    {
-      "id": "L14",
-      "who": "EXEC",
-      "gap": 0.08,
-      "text": "It's a commercial, kid.",
-      "tts": "(laughing) It's a commercial, kid!"
-    },
-    {
-      "id": "L15",
-      "who": "NAR",
-      "gap": 0.12,
-      "text": "They sent the check back… with coupons for free Pepsi. Which, to be fair, gets him a few points closer.",
-      "tts": "They sent the check back... with coupons for free Pepsi. Which, to be fair, gets him a few points closer."
-    },
-    {
-      "id": "L16",
-      "who": "NAR",
-      "gap": 0.15,
-      "text": "So he sued. And a federal judge ruled no reasonable person would believe a soda company sells fighter jets.",
-      "tts": "So he sued. And a federal judge ruled... no reasonable person would believe a soda company sells fighter jets."
-    },
-    {
-      "id": "L17",
-      "who": "BUDDY",
-      "gap": 0.08,
-      "text": "Unreasonable person, right here.",
-      "tts": "Unreasonable person, right here!"
-    },
-    {
-      "id": "L18",
-      "who": "NAR",
-      "gap": 0.15,
-      "text": "He lost. Somewhere, a school bus driver sighed with relief.",
-      "tts": "He lost. Somewhere... a school bus driver sighed with relief.",
-      "max_pause": 0.32
-    },
-    {
-      "id": "L19",
-      "who": "NAR",
-      "gap": 0.2,
-      "text": "But Pepsi quietly re-aired the ad. Same jet. New price: seven HUNDRED million points. That's a 9,900% price hike. Worst inflation in history. Plus two tiny words underneath…",
-      "tts": "But Pepsi quietly re-aired the ad. Same jet. New price? Seven HUNDRED million points. That's a nine thousand nine hundred percent price hike. Worst inflation in history. Plus two tiny words underneath...",
-      "max_pause": 0.32
-    },
-    {
-      "id": "L20",
-      "who": "NAR",
-      "gap": 0.35,
-      "text": "\"Just kidding.\"",
-      "tts": "Just kidding."
-    },
-    {
-      "id": "L21",
-      "who": "BUDDY",
-      "gap": 0.45,
-      "text": "…So we're keeping the cans?",
-      "tts": "So... we're keeping the cans?"
-    }
-  ],
-  "max_pause": 0.22
+  "JOHN": {
+   "id": "711cf3ed00ab441a8f54a45058047b7a",
+   "name": "Verity (young, energetic)",
+   "speed": 1.04
+  },
+  "BUDDY": {
+   "id": "d9ce1833c191476db346efb50aa20722",
+   "name": "boy (relaxed, casual)",
+   "speed": 1.04
+  },
+  "EXEC": {
+   "id": "e686ae649ee44f219a108aacba206c1a",
+   "name": "calm storyteller male (deep)",
+   "speed": 1.04
+  },
+  "INVESTOR": {
+   "id": "bf322df2096a46f18c579d0baa36f41d",
+   "name": "Adrian (deep, serious)",
+   "speed": 1.04
+  },
+  "TEEN": {
+   "id": "e97dc5d2b681445784aa4cd1cdd3ad5f",
+   "name": "BOY BOY BOY (ad-style)",
+   "speed": 1.04
+  }
+ },
+ "lines": [
+  {
+   "id": "L01",
+   "who": "NAR",
+   "gap": 0.0,
+   "text": "This college kid found a way to buy a $20 million fighter jet… for $700,000.",
+   "tts": "This college kid found a way to buy a twenty million dollar fighter jet... for seven hundred grand."
+  },
+  {
+   "id": "L02",
+   "who": "NAR",
+   "gap": 0.12,
+   "text": "The loophole? A Pepsi ad, showing a teen landing a Harrier jet at school.",
+   "tts": "The loophole? A Pepsi ad... showing a teen landing a Harrier jet at school."
+  },
+  {
+   "id": "L03",
+   "who": "TEEN",
+   "gap": 0.1,
+   "text": "Sure beats the bus.",
+   "tts": "Sure beats the bus!"
+  },
+  {
+   "id": "L04",
+   "who": "NAR",
+   "gap": 0.1,
+   "text": "Price: seven million Pepsi Points.",
+   "tts": "Price? Seven MILLION Pepsi Points."
+  },
+  {
+   "id": "L05",
+   "who": "BUDDY",
+   "gap": 0.12,
+   "text": "Dude. You'd have to drink Pepsi forever.",
+   "tts": "Dude. You'd have to drink Pepsi... forever."
+  },
+  {
+   "id": "L06",
+   "who": "NAR",
+   "gap": 0.12,
+   "text": "But John? He read the fine print. Extra points cost… ten cents each. Seven million times ten cents… seven hundred grand. For a jet worth over twenty million. That's a 96% discount. Not even Black Friday goes that hard.",
+   "tts": "But John? He read the fine print. Extra points cost... ten cents each. Seven million times ten cents... seven hundred grand. For a jet worth over twenty million. That's a ninety-six percent discount. Not even Black Friday goes that hard."
+  },
+  {
+   "id": "L07",
+   "who": "JOHN",
+   "gap": 0.12,
+   "text": "Class, this is arbitrage: buy something cheap that's worth way more somewhere else.",
+   "tts": "Class, this is arbitrage. Buy something cheap... that's worth way more somewhere else."
+  },
+  {
+   "id": "L08",
+   "who": "BUDDY",
+   "gap": 0.08,
+   "text": "This is insanity.",
+   "tts": "This is insanity."
+  },
+  {
+   "id": "L09",
+   "who": "NAR",
+   "gap": 0.12,
+   "text": "So he lined up five investors.",
+   "tts": "So he lined up five investors."
+  },
+  {
+   "id": "L10",
+   "who": "INVESTOR",
+   "gap": 0.08,
+   "text": "Where do we park it?",
+   "tts": "Where do we park it?"
+  },
+  {
+   "id": "L11",
+   "who": "JOHN",
+   "gap": 0.3,
+   "text": "…School?",
+   "tts": "School?"
+  },
+  {
+   "id": "L12",
+   "who": "NAR",
+   "gap": 0.15,
+   "text": "And he mailed Pepsi a check for $700,008.50. He even paid the shipping. What is he, a criminal?",
+   "tts": "And he mailed Pepsi a check for seven hundred thousand and eight dollars... and fifty cents. He even paid the shipping. What is he, a criminal?"
+  },
+  {
+   "id": "L13",
+   "who": "NAR",
+   "gap": 0.12,
+   "text": "Pepsi said the jet was a joke.",
+   "tts": "Pepsi said the jet was a joke."
+  },
+  {
+   "id": "L14",
+   "who": "EXEC",
+   "gap": 0.08,
+   "text": "It's a commercial, kid.",
+   "tts": "(laughing) It's a commercial, kid!"
+  },
+  {
+   "id": "L15",
+   "who": "NAR",
+   "gap": 0.12,
+   "text": "They sent the check back… with coupons for free Pepsi. Which, to be fair, gets him a few points closer.",
+   "tts": "They sent the check back... with coupons for free Pepsi. Which, to be fair, gets him a few points closer."
+  },
+  {
+   "id": "L16",
+   "who": "NAR",
+   "gap": 0.15,
+   "text": "So he sued. And a federal judge ruled no reasonable person would believe a soda company sells fighter jets.",
+   "tts": "So he sued. And a federal judge ruled... no reasonable person would believe a soda company sells fighter jets."
+  },
+  {
+   "id": "L17",
+   "who": "BUDDY",
+   "gap": 0.08,
+   "text": "Unreasonable person, right here.",
+   "tts": "Unreasonable person, right here!"
+  },
+  {
+   "id": "L18",
+   "who": "NAR",
+   "gap": 0.15,
+   "text": "He lost. Somewhere, a school bus driver sighed with relief.",
+   "tts": "He lost. Somewhere... a school bus driver sighed with relief.",
+   "max_pause": 0.32
+  },
+  {
+   "id": "L19",
+   "who": "NAR",
+   "gap": 0.2,
+   "text": "But Pepsi quietly re-aired the ad. Same jet. New price: seven HUNDRED million points. That's a 9,900% price hike. Worst inflation in history. Plus two tiny words underneath…",
+   "tts": "But Pepsi quietly re-aired the ad. Same jet. New price? Seven HUNDRED million points. That's a nine thousand nine hundred percent price hike. Worst inflation in history. Plus two tiny words underneath...",
+   "max_pause": 0.32
+  },
+  {
+   "id": "L20",
+   "who": "NAR",
+   "gap": 0.35,
+   "text": "\"Just kidding.\"",
+   "tts": "Just kidding."
+  },
+  {
+   "id": "L21",
+   "who": "BUDDY",
+   "gap": 0.45,
+   "text": "…So we're keeping the cans?",
+   "tts": "So... we're keeping the cans?"
+  }
+ ],
+ "max_pause": 0.22
 }
