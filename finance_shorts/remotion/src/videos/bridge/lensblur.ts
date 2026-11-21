@@ -69,7 +69,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
 
 type Stage = { taps: number; spread: number; nearTaps: number; rot: number };
 const PRE: Stage = { taps: 16, spread: 0.287, nearTaps: 0, rot: 0.61 };
-const MAIN: Stage = { taps: 64, spread: 0.958, nearTaps: 32, rot: 0 };
+const MAIN: Stage = { taps: 40, spread: 0.958, nearTaps: 20, rot: 0 };
 
 export class LensBlurEffect extends Effect {
   constructor({ maxCoC = 24, nearScale = 1.2, stage = MAIN }: { maxCoC?: number; nearScale?: number; stage?: Stage } = {}) {

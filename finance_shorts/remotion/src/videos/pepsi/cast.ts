@@ -4,7 +4,7 @@
 import * as THREE from "three";
 import { Pen, bodyFront, Outfit, Expr, FrontOpts, Prop, INK, KID, SKINS, townsfolk, fxBurst, fxPuff, fxShadow, fxContact, ArmPose, Hold } from "./toon";
 import { Place, FxPlace } from "../bridge/cast";
-import { LINES, MOUTH } from "./vo";
+import { LINES, MOUTH, VISEME } from "./vo";
 import { FPS, Light, BOARD, ARROW, arrowH, ROOF_JET, jetHero } from "./story";
 import { ROOM, A, V3 } from "./sets";
 import { chequeTex, catalogTex, couponTex } from "./tex";
@@ -12,16 +12,16 @@ import { chequeTex, catalogTex, couponTex } from "./tex";
 export type Stage = { places: Place[]; fx: FxPlace[] };
 
 // ---------------- the cast ----------------
-const JOHN: Outfit = { jacket: "#3f7fd0", pants: "#3b3f52", boots: "#f4f1ea", hat: "hair", hair: "#5a3b2a" };
+const JOHN: Outfit = { jacket: "#3f7fd0", pants: "#3b3f52", boots: "#f4f1ea", hat: "hair", hair: "#5a3b2a", strings: "#f4f1ea", buttons: "#3f7fd0" };
 const BUDDY: Outfit = { jacket: "#f08a2c", pants: "#56607a", boots: "#e2453c", hat: "cap", cap: "#2fa05a", build: "stout", skin: "#c99067" };
 const TEEN: Outfit = { jacket: "#c0353a", pants: "#2f3550", boots: "#f4f1ea", hat: "hair", hair: "#e8c45a", build: "kid", skin: "#f5c9a0" };
-const EXEC: Outfit = { jacket: "#2b3448", pants: "#2b3448", boots: INK, hat: "hair", hair: "#c9c9d1", moustache: "#8a8a96", build: "stout", buttons: "#e8c45a" };
-const ASSIST: Outfit = { jacket: "#5a4a8c", pants: "#3b3f52", boots: "#4a3426", hat: "hair", hair: "#2a201a", skin: "#ecd0b6" };
-const JUDGE: Outfit = { jacket: "#1e1e26", pants: "#1e1e26", boots: INK, hat: "hair", hair: "#f1efe6", moustache: "#f1efe6", build: "stout", skin: "#ecd0b6" };
+const EXEC: Outfit = { jacket: "#2b3448", pants: "#2b3448", boots: INK, hat: "hair", hair: "#c9c9d1", moustache: "#8a8a96", build: "stout", buttons: "#e8c45a", collar: "#ffffff", tie: "#d8323c" };
+const ASSIST: Outfit = { jacket: "#5a4a8c", pants: "#3b3f52", boots: "#4a3426", hat: "hair", hair: "#2a201a", skin: "#ecd0b6", collar: "#ffffff", tie: "#2f5f6a" };
+const JUDGE: Outfit = { jacket: "#1e1e26", pants: "#1e1e26", boots: INK, hat: "hair", hair: "#f1efe6", moustache: "#f1efe6", build: "stout", skin: "#ecd0b6", collar: "#ffffff", buttons: "#1e1e26" };
 const DRIVER: Outfit = { jacket: "#e8b33a", pants: "#3b3f52", boots: INK, hat: "cap", cap: "#2f5f6a", moustache: "#4a3020", build: "stout", skin: "#f5c9a0" };
 const INV: Outfit[] = ["#3f6fb5", "#8c3b4a", "#2f5f6a", "#5d7a3a", "#7b5ac9"].map((c, i) => ({
   jacket: c, pants: "#2b2b34", boots: INK, hat: i % 2 ? "tophat" : "hair", hair: ["#5a3b2a", "#2a201a", "#c9c9d1", "#8a5a3c", "#e8c45a"][i],
-  moustache: i === 1 || i === 2 ? "#3a2a20" : undefined, build: i % 2 ? "stout" : "adult", skin: SKINS[(i + 1) % 4], buttons: "#e8c45a",
+  moustache: i === 1 || i === 2 ? "#3a2a20" : undefined, build: i % 2 ? "stout" : "adult", skin: SKINS[(i + 1) % 4], buttons: "#e8c45a", collar: "#ffffff", tie: ["#d8323c", "#f2c94c", "#3fae8a", "#e2453c", "#3f7fd0"][i],
 }));
 const KIDS: Outfit[] = ["#f08a2c", "#3fae8a", "#7b5ac9", "#e2453c", "#3f7fd0", "#e8b33a"].map((c, i) => ({ ...KID, jacket: c, cap: ["#e2453c", "#3f6fb5", "#f2c94c"][i % 3], skin: SKINS[i % 4], hat: i % 2 ? "cap" : "hair", hair: "#5a3b2a" }));
 const FOLK = [0, 1, 2, 3, 4, 5].map((v) => townsfolk(v));
@@ -54,6 +54,7 @@ const lidAt = (t: number, i: number, shotStart: number) => {
 };
 const lineAt = (t: number) => LINES.find((l) => t >= l.s - 0.04 && t <= l.e + 0.04);
 /** mouth opening 0..1 of `who` at real time t (voice loudness, 30 fps) */
+const visOf = (t: number) => { const f = Math.round(t * FPS); return f >= 0 && f < VISEME.length ? Number(VISEME[f]) : 0; };
 const mouthOf = (who: string, t: number) => {
   const l = lineAt(t);
   if (!l || l.who !== who) return 0;
@@ -137,7 +138,7 @@ const person = (c: Ctx, who: Who, p: V3, a: Act = {}) => {
     look: (a.look ?? 0) + (live ? 0.18 * noise(tr * 0.45, seed) : 0),
     tilt: (a.tilt ?? 0) + (live ? 1.1 * Math.sin(tr * 1.35 + seed) + 2.2 * e * Math.sin(tr * 4.1 + seed) : 0),
     headTilt: (a.headTilt ?? 0) + (live ? 1.5 * noise(tr * 0.6, seed + 5) + 3.5 * e * Math.sin(tr * 6.2 + seed) : 0),
-    rise: live ? Math.sin(tr * 1.9 + seed) : 0, mouth: m,
+    rise: live ? Math.sin(tr * 1.9 + seed) : 0, mouth: m, viseme: m > 0.08 ? visOf(tr) : 0, brow: Math.min(1, e * 1.1),
     blink: lidAt(tr, idx, c.s0), light: light2D(c.cam), seed, armL, armR, hold: a.hold,
   };
   c.out.places.push({ key: `F|${who.id}${who.i ?? ""}|${fkey(fo)}`, x: p[0], y: p[1], z: p[2], scale: sc, draw: (pp: Pen) => bodyFront(pp, o, fo), size: [w, h, k] });

@@ -9,11 +9,12 @@ const chromiumOptions = { gl: process.env.GL || "swangle" };
 const t0 = Date.now();
 const serveUrl = await bundle({ entryPoint: path.resolve(entry), publicDir: path.resolve("public") });
 console.log("bundle", ((Date.now() - t0) / 1000).toFixed(1) + "s");
-const composition = await selectComposition({ serveUrl, id, browserExecutable, chromiumOptions });
+const inputProps = process.env.PROPS ? JSON.parse(process.env.PROPS) : {};
+const composition = await selectComposition({ serveUrl, id, browserExecutable, chromiumOptions, inputProps });
 const onBrowserLog = (l) => { if (l.type === "error") console.log(`[${l.type}]`, l.text.slice(0, 300)); };
 for (const f of frames.split(",").map(Number)) {
   const t1 = Date.now();
-  await renderStill({ composition, serveUrl, frame: f, output: `${prefix}${f}.jpg`, imageFormat: "jpeg", jpegQuality: 88, scale: Number(scale),
+  await renderStill({ composition, serveUrl, frame: f, output: `${prefix}${f}.jpg`, imageFormat: "jpeg", jpegQuality: 88, scale: Number(scale), inputProps,
     browserExecutable, chromiumOptions, timeoutInMilliseconds: 600000, onBrowserLog });
   console.log("still", f, ((Date.now() - t1) / 1000).toFixed(1) + "s");
 }

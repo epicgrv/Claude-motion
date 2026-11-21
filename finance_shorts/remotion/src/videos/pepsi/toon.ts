@@ -17,6 +17,7 @@ export type Build = "adult" | "stout" | "kid";
 export type Outfit = {
   jacket: string; pants: string; boots: string; hat?: string | null; belt?: string | null; buttons?: string; rifle?: boolean;
   sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
+  collar?: string; tie?: string; strings?: string;
   build?: Build;
 };
 type P2 = [number, number];
@@ -306,26 +307,49 @@ const mouth = (p: Pen, kind: MouthK, mx: number, my: number, u: number, k = 1) =
 /** face v2 (front / 3-4). u = 1 % of the head path width W. Eyes 26u apart on the centre line, brows 20u up, mouth 20u
  *  down, everything slid toward the facing side. No blush, no catchlights. */
 const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing: number, look: number, lid: number, brim: boolean,
-  skin: string, moustache?: string, stout = false, mOpen = 0) => {
+  skin: string, moustache?: string, stout = false, mOpen = 0, vis = 0, browUp = 0) => {
   const u = W / 100, F = FACE[expr], fx = cx + 7 * u * facing;
-  const ex = (F.eye[0] === "shock" ? 12 : 13) * u, ey = cy;
+  const ex = (F.eye[0] === "shock" ? 12 : 13.5) * u, ey = cy - 1 * u;
+  // blush + nose (v5.1 appeal pass)
+  for (const sd of [-1, 1]) p.ell(fx + sd * 23 * u, cy + 13 * u, 7 * u, 3.8 * u, "rgba(255,110,120,0.30)", 0);
+  p.arc(fx + 3 * u * facing, cy + 9.5 * u, 3.6 * u, 2.8 * u, 15, 165, 2.6 * u);
   for (const side of [-1, 1]) {
     const x = fx + side * ex;
-    const kind = eyeKind(F.eye[(facing ? side === facing : side > 0) ? 1 : 0], lid);
-    eye(p, kind, x, ey, u, side, look, skin);
-    const [dI, dO] = F.brow, by = ey - (brim ? 17 : 20) * u;
+    const base = F.eye[(facing ? side === facing : side > 0) ? 1 : 0];
+    if (base === "lid" || base === "dot" || base === "small") {                     // toon eyes: white, pupil, catchlight, lid
+      const rx = 8.2 * u, ry = 10 * u, px = x + look * 3.2 * u, py = ey + 1.2 * u, pr = base === "small" ? 3.6 * u : 4.8 * u;
+      p.ell(x, ey, rx, ry, WHITE, 2.6 * u);
+      if (lid < 1) {
+        p.clip(ellPts(x, ey, rx, ry, 0, 360, 0), () => {
+          p.dot(px, py, pr, "#2a1d2e"); p.dot(px - 1.6 * u, py - 1.8 * u, 1.5 * u, WHITE);
+          const lidK = Math.max(lid, base === "lid" ? 0.32 : 0.12);               // resting upper lid
+          p.poly([[x - rx - 2 * u, ey - ry - 2 * u], [x + rx + 2 * u, ey - ry - 2 * u], [x + rx + 2 * u, ey - ry + 2 * ry * lidK], [x - rx - 2 * u, ey - ry + 2 * ry * lidK]], skin, 0);
+        });
+        const lidK = Math.max(lid, base === "lid" ? 0.32 : 0.12);
+        p.stroke([[x - rx * 0.95, ey - ry + 2 * ry * lidK], [x + rx * 0.95, ey - ry + 2 * ry * lidK]], 2.6 * u);
+        p.ell(x, ey, rx, ry, null, 2.6 * u);
+      } else { p.ell(x, ey, rx, ry, skin, 0); p.arc(x, ey + 1 * u, rx * 0.9, 3 * u, 10, 170, 2.8 * u); }
+    } else eye(p, eyeKind(base, lid), x, ey, u, side, look, skin);
+    const kind = eyeKind(base, lid);
+    const [dI0, dO0] = F.brow, dI = dI0 - 3.5 * browUp, dO = dO0 - 3.5 * browUp, by = ey - (brim ? 17 : 21) * u;
     if (kind === "shock" || kind === "shockHalf") p.arc(x, by - 6 * u, 9 * u, 3 * u, 200, 340, 4 * u);
     else taper(p, [x - side * 8.5 * u, by + dI * u], [x + side * 8.5 * u, by + dO * u], 5 * u, 2.5 * u);
   }
   const mx = cx + 8 * u * facing, my = cy + 20 * u;
-  if (mOpen > 0.08) { // talking: open mouth sized by the voice (jaw drop + slight width change)
-    const m = Math.min(1, mOpen), wide = F.mouth === "grin" || F.mouth === "laugh" || F.mouth === "smileWide" || F.mouth === "smile" ? 1.25 : 1;
-    p.ell(mx, my - 1.5 * u, (7 + 5 * m) * u * wide, (2.5 + 10 * m) * u, MOUTH, 3 * u, 0, 360);
-    if (m > 0.3) p.clip(ellPts(mx, my - 1.5 * u, (7 + 5 * m) * u * wide, (2.5 + 10 * m) * u, 0, 360, 0), () => {
-      p.ell(mx, my - (3.5 + 9 * m) * u, (7 + 5 * m) * u * wide, 4 * u, WHITE, 0);
-      p.ell(mx + u, my + (3 + 8 * m) * u, (4 + 3 * m) * u, (3 + 3 * m) * u, TONGUE, 0);
+  if (mOpen > 0.08) { // talking: viseme shapes sized by the voice (A open / E wide with teeth / O round)
+    const m = Math.min(1, mOpen), wide = F.mouth === "grin" || F.mouth === "laugh" || F.mouth === "smileWide" ? 1.15 : 1;
+    let rx = (8 + 4 * m) * u * wide, ry = (3 + 9 * m) * u;
+    if (vis === 1) { rx = (11 + 3 * m) * u * wide; ry = (2.2 + 5 * m) * u; }
+    if (vis === 2) { rx = (4.5 + 2.5 * m) * u; ry = (4.5 + 6 * m) * u; }
+    const cyM = my - 1 * u, pts = ellPts(mx, cyM, rx, ry, 0, 360, 0);
+    p.poly(pts, MOUTH, 0);
+    p.clip(pts, () => {
+      if (vis !== 2) p.ell(mx, cyM - ry, rx * 1.1, (vis === 1 ? 3.2 : 3.6) * u + ry * 0.12, WHITE, 0);   // top teeth
+      if (vis === 1) p.ell(mx, cyM + ry, rx * 1.1, 2.6 * u, WHITE, 0);                                // bottom teeth
+      if (vis !== 1) p.ell(mx + 0.5 * u, cyM + ry * 0.85, rx * 0.62, ry * 0.5, TONGUE, 0);            // tongue
     });
-    p.ell(mx, my - 1.5 * u, (7 + 5 * m) * u * wide, (2.5 + 10 * m) * u, null, 3 * u, 0, 360);
+    p.ell(mx, cyM, rx, ry, null, (vis === 2 ? 3.4 : 2.9) * u, 0, 360);
+    p.arc(mx, cyM + ry + 1.6 * u, rx * 0.55, 1.6 * u, 20, 160, 2 * u, "rgba(233,120,130,0.55)");     // lower-lip sheen
   } else mouth(p, F.mouth, mx, my, u);
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
@@ -447,6 +471,8 @@ export type FrontOpts = {
   light?: number; facing?: -1 | 0 | 1; seed?: number;
   /** v5 rig: hand targets (2-bone IK, real elbow), mouth opening 0..1 from the voice, chest rise, held object */
   armL?: ArmPose; armR?: ArmPose; mouth?: number; rise?: number; hold?: Hold;
+  /** v5.1: mouth shape 0 A / 1 E / 2 O, brow raise 0..1 */
+  viseme?: number; brow?: number;
 };
 /** hand target relative to the shoulder, in head heights: x outward from the body (+), y down (+); front = over the torso */
 export type ArmPose = { x: number; y: number; front?: boolean; bend?: number };
@@ -470,7 +496,7 @@ const footStroke = (p: Pen, a: P2, b: P2, w: number, col: string) => {
 
 export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   const { phase = 0, expr = "neutral", mode = "march", look = 0, blink = false, lift = 60, prop = null, tilt = 0, headTilt = 0, wave,
-    light = DEF_LIGHT, facing = 0, seed = 1, armL, armR, mouth: mOpen = 0, rise = 0, hold } = opts;
+    light = DEF_LIGHT, facing = 0, seed = 1, armL, armR, mouth: mOpen = 0, rise = 0, hold, viseme = 0, brow = 0 } = opts;
   const Bd = BUILD[o.build ?? "adult"], skin = o.skin ?? SKIN, two = Math.PI * 2, lid = lidOf(blink);
   const H = headBlob(seed, Bd.a, facing), W = 2 * H.a, HH = 2 * H.b, u = W / 100;
   const tall = (1 + Bd.torso + Bd.legs) * HH, sole = 975;
@@ -570,7 +596,10 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
       p.line([a.pts[0], a.pts[1]], o.jacket, 6.4 * u, true);
       p.line([a.pts[1], a.pts[2]], mix(o.jacket, INK, 0.25), 5.6 * u, true);
       p.dot(a.pts[1][0], a.pts[1][1], 3.0 * u, o.jacket);
-      p.dot(a.pts[2][0], a.pts[2][1], 6.2 * u, INK); p.dot(a.pts[2][0], a.pts[2][1], 4.2 * u, skin);
+      const [hx, hy] = a.pts[2], dx = hx - a.pts[1][0], dy = hy - a.pts[1][1], dl = Math.hypot(dx, dy) || 1, nx = dx / dl, ny = dy / dl;
+      const side = a.side ?? 1;
+      p.ell(hx + nx * 2 * u, hy + ny * 2 * u, 7 * u, 7 * u, skin, 2.6 * u);                                       // palm
+      p.ell(hx - ny * 5.5 * u * side + nx * 1 * u, hy + nx * 5.5 * u * side + ny * 1 * u, 3.2 * u, 3.2 * u, skin, 2.2 * u); // thumb
       return;
     }
     p.stroke(curve(a.pts[0], a.pts[1], a.pts[2]), 5.2 * u, armCol); p.dot(a.pts[2][0], a.pts[2][1], 5.5 * u);
@@ -609,6 +638,12 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
         if (o.sash && Math.abs(y - (torsoBot - 0.32 * HH)) < 0.08 * HH) continue;
         p.dot(tcx + 2 * u * facing, y, 2.2 * u + 0.8 * u, INK); p.dot(tcx + 2 * u * facing, y, 2.2 * u, o.buttons ?? shade(o.jacket, 0.7));
       }
+      const nx0 = tcx + 2 * u * facing, ny0 = chin - 0.02 * HH;
+      if (o.collar) {
+        p.poly([[nx0 - 16 * u, ny0], [nx0, ny0 + 30 * u], [nx0 + 16 * u, ny0]], o.collar, 2.4 * u);
+        if (o.tie) p.poly([[nx0 - 4 * u, ny0 + 4 * u], [nx0 + 4 * u, ny0 + 4 * u], [nx0 + 7 * u, ny0 + 62 * u], [nx0, ny0 + 72 * u], [nx0 - 7 * u, ny0 + 62 * u]], o.tie, 2.2 * u);
+      }
+      if (o.strings) for (const sx of [-9, 9]) { p.stroke([[nx0 + sx * u, ny0 + 4 * u], [nx0 + sx * u * 1.1, ny0 + 44 * u]], 2.4 * u, o.strings); p.dot(nx0 + sx * u * 1.1, ny0 + 46 * u, 2.6 * u, o.strings); }
     });
     if (o.sash) { const s = facing || 1; p.poly([[tcx + s * 0.55 * T.a, torsoBot - 0.3 * HH], [tcx + s * 0.75 * T.a, torsoBot + 0.05 * HH], [tcx + s * 0.45 * T.a, torsoBot + 0.02 * HH]], o.sash, 1.6 * u); }
     p.inkRing(tp, ow, thick);
@@ -650,12 +685,17 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   const Ah = A + headTilt, [cpx, cpy] = rotAbout([300, chin], rad(A), [300, hipY]);
   p.rot = Ah ? [rad(Ah), 300, chin, cpx - 300, cpy - chin] : null;
   hatBehind(p, o, H, 300, hc, light, thick, ow, false);
+  if (o.hat !== "bonnet") for (const sd of [-1, 1]) {                                            // ears
+    const ex2 = 300 + sd * 0.96 * H.a + 5 * u * facing, ey2 = hc + 6 * u;
+    p.ell(ex2, ey2, 9 * u, 12 * u, skin, ow * 0.85);
+    p.arc(ex2 + sd * 1.5 * u, ey2, 4.5 * u, 6.5 * u, sd > 0 ? -70 : 110, sd > 0 ? 70 : 250, 2.2 * u, mul(skin, [0.8, 0.62, 0.58]));
+  }
   const hp = blobPts(300, hc, H);
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap";
-  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", mOpen);
+  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", mOpen, viseme, brow);
   p.rot = null;
 };
 

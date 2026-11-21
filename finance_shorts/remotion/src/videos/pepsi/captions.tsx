@@ -67,44 +67,55 @@ const clean = (w: string) => w.replace(/[,]$/, "").replace(/^(\d{3}),/, "$$$1,")
 const easeOut = (u: number) => 1 - (1 - Math.min(1, Math.max(0, u))) ** 2;
 const titleCase = (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
 
-const WordView: React.FC<{ w: Word; i: number; t: number; out: number }> = ({ w, i, t, out }) => {
+const backOut = (u: number) => { const x = Math.min(1, Math.max(0, u)), c = 1.9; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
+/** chunky 3D extrusion + soft drop */
+const EXTRUDE = [1, 2, 3, 4, 5, 6, 7].map((k) => `0 ${k * 1.6}px 0 ${INK}`).join(", ") + ", 0 16px 26px rgba(0,0,0,0.5)";
+/** text with stroke + extrusion underneath and an optional gradient-filled copy on top */
+const GText: React.FC<{ text: string; style: React.CSSProperties; grad?: string }> = ({ text, style, grad }) => (
+  <span style={{ position: "relative", display: "inline-block" }}>
+    <span style={{ ...style, WebkitTextStroke: `7px ${INK}`, paintOrder: "stroke fill", textShadow: EXTRUDE }}>{text}</span>
+    {grad ? <span style={{ ...style, position: "absolute", left: 0, top: 0, backgroundImage: grad, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", textShadow: "none" }}>{text}</span> : null}
+  </span>
+);
+
+const WordView: React.FC<{ w: Word; i: number; t: number; out: number; cur: boolean }> = ({ w, i, t, out, cur }) => {
   const k = kindOf(w.w), age = t - (w.s - 0.05);
-  if (age < 0) return <span style={{ display: "inline-block", opacity: 0 }}>{clean(w.w)}</span>;
-  const u = easeOut(age / 0.26), mv = i % 3; // 0 up, 1 from left, 2 from right
-  const dx = mv === 1 ? -110 * (1 - u) : mv === 2 ? 110 * (1 - u) : 0, dy = mv === 0 ? 70 * (1 - u) : 0;
-  const blur = 10 * (1 - u) + out * 8;
-  const land = easeOut((age - 0.2) / 0.18); // colour change after landing
-  const base: React.CSSProperties = {
-    display: "inline-block", position: "relative", whiteSpace: "nowrap", opacity: u * (1 - out),
-    transform: `translate(${dx}px, ${dy - out * 24}px)`, filter: blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : undefined,
-    WebkitTextStroke: `6px ${INK}`, paintOrder: "stroke fill", textShadow: "0 7px 16px rgba(0,0,0,0.45), 0 3px 0 rgba(20,12,24,0.55)",
-    margin: "0 12px", lineHeight: 1.04,
+  if (age < 0) return <span style={{ display: "inline-block", opacity: 0, fontFamily: SANS, fontWeight: 900, fontSize: 92, margin: "0 12px" }}>{clean(w.w)}</span>;
+  const u = Math.min(1, age / 0.24), e = 1 - (1 - u) ** 2, mv = i % 3; // 0 up, 1 from left, 2 from right
+  const dx = mv === 1 ? -120 * (1 - e) : mv === 2 ? 120 * (1 - e) : 0, dy = mv === 0 ? 80 * (1 - e) : 0;
+  const sc = 0.45 + 0.55 * backOut(age / 0.3) + (cur ? 0.06 : 0);
+  const blur = 10 * (1 - e) + out * 8;
+  const land = easeOut((age - 0.18) / 0.18);
+  const wrap: React.CSSProperties = {
+    display: "inline-block", position: "relative", whiteSpace: "nowrap", opacity: e * (1 - out), margin: "0 16px", lineHeight: 1.0,
+    transform: `translate(${dx}px, ${dy - out * 26}px) scale(${sc})`, filter: (blur > 0.3 ? `blur(${blur.toFixed(1)}px) ` : "") + (cur ? "drop-shadow(0 0 18px rgba(255,217,26,0.55))" : ""),
   };
   if (k === "accent") {
-    const col = land > 0 ? `rgb(${255},${Math.round(255 - (255 - 217) * land)},${Math.round(255 - 255 * 0.9 * land)})` : "#ffffff";
-    return <span style={{ ...base, fontFamily: SERIF, fontStyle: "italic", fontWeight: 900, fontSize: 124, color: col, letterSpacing: -1 }}>{titleCase(clean(w.w))}</span>;
+    const grad = land > 0.05 ? `linear-gradient(180deg, #fff6b0 0%, #ffd91a ${45 - 20 * (1 - land)}%, #ff9a1f 100%)` : undefined;
+    return <span style={wrap}><GText text={titleCase(clean(w.w))} grad={grad} style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 900, fontSize: 132, color: "#ffffff", letterSpacing: -1, padding: "0 6px" }} /></span>;
   }
   if (k === "money") {
-    const wipe = easeOut((age - 0.12) / 0.22), shine = (age - 0.3) / 0.5;
+    const wipe = easeOut((age - 0.1) / 0.22), shine = (age - 0.3) / 0.5;
     return (
-      <span style={{ ...base, fontFamily: SANS, fontWeight: 900, fontSize: 108, letterSpacing: -3, color: wipe > 0.6 ? INK : "#ffffff", WebkitTextStroke: wipe > 0.6 ? "0px" : base.WebkitTextStroke, textShadow: wipe > 0.6 ? "none" : base.textShadow, padding: "0 18px" }}>
-        <span style={{ position: "absolute", left: 0, top: "8%", height: "88%", width: `${100 * wipe}%`, background: "#2ee68a", borderRadius: 18, zIndex: -1, boxShadow: "0 8px 0 rgba(20,12,24,0.55)" }} />
-        {shine > 0 && shine < 1 ? <span style={{ position: "absolute", inset: 0, borderRadius: 18, zIndex: 1, mixBlendMode: "screen",
-          background: `linear-gradient(105deg, transparent ${shine * 140 - 30}%, rgba(255,255,255,0.85) ${shine * 140 - 15}%, transparent ${shine * 140}%)` }} /> : null}
-        {clean(w.w).toUpperCase()}
+      <span style={{ ...wrap, padding: "0 20px" }}>
+        <span style={{ position: "absolute", left: 0, top: "4%", height: "92%", width: `${100 * wipe}%`, background: "linear-gradient(180deg,#5cf5a6,#18c46e)", borderRadius: 22, border: `6px solid ${INK}`, boxShadow: `0 10px 0 ${INK}`, transform: "rotate(-2deg)" }} />
+        <span style={{ position: "relative", fontFamily: SANS, fontWeight: 900, fontSize: 112, letterSpacing: -3, color: wipe > 0.55 ? INK : "#ffffff",
+          WebkitTextStroke: wipe > 0.55 ? "0px" : `7px ${INK}`, paintOrder: "stroke fill", textShadow: wipe > 0.55 ? "0 3px 0 rgba(255,255,255,0.35)" : EXTRUDE }}>{clean(w.w).toUpperCase()}</span>
+        {shine > 0 && shine < 1 ? <span style={{ position: "absolute", inset: 0, borderRadius: 18, mixBlendMode: "screen",
+          background: `linear-gradient(105deg, transparent ${shine * 140 - 30}%, rgba(255,255,255,0.9) ${shine * 140 - 15}%, transparent ${shine * 140}%)` }} /> : null}
       </span>
     );
   }
   if (k === "scratch") {
-    const sc = easeOut((age - 0.25) / 0.2);
+    const scr = easeOut((age - 0.25) / 0.2);
     return (
-      <span style={{ ...base, fontFamily: SANS, fontWeight: 900, fontSize: 104, letterSpacing: -2, color: "#ffffff" }}>
-        {clean(w.w).toUpperCase()}
-        <span style={{ position: "absolute", left: "-4%", top: "46%", height: 16, width: `${108 * sc}%`, background: "#ff3b3b", borderRadius: 8, transform: "rotate(-6deg)", boxShadow: `0 0 0 4px ${INK}` }} />
+      <span style={wrap}>
+        <GText text={clean(w.w).toUpperCase()} style={{ fontFamily: SANS, fontWeight: 900, fontSize: 108, letterSpacing: -2, color: "#ffffff" }} />
+        <span style={{ position: "absolute", left: "-4%", top: "44%", height: 18, width: `${108 * scr}%`, background: "#ff3b3b", borderRadius: 9, transform: "rotate(-7deg)", boxShadow: `0 0 0 5px ${INK}` }} />
       </span>
     );
   }
-  return <span style={{ ...base, fontFamily: SANS, fontWeight: 900, fontSize: k === "small" ? 64 : 88, letterSpacing: -2, color: "#ffffff", textTransform: "uppercase" }}>{clean(w.w)}</span>;
+  return <span style={wrap}><GText text={clean(w.w).toUpperCase()} style={{ fontFamily: SANS, fontWeight: 900, fontSize: k === "small" ? 66 : 92, letterSpacing: -2, color: cur ? "#fffbe6" : "#ffffff" }} /></span>;
 };
 
 export const Captions: React.FC<{ t: number }> = ({ t }) => {
@@ -116,8 +127,8 @@ export const Captions: React.FC<{ t: number }> = ({ t }) => {
     <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "64%" }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: 1000 }}>
         {layout(c.words).map((ln, li) => (
-          <div key={li} style={{ display: "flex", justifyContent: "center", alignItems: "baseline" }}>
-            {ln.map((w) => { const i = idx++; return <WordView key={i} w={w} i={i} t={t} out={out} />; })}
+          <div key={li} style={{ display: "flex", justifyContent: "center", alignItems: "baseline", transform: `rotate(${li % 2 ? 2.2 : -2.2}deg)`, margin: "8px 0" }}>
+            {ln.map((w) => { const i = idx++; const nxt = c.words[i + 1]; const cur = t >= w.s - 0.05 && (!nxt || t < nxt.s - 0.05); return <WordView key={i} w={w} i={i} t={t} out={out} cur={cur} />; })}
           </div>
         ))}
       </div>

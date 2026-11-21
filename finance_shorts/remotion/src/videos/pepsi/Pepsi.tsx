@@ -39,16 +39,18 @@ const Inner: React.FC = () => {
     grade: new GradeEffect(GRADES.day, GRADE_STRENGTH.day),
   }), [camera, scene]);
   useEffect(() => () => fx.ink.dispose(), [fx]);
+  // depth of field only on shots that use it (it is ~40 % of the frame cost)
+  const useLens = on.lens && shotAt(f / FPS).dof > 0;
   const post = useMemo(() => (
     <EffectComposer multisampling={4}>
       {on.ink ? <primitive object={fx.ink} dispose={null} /> : null}
-      {on.lens ? <primitive object={fx.lens.pre} dispose={null} /> : null}
-      {on.lens ? <primitive object={fx.lens.main} dispose={null} /> : null}
+      {useLens ? <primitive object={fx.lens.pre} dispose={null} /> : null}
+      {useLens ? <primitive object={fx.lens.main} dispose={null} /> : null}
       {on.bloom ? <primitive object={fx.bloom} dispose={null} /> : null}
       <primitive object={fx.tone} dispose={null} />
       {on.grade ? <primitive object={fx.grade} dispose={null} /> : null}
     </EffectComposer>
-  ), [fx, on]);
+  ), [fx, on, useLens]);
   const cam = camera as THREE.PerspectiveCamera;
   const target = world.update(f, cam, scene);
   noInkFallback(world.root);
