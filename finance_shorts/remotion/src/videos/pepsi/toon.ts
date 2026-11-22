@@ -18,6 +18,8 @@ export type Outfit = {
   jacket: string; pants: string; boots: string; hat?: string | null; belt?: string | null; buttons?: string; rifle?: boolean;
   sash?: string; sword?: boolean; moustache?: string; skin?: string; head?: number; cap?: string; hair?: string; dress?: string;
   collar?: string; tie?: string; strings?: string;
+  /** cowboy hat colours (hat: "cowboy") and glasses rim colour */
+  hatCol?: string; band?: string; glasses?: string;
   build?: Build;
 };
 type P2 = [number, number];
@@ -307,7 +309,7 @@ const mouth = (p: Pen, kind: MouthK, mx: number, my: number, u: number, k = 1) =
 /** face v2 (front / 3-4). u = 1 % of the head path width W. Eyes 26u apart on the centre line, brows 20u up, mouth 20u
  *  down, everything slid toward the facing side. No blush, no catchlights. */
 const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing: number, look: number, lid: number, brim: boolean,
-  skin: string, moustache?: string, stout = false, mOpen = 0, vis = 0, browUp = 0) => {
+  skin: string, moustache?: string, stout = false, mOpen = 0, vis = 0, browUp = 0, glasses?: string) => {
   const u = W / 100, F = FACE[expr], fx = cx + 7 * u * facing;
   const ex = (F.eye[0] === "shock" ? 12 : 13.5) * u, ey = cy - 1 * u;
   // blush + nose (v5.1 appeal pass)
@@ -353,6 +355,13 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
   } else mouth(p, F.mouth, mx, my, u);
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
+  if (glasses) { // thick round rims over the eyes, bridge, temples
+    const ex2 = (F.eye[0] === "shock" ? 12 : 13.5) * u, ey2 = cy - 1 * u, rx = 11.4 * u, ry = 11.8 * u;
+    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, "rgba(210,235,255,0.16)", 0);
+    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, null, 3.4 * u);
+    p.arc(fx, ey2 - 1 * u, ex2 - rx + 0.5 * u, 3 * u, 200, 340, 3 * u, glasses);
+    for (const sd of [-1, 1]) p.stroke([[fx + sd * (ex2 + rx), ey2 - 2 * u], [fx + sd * (ex2 + rx + 9 * u), ey2 - 4 * u]], 3 * u, glasses);
+  }
   if (expr === "nervous") p.ell(cx + 40 * u * (facing || 1), cy - 22 * u, 3 * u, 5 * u, "#9fd4ff", 2 * u);
 };
 
@@ -436,6 +445,25 @@ const hatOn = (p: Pen, o: Outfit, hp: P2[], H: Blob, cx: number, hc: number, lig
         p.ell(px, py, 32 * u, 0.06 * HH, shade(col, 0.8), ow, 0, 180, deg);
       }
     }
+  } else if (o.hat === "cowboy") {
+    const col = o.hatCol ?? "#f1ead8", yb = crown + 0.2 * HH, ht = 0.4 * HH, wb = 0.29 * W, wt = 0.25 * W, deg = (a * 180) / Math.PI;
+    const body = R([...sag(yb, wb).reverse(), [cx - wt, yb - ht * 0.72], [cx - wt * 0.62, yb - ht], [cx - wt * 0.2, yb - ht * 0.93],
+      [cx, yb - ht * 0.8], [cx + wt * 0.2, yb - ht * 0.93], [cx + wt * 0.62, yb - ht], [cx + wt, yb - ht * 0.72]]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wt, 0.4);
+    p.clip(body, () => p.band(R([[cx - wt - 6 * u, yb - 0.08 * HH], [cx + wt + 6 * u, yb - 0.08 * HH]]), o.band ?? "#5a3b2a", 0.075 * HH, 0.8 * u));
+    p.poly(body, null, ow);
+    p.stroke(R([[cx, yb - ht * 0.8], [cx, yb - ht * 0.45]]), 1.6 * u, mul(col, SH_FELT));   // crease
+    // curled brim: wide, ends turned up
+    const bw = 0.62 * W, top: P2[] = [], bot: P2[] = [];
+    for (let i = 0; i <= 24; i++) {
+      const t = (i / 24) * 2 - 1, x = cx + bw * t, curl = t ** 4;
+      top.push([x, yb - 0.018 * HH - 0.16 * HH * curl]);
+      bot.unshift([x, yb + 0.05 * HH * (1 - t * t) - 0.1 * HH * curl + 0.012 * HH]);
+    }
+    const brimP = R([...top, ...bot]);
+    p.shadedFill(brimP, mul(col, [0.97, 0.95, 0.92]), mul(col, SH_FELT), light, bw, 0.4);
+    p.poly(brimP, null, ow);
+    void deg;
   } else if (o.hat === "tophat") {
     const yb = crown + 0.22 * HH, ht = 0.8 * HH, wb = 0.31 * W, wt = 0.33 * W, col = "#2e2a36";
     const body = R([...sag(yb, wb).reverse(), [cx - wt, yb - ht], [cx + wt, yb - ht]]);
@@ -695,7 +723,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap";
-  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", mOpen, viseme, brow);
+  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", mOpen, viseme, brow, o.glasses);
   p.rot = null;
 };
 

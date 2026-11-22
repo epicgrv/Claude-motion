@@ -5,7 +5,7 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 const [out, from, to] = process.argv.slice(2);
 const browserExecutable = process.env.CHROME || "/opt/pw-browsers/chromium_headless_shell";
 const serveUrl = await bundle({ entryPoint: path.resolve("src/index.tsx"), publicDir: path.resolve("public") });
-const composition = await selectComposition({ serveUrl, id: "PepsiCaptions", browserExecutable });
+const composition = await selectComposition({ serveUrl, id: (process.env.COMP || "PepsiCaptions"), browserExecutable });
 const t0 = Date.now();
 await renderMedia({ composition, serveUrl, codec: "prores", proResProfile: "4444", imageFormat: "png", pixelFormat: "yuva444p10le",
   outputLocation: out, concurrency: 2, ...(from ? { frameRange: [Number(from), Number(to)] } : {}), browserExecutable, timeoutInMilliseconds: 120000 });
