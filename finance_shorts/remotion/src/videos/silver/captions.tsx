@@ -131,7 +131,7 @@ export const HookTitle: React.FC<{ t: number }> = ({ t }) => {
 };
 
 // ---------------- banners (screen space, top safe zone) ----------------
-type Banner = { s: number; e: number; text: string; bg: string; fg?: string; sub?: string };
+type Banner = { s: number; e: number; text: string; bg: string; fg?: string; sub?: string; y?: number };
 export const BANNERS: Banner[] = [
   { s: 13.0, e: 14.4, text: "INFLATION", bg: "#d62f3a" },
   { s: 15.25, e: 16.55, text: "GOLD: BANNED", bg: "#d62f3a" },
@@ -143,24 +143,24 @@ export const BANNERS: Banner[] = [
   { s: 43.0, e: 45.0, text: "SELL ONLY", bg: "#d62f3a" },
   { s: 45.7, e: 47.25, text: "BORROWED MONEY", bg: "#d62f3a" },
   { s: 55.1, e: 57.25, text: "MARGIN CALL", sub: "$100,000,000+ DUE TODAY", bg: "#d62f3a" },
-  { s: 60.3, e: 62.85, text: "$1.1 BILLION LOAN", bg: "#1f8f4e" },
+  { s: 60.3, e: 62.85, text: "$1.1 BILLION LOAN", bg: "#1f8f4e", y: 30 },
   { s: 64.4, e: 65.95, text: "VERDICT: LIABLE", bg: "#d62f3a" },
   { s: 66.25, e: 66.95, text: "BANKRUPT", bg: "#d62f3a" },
   { s: 67.3, e: 68.65, text: "BANNED FROM TRADING", bg: "#d62f3a" },
   { s: 72.5, e: 73.6, text: "CHEATERS?", bg: "#d62f3a" },
-  { s: 74.3, e: 76.95, text: "OR RIGGED?", bg: "#1d3f8a" },
-  { s: 77.1, e: 78.5, text: "YOU DECIDE", bg: "#ffd72e", fg: INK },
+  { s: 74.3, e: 76.95, text: "OR WAS IT RIGGED?", bg: "#1d3f8a" },
+  { s: 77.0, e: 78.5, text: "COMMENT 1 OR 2", sub: "1 = HUNTS   •   2 = WALL ST", bg: "#ffd72e", fg: INK },
 ];
 export const Banners: React.FC<{ t: number }> = ({ t }) => {
   const b = BANNERS.find((k) => t >= k.s && t < k.e);
   if (!b) return null;
   const age = t - b.s, sc = 0.6 + 0.4 * backOut(age / 0.2), op = easeOut(age / 0.1) * (1 - Math.min(1, Math.max(0, (t - (b.e - 0.12)) / 0.12)));
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "10%" }}>
+    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: `${b.y ?? 10}%` }}>
       <div style={{ transform: `scale(${sc})`, opacity: op, background: b.bg, border: `6px solid ${INK}`, borderRadius: 26, padding: b.sub ? "16px 40px 20px" : "14px 40px",
         boxShadow: "0 10px 0 rgba(20,12,24,0.9), 0 18px 30px rgba(0,0,0,0.35)", maxWidth: 940, textAlign: "center" }}>
         <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: b.text.length > 16 ? 60 : 80, lineHeight: 1.05, color: b.fg ?? "#ffffff", letterSpacing: -1 }}>{b.text}</div>
-        {b.sub ? <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 46, color: "#ffffff", marginTop: 6 }}>{b.sub}</div> : null}
+        {b.sub ? <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 46, color: b.fg ?? "#ffffff", marginTop: 6 }}>{b.sub}</div> : null}
       </div>
     </AbsoluteFill>
   );

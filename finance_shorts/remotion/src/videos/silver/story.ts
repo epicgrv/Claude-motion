@@ -88,7 +88,7 @@ export const SHOTS: Shot[] = [
     cam: { p0: [OX + 0.2, 1.7, 1.4], l0: [OX, 1.5, -3.2], p1: [OX + 0.1, 1.65, 0.6], l1: [OX, 1.5, -3.2], fov: [48, 46], ease: "io" } },
   // ---- "March 27th, 1980. Silver Thursday. Silver crashes to about $11." ----
   { id: 23, name: "calendar", s: 47.25, e: 49.55, light: "day", dof: 6, sunAz: 160, sunEl: 64,
-    cam: { p0: [FX - 9.6, 4.4, -11.6], l0: [FX - 10, 4.6, -16], p1: [FX - 9.8, 4.5, -12.6], l1: [FX - 10, 4.6, -16], fov: [46, 44], ease: "io" } },
+    cam: { p0: [FX - 9.6, 4.0, -9.4], l0: [FX - 10, 3.9, -16], p1: [FX - 9.8, 4.0, -10.2], l1: [FX - 10, 3.9, -16], fov: [46, 44], ease: "io" } },
   { id: 24, name: "silver thursday", s: 49.55, e: 50.65, light: "day", dof: 0, sunAz: 160, sunEl: 64,
     cam: { p0: [FX + 0.6, 1.9, 4.6], l0: [FX, 3.0, -16], p1: [FX + 0.5, 1.95, 3.6], l1: [FX, 3.1, -16], fov: [62, 60], ease: "o" } },
   { id: 25, name: "crash", s: 50.65, e: 53.15, light: "day", dof: 4, sunAz: 160, sunEl: 64,
