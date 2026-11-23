@@ -50,18 +50,32 @@ const steel = () => ctex("pl_steel", 512, 512, (g, r) => {
   }
   g.strokeStyle = "rgba(255,255,255,.2)"; g.lineWidth = 2; for (let i = 0; i < 40; i++) { const x = r() * 512, y = r() * 512; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60, y + 4); g.stroke(); }
 });
-const windowView = () => ctex("pl_winView", 1024, 512, (g) => {
-  const gr = g.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, "#7fb6ea"); gr.addColorStop(0.62, "#cfe6ff"); gr.addColorStop(0.63, "#e0b67c"); gr.addColorStop(1, "#d09a5e");
-  g.fillStyle = gr; g.fillRect(0, 0, 1024, 512);
-  g.fillStyle = "#c46a42"; g.beginPath(); g.moveTo(0, 330); g.lineTo(120, 270); g.lineTo(260, 270); g.lineTo(330, 322); g.lineTo(640, 322); g.lineTo(720, 260); g.lineTo(900, 262); g.lineTo(1024, 320); g.lineTo(1024, 330); g.fill();
-  g.strokeStyle = "#2b2e3a"; g.lineWidth = 6;
-  for (const [x, s] of [[180, 1], [520, 0.8], [820, 1.1]]) { // pumpjacks + a derrick silhouette
-    g.beginPath(); g.moveTo(x - 40 * s, 420); g.lineTo(x, 360 * s + 40); g.lineTo(x + 40 * s, 420); g.stroke();
-    g.beginPath(); g.moveTo(x - 70 * s, 360); g.lineTo(x + 70 * s, 380); g.stroke();
-  }
-  g.beginPath(); g.moveTo(640, 420); g.lineTo(670, 200); g.lineTo(700, 420); g.moveTo(648, 360); g.lineTo(692, 360); g.moveTo(656, 290); g.lineTo(684, 290); g.stroke();
+const windowView = () => ctex("pl_winView2", 1024, 512, (g, r) => {
+  const sky = g.createLinearGradient(0, 0, 0, 300); sky.addColorStop(0, "#5f9fe0"); sky.addColorStop(1, "#cfe4f6");
+  g.fillStyle = sky; g.fillRect(0, 0, 1024, 320);
+  const cloud = (x: number, y: number, s2: number) => { g.fillStyle = "rgba(255,255,255,.92)"; for (const [dx, dy, rr] of [[0, 0, 28], [30, -10, 34], [64, 0, 26], [32, 8, 30]]) { g.beginPath(); g.arc(x + dx * s2, y + dy * s2, rr * s2, 0, 7); g.fill(); } };
+  cloud(140, 80, 1.1); cloud(620, 60, 0.9); cloud(860, 120, 0.7);
+  // far mesas (hazy violet), near mesas (warm, lit tops)
+  const mesa = (pts: number[][], fill: string, top: string) => { g.fillStyle = fill; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill();
+    g.fillStyle = top; g.fillRect(pts[1][0], pts[1][1], pts[2][0] - pts[1][0], 6); };
+  mesa([[0, 300], [60, 238], [300, 238], [360, 300]], "#b79ab0", "#cdb3c4"); mesa([[520, 300], [600, 226], [880, 226], [960, 300]], "#b79ab0", "#cdb3c4");
+  mesa([[180, 330], [250, 262], [470, 262], [540, 330]], "#c9784e", "#e29a68"); mesa([[700, 330], [760, 276], [1000, 276], [1024, 300], [1024, 330]], "#c9784e", "#e29a68");
+  const sand = g.createLinearGradient(0, 300, 0, 512); sand.addColorStop(0, "#e8c48e"); sand.addColorStop(1, "#d6a468");
+  g.fillStyle = sand; g.fillRect(0, 312, 1024, 200);
+  g.fillStyle = "rgba(190,140,90,.35)"; for (let k = 0; k < 5; k++) { g.beginPath(); g.ellipse(100 + k * 220, 420 + (k % 2) * 30, 160, 16, 0, 0, 7); g.fill(); }
+  // pumpjacks (proper silhouettes) + a derrick
+  const pj = (x: number, y: number, s2: number) => { g.strokeStyle = "#2b2e3a"; g.fillStyle = "#2b2e3a"; g.lineWidth = 5 * s2;
+    g.beginPath(); g.moveTo(x - 30 * s2, y); g.lineTo(x, y - 46 * s2); g.lineTo(x + 30 * s2, y); g.stroke();
+    g.beginPath(); g.moveTo(x - 50 * s2, y - 44 * s2); g.lineTo(x + 52 * s2, y - 52 * s2); g.stroke();
+    g.beginPath(); g.moveTo(x + 52 * s2, y - 60 * s2); g.quadraticCurveTo(x + 66 * s2, y - 50 * s2, x + 54 * s2, y - 34 * s2); g.lineTo(x + 50 * s2, y - 44 * s2); g.fill();
+    g.fillRect(x - 58 * s2, y - 46 * s2, 14 * s2, 14 * s2); g.fillRect(x - 40 * s2, y - 3 * s2, 80 * s2, 4 * s2); };
+  pj(160, 420, 1.0); pj(430, 380, 0.7); pj(860, 440, 1.1);
+  g.strokeStyle = "#2b2e3a"; g.lineWidth = 4; const dx = 640, dy = 400;
+  g.beginPath(); g.moveTo(dx - 26, dy); g.lineTo(dx - 4, dy - 170); g.lineTo(dx + 4, dy - 170); g.lineTo(dx + 26, dy); g.stroke();
+  for (let k = 1; k < 6; k++) { const y = dy - k * 28, w2 = 26 - k * 4; g.beginPath(); g.moveTo(dx - w2, y); g.lineTo(dx + w2, y); g.moveTo(dx - w2 - 3, y + 28); g.lineTo(dx + w2, y); g.stroke(); }
+  g.fillStyle = "#5c7a3a"; for (let k = 0; k < 14; k++) { g.beginPath(); g.arc(40 + r() * 950, 470 + r() * 30, 6 + r() * 8, 0, 7); g.fill(); }
 });
-const globeTex = (lit: number) => ctex("pl_globe" + Math.round(lit * 8), 1024, 512, (g, r) => {
+const globeTex = (lit: number) => ctex("pl_globe2_" + Math.round(lit * 8), 1024, 512, (g, r) => {
   g.fillStyle = "#3f86d6"; g.fillRect(0, 0, 1024, 512);
   g.strokeStyle = "rgba(255,255,255,.25)"; g.lineWidth = 2;
   for (let x = 0; x < 1024; x += 64) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke(); }
@@ -75,11 +89,11 @@ const globeTex = (lit: number) => ctex("pl_globe" + Math.round(lit * 8), 1024, 5
   land([[590, 70], [820, 60], [900, 130], [860, 220], [760, 240], [700, 200], [620, 160]], green);                                // Asia
   land([[800, 330], [890, 320], [910, 380], [840, 400], [790, 370]], green);                                                        // Australia
   if (lit > 0) { // one third of the world turns silver (hatched), with a bold outline
-    g.save(); g.globalAlpha = lit; g.beginPath(); g.rect(100, 0, 341, 512); g.clip();
-    const gr = g.createLinearGradient(100, 0, 441, 512); gr.addColorStop(0, "#f4f7fb"); gr.addColorStop(0.5, "#b9c3d1"); gr.addColorStop(1, "#eef2f8");
+    g.save(); g.globalAlpha = 0.5 * lit; g.beginPath(); g.rect(100, 0, 341, 512); g.clip();
+    const gr = g.createLinearGradient(100, 0, 441, 512); gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.5, "#c9d3e0"); gr.addColorStop(1, "#f4f7fb");
     g.fillStyle = gr; g.fillRect(100, 0, 341, 512);
-    g.strokeStyle = "rgba(90,100,120,.5)"; g.lineWidth = 6; for (let k = -512; k < 512; k += 36) { g.beginPath(); g.moveTo(100 + k, 0); g.lineTo(100 + k + 512, 512); g.stroke(); }
-    g.restore(); g.globalAlpha = lit; g.strokeStyle = "#241726"; g.lineWidth = 10; g.strokeRect(100, 4, 341, 504); g.globalAlpha = 1;
+    g.globalAlpha = 0.35 * lit; g.strokeStyle = "#ffffff"; g.lineWidth = 8; for (let k = -512; k < 512; k += 40) { g.beginPath(); g.moveTo(100 + k, 0); g.lineTo(100 + k + 512, 512); g.stroke(); }
+    g.restore(); g.globalAlpha = lit; g.strokeStyle = "#e8c45a"; g.lineWidth = 10; g.setLineDash([26, 16]); g.strokeRect(100, 6, 341, 500); g.setLineDash([]); g.globalAlpha = 1;
   }
   void r;
 });
@@ -95,7 +109,7 @@ export class Places {
   phone = new THREE.Group(); handset = new THREE.Group();
   goldBar!: THREE.Group;
   carts: THREE.Group[] = [];
-  plane = new THREE.Group(); props: THREE.Group[] = [];
+  plane = new THREE.Group(); props: THREE.Group[] = []; propsSpin: THREE.Group[] = [];
   cars: { g: THREE.Group; x0: number; v: number; z: number }[] = [];
   vaultDoor = new THREE.Group();
 
@@ -171,7 +185,7 @@ export class Places {
 
   // ================= OFFICE =================
   private office() {
-    const X = OFFICE, g = this.room(X, 12, 5, 9, lam("pl_offFloor", () => ({ map: carpet("pl_offCarpet", "#7a2f35") })), lam("woodPanel", () => ({ map: woodPanel() })));
+    const X = OFFICE, g = this.room(X, 12, 5, 9, lam("pl_offFloor2", () => ({ map: carpet("pl_offCarpet2", "#2f5a46") })), lam("pl_offWall", () => ({ map: wallPaint("pl_offWallT", "#ece3cf", "#7a5236", true) })));
     const b = new Batch();
     const wd = lam("pl_desk", () => ({ map: woodFloor("pl_deskW", "#7a4a2c") }));
     // desk
@@ -203,8 +217,7 @@ export class Places {
     // big globe on a stand (right, front of the flag)
     this.globeMat = lam("pl_globeM", () => ({ map: globeTex(0) })) as THREE.MeshLambertMaterial;
     this.globe = mesh(new THREE.SphereGeometry(1.05, 48, 24), this.globeMat); at(this.globe, X + 3.6, 2.0, -4.6); this.globe.rotation.z = 0.41; g.add(this.globe);
-    const ring = mesh(new THREE.TorusGeometry(1.18, 0.05, 8, 48, Math.PI * 1.3), col("brass", "#c9a24a")); at(ring, X + 3.6, 2.0, -4.6); ring.rotation.set(0, Math.PI / 2, 0.6); g.add(ring);
-    g.add(at(cyl(0.08, 0.1, 0.95, col("brass", "#c9a24a"), 10), X + 3.6, 0.47, -4.6));
+    g.add(at(cyl(0.08, 0.1, 0.95, col("brass", "#c9a24a"), 10), X + 3.6, 0.47, -4.6));  // stand below the globe only
     g.add(at(cyl(0.5, 0.6, 0.12, col("brass", "#c9a24a"), 18), X + 3.6, 0.06, -4.6));
   }
   setGlobe(lit: number) { const m = globeTex(lit); if (this.globeMat.map !== m) { this.globeMat.map = m; this.globeMat.needsUpdate = true; } }
@@ -226,8 +239,14 @@ export class Places {
       const x = X - 8.4 + k * 5.6, z = -9 + r * 4.2;
       b.add(boxGeo(V(x - 2.0, 0, z - 0.55), V(x + 2.0, 0.85, z + 0.55), 0), col("deskF", "#e6e0d4"));
       for (const sx of [-1, 1]) {
-        b.add(boxGeo(V(x + sx * 0.9 - 0.4, 0.85, z - 0.45), V(x + sx * 0.9 + 0.4, 1.5, z + 0.05), 0), col("crt", "#cfc8bb"));
-        const s = plane(0.62, 0.46, scr); at(s, x + sx * 0.9, 1.18, z + 0.06); g.add(s);
+        const mx = x + sx * 0.9;
+        b.add(boxGeo(V(mx - 0.12, 0.85, z - 0.3), V(mx + 0.12, 0.93, z - 0.1), 0), col("crtStand", "#9a9384"));
+        b.add(boxGeo(V(mx - 0.28, 0.98, z - 0.5), V(mx + 0.28, 1.42, z - 0.2), 0), col("crtBack", "#bdb6a6"));   // tube housing
+        b.add(boxGeo(V(mx - 0.4, 0.93, z - 0.2), V(mx + 0.4, 1.52, z + 0.02), 0), col("crt", "#d9d2c2"));        // front case
+        b.add(boxGeo(V(mx - 0.36, 0.97, z + 0.02), V(mx + 0.36, 1.48, z + 0.04), 0), col("bezel", "#3a3d47"));    // dark bezel
+        const s = plane(0.6, 0.43, scr); at(s, mx, 1.225, z + 0.045); g.add(s);
+        b.add(boxGeo(V(mx - 0.32, 0.85, z + 0.18), V(mx + 0.32, 0.89, z + 0.42), 0), col("kbd", "#cfc8b8"));       // keyboard
+        for (let k = 0; k < 4; k++) b.add(boxGeo(V(mx - 0.29, 0.89, z + 0.2 + k * 0.055), V(mx + 0.29, 0.9, z + 0.24 + k * 0.055), 0), col("keys", "#8f8a7e"));
       }
     }
     // BUY / SELL console (close-up desk at front right)
@@ -264,7 +283,16 @@ export class Places {
     for (const s of [-1, 1]) for (let i = 0; i < 4; i++) b.add(boxGeo(V(X + s * 3.95 - (s > 0 ? 1.2 : 0), 0.4 + i * 0.95, -7.6), V(X + s * 3.95 + (s < 0 ? 1.2 : 0), 0.48 + i * 0.95, -1.0), 0), col("shelfS", "#6c7584"));
     b.build(g);
     // round door, open, on the back wall left; dark opening behind
-    const hole = mesh(new THREE.CircleGeometry(1.6, 40), col("hole", "#14101a"), false); at(hole, X - 0.8, 2.0, -7.97); g.add(hole);
+    const hole = new THREE.Mesh(new THREE.CircleGeometry(1.6, 48), picMat(ctex("pl_vaultIn", 512, 512, (gg) => {
+      const bg = gg.createRadialGradient(256, 230, 30, 256, 256, 300); bg.addColorStop(0, "#f2efe6"); bg.addColorStop(1, "#8d96a6"); gg.fillStyle = bg; gg.fillRect(0, 0, 512, 512);
+      gg.fillStyle = "#6c7584"; gg.beginPath(); gg.moveTo(0, 512); gg.lineTo(160, 340); gg.lineTo(352, 340); gg.lineTo(512, 512); gg.fill();           // floor
+      gg.strokeStyle = "#5a6170"; gg.lineWidth = 10;
+      for (const s2 of [-1, 1]) for (let k = 0; k < 4; k++) { const y = 150 + k * 55; gg.beginPath(); gg.moveTo(256 + s2 * 250, y + 40 + k * 10); gg.lineTo(256 + s2 * 100, y); gg.stroke(); }   // empty shelves
+      gg.fillStyle = "#4a5160"; gg.fillRect(170, 120, 172, 220); gg.fillStyle = "#e9e3d4"; gg.fillRect(180, 130, 152, 200);                                       // back wall + lit niche
+      gg.fillStyle = "#c9ced8"; gg.font = '900 42px "Arial Black", Arial'; gg.textAlign = "center"; gg.fillText("EMPTY", 256, 245);
+      gg.strokeStyle = "#241726"; gg.lineWidth = 18; gg.beginPath(); gg.arc(256, 256, 247, 0, 7); gg.stroke();
+    })));
+    at(hole, X - 0.8, 2.0, -7.97); g.add(hole);
     const door = mesh(new THREE.CylinderGeometry(1.7, 1.7, 0.5, 40), col("vdoor", "#b9c0cc")); door.rotation.x = Math.PI / 2; this.vaultDoor.add(door);
     for (let i = 0; i < 6; i++) { const sp = box(0.12, 2.4, 0.08, col("spoke", "#6c7584")); sp.rotation.z = (i * Math.PI) / 6; sp.position.z = 0.29; this.vaultDoor.add(sp); }
     this.vaultDoor.add(at(cyl(0.3, 0.3, 0.2, col("hub", "#6c7584")), 0, 0, 0.35).rotateX(Math.PI / 2) as THREE.Object3D);
@@ -304,17 +332,40 @@ export class Places {
       const x = X + (hh(i, 6) - 0.5) * 700, z = Z + (hh(i, 7) - 0.5) * 700, s = 4 + 6 * hh(i, 8);
       g.add(at(mesh(new THREE.ConeGeometry(s * 0.45, s * 1.6, 7), pine), x, s * 0.8, z));
     }
-    // cargo plane (nose = +x)
-    const P = this.plane, body = col("planeB", "#c9ced8"), dark = col("planeD", "#5a6170"), stripe = col("planeS", "#1d3f8a");
-    const fus = mesh(new THREE.CylinderGeometry(2.2, 2.2, 26, 20), body); fus.rotation.z = Math.PI / 2; P.add(fus);
-    const nose = mesh(new THREE.SphereGeometry(2.2, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), body); nose.rotation.z = -Math.PI / 2; nose.position.x = 13; nose.scale.set(1, 1.6, 1); P.add(nose);
-    const tail = mesh(new THREE.ConeGeometry(2.2, 8, 20), body); tail.rotation.z = Math.PI / 2; tail.position.set(-17, 0.6, 0); P.add(tail);
-    P.add(at(box(26, 0.3, 0.2, stripe), 0, 0.2, 2.21)); P.add(at(box(26, 0.3, 0.2, stripe), 0, 0.2, -2.21));
-    const wing = box(6, 0.5, 40, body); wing.position.set(1, 2.1, 0); P.add(wing);
-    for (const z of [-13, -6.5, 6.5, 13]) { const e = mesh(new THREE.CylinderGeometry(0.75, 0.85, 3.4, 14), dark); e.rotation.z = Math.PI / 2; e.position.set(3.2, 1.3, z); P.add(e); }
-    P.add(at(box(4, 7, 0.4, body), -18, 4.2, 0)); P.add(at(box(3.6, 0.4, 13, body), -19, 7.6, 0));
-    for (let i = 0; i < 8; i++) P.add(at(box(0.8, 0.6, 0.1, col("pw", "#2c4a7a")), 10 - i * 2.6, 1.2, 2.2));
-    const nm = plane(9, 1.5, sign("cargo", ["SILVER AIR CARGO"], { bg: "#c9ced8", fg: "#1d3f8a", w: 1200, h: 200, sizes: [120] })); at(nm, -4, 0.0, 2.23); P.add(nm);
+    // cargo plane (nose = +x): lathe fuselage with an upswept tail, tapered high wing, 4 turboprops, swept fin
+    const P = this.plane, body = lam("pl_planeB", () => ({ color: "#c3c9d3" })), dark = col("planeD", "#4a505c"), stripe = col("planeS", "#1d3f8a"), glass = col("pglass", "#1f2a3a");
+    const prof: THREE.Vector2[] = [];
+    for (let k = 0; k <= 40; k++) { const x = -15 + 30 * (k / 40); const r = x > 10 ? 2.25 * Math.sqrt(Math.max(0, 1 - ((x - 10) / 5) ** 2)) : x < -6 ? 2.25 * (0.35 + 0.65 * ((x + 15) / 9)) : 2.25; prof.push(new THREE.Vector2(Math.max(0.05, r), x)); }
+    const fus = mesh(new THREE.LatheGeometry(prof, 28), body); fus.rotation.z = -Math.PI / 2; fus.scale.set(1, 1, 0.95); P.add(fus);
+    const tailUp = mesh(new THREE.BoxGeometry(9, 1.2, 1.6), body); tailUp.position.set(-11, 1.3, 0); tailUp.rotation.z = 0.12; P.add(tailUp);
+    // cockpit windows + cabin windows + stripe
+    for (const z of [-0.9, 0.9]) P.add(at(box(1.4, 0.5, 0.5, glass), 12.2, 1.1, z));
+    P.add(at(box(1.0, 0.45, 1.5, glass), 12.6, 1.25, 0));
+    for (let i = 0; i < 9; i++) for (const z of [2.17, -2.17]) P.add(at(box(0.5, 0.45, 0.06, glass), 8 - i * 1.9, 0.7, z));
+    for (const z of [2.2, -2.2]) P.add(at(box(22, 0.28, 0.06, stripe), -1, 0.05, z));
+    // wing: tapered planform, extruded thin, mounted high
+    const wsh = new THREE.Shape(); wsh.moveTo(2.6, 0); wsh.lineTo(1.6, 21); wsh.lineTo(-0.6, 21); wsh.lineTo(-2.8, 0); wsh.lineTo(-0.6, -21); wsh.lineTo(1.6, -21); wsh.closePath();
+    const wing = mesh(new THREE.ExtrudeGeometry(wsh, { depth: 0.45, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.12, bevelSegments: 1 }), body); wing.rotation.x = Math.PI / 2; wing.position.set(1.5, 2.55, 0); P.add(wing);
+    // engines + spinning props
+    this.propsSpin = [];
+    for (const z of [-12.5, -6.5, 6.5, 12.5]) {
+      const nac = mesh(new THREE.CylinderGeometry(0.7, 0.85, 4.2, 16), body); nac.rotation.z = Math.PI / 2; nac.position.set(3.2, 1.95, z); P.add(nac);
+      const sp = mesh(new THREE.ConeGeometry(0.45, 0.9, 14), dark); sp.rotation.z = -Math.PI / 2; sp.position.set(5.75, 1.95, z); P.add(sp);
+      const rot = new THREE.Group(); rot.position.set(5.5, 1.95, z); P.add(rot);
+      for (let k = 0; k < 4; k++) { const bl = box(0.12, 2.1, 0.32, dark); bl.position.y = 1.05; const arm = new THREE.Group(); arm.rotation.x = (k * Math.PI) / 2; arm.add(bl); rot.add(arm); }
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(2.15, 32), new THREE.MeshBasicMaterial({ color: "#3a404c", transparent: true, opacity: 0.18, depthWrite: false })); disc.rotation.y = Math.PI / 2; rot.add(disc);
+      this.propsSpin.push(rot);
+    }
+    // swept vertical fin + tapered stabilisers
+    const fin = new THREE.Shape(); fin.moveTo(0, 0); fin.lineTo(5, 0); fin.lineTo(2.2, 7.5); fin.lineTo(-0.6, 7.5); fin.closePath();
+    const finM = mesh(new THREE.ExtrudeGeometry(fin, { depth: 0.35, bevelEnabled: false }), body); finM.position.set(-16.6, 1.6, -0.17); P.add(finM);
+    const finBand = mesh(new THREE.ExtrudeGeometry(new THREE.Shape([new THREE.Vector2(1.7, 4.6), new THREE.Vector2(3.9, 4.6), new THREE.Vector2(3.1, 6.3), new THREE.Vector2(0.9, 6.3)]), { depth: 0.37, bevelEnabled: false }), stripe);
+    finBand.position.set(-16.6, 1.6, -0.18); P.add(finBand);
+    const hs = new THREE.Shape(); hs.moveTo(1.2, 0); hs.lineTo(0.2, 7); hs.lineTo(-1.2, 7); hs.lineTo(-2.4, 0); hs.lineTo(-1.2, -7); hs.lineTo(0.2, -7); hs.closePath();
+    const hsm = mesh(new THREE.ExtrudeGeometry(hs, { depth: 0.25, bevelEnabled: false }), body); hsm.rotation.x = Math.PI / 2; hsm.position.set(-14.6, 2.3, 0); P.add(hsm);
+    // landing-gear sponsons + name
+    for (const z of [2.1, -2.1]) P.add(at(box(6, 1.0, 0.6, body), 0.5, -1.4, z));
+    const nm = plane(8, 1.0, sign("cargo2", ["SILVER AIR CARGO"], { bg: "#c3c9d3", fg: "#1d3f8a", w: 1200, h: 150, sizes: [110] })); at(nm, 1, 1.2, 2.24); P.add(nm);
     g.add(P);
   }
 }

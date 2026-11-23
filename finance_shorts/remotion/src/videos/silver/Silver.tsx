@@ -11,7 +11,7 @@ import { LensBlur } from "../bridge/lensblur";
 import { GradeEffect, GRADES, GRADE_STRENGTH, gradeFor } from "../bridge/grade";
 import { World } from "./world";
 import { TOTAL, FPS, shotAt } from "./story";
-import { Captions, HookTitle } from "./captions";
+import { Captions, HookTitle, Banners, CapMode } from "./captions";
 
 export const SILVER_FRAMES = TOTAL;
 
@@ -23,7 +23,7 @@ const makeBloom = () => {
 };
 const fwd = new THREE.Vector3(), fpt = new THREE.Vector3();
 type PostToggles = { ink: boolean; lens: boolean; bloom: boolean; grade: boolean; captions: boolean };
-const toggles = (): PostToggles => ({ ink: true, lens: true, bloom: true, grade: true, captions: true, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
+const toggles = (): PostToggles => ({ ink: true, lens: false, bloom: true, grade: true, captions: true, ...((getInputProps() as { post?: Partial<PostToggles> }).post ?? {}) });
 
 const Inner: React.FC = () => {
   const f = useCurrentFrame();
@@ -62,11 +62,12 @@ const Inner: React.FC = () => {
   return (<><primitive object={world.root} dispose={null} />{post}</>);
 };
 
+const capMode = (): CapMode => ((getInputProps() as { capMode?: CapMode }).capMode ?? "multi");
 const dprOverride = () => (getInputProps() as { post?: { dpr?: number } }).post?.dpr;
 export const SilverShort: React.FC = () => {
   const f = useCurrentFrame();
   const [fh] = useState(() => delayRender("fonts"));
-  useEffect(() => { Promise.all([document.fonts.load('900 96px "Montserrat"'), document.fonts.load('italic 900 96px "Playfair Display"')]).finally(() => continueRender(fh)); }, [fh]);
+  useEffect(() => { Promise.all([document.fonts.load('900 96px "Montserrat"'), document.fonts.load('800 96px "Montserrat"')]).finally(() => continueRender(fh)); }, [fh]);
   const on = toggles();
   return (
     <AbsoluteFill style={{ background: "#cfe3f2" }}>
@@ -74,7 +75,8 @@ export const SilverShort: React.FC = () => {
         camera={{ fov: 40, near: 0.05, far: 1500 }}>
         <Inner />
       </ThreeCanvas>
-      {on.captions ? <Captions t={f / FPS} /> : null}
+      {on.captions ? <Captions t={f / FPS} mode={capMode()} /> : null}
+      {on.captions ? <Banners t={f / FPS} /> : null}
       {on.captions ? <HookTitle t={f / FPS} /> : null}
     </AbsoluteFill>
   );
@@ -84,6 +86,6 @@ export const SilverShort: React.FC = () => {
 export const SilverCaptions: React.FC = () => {
   const f = useCurrentFrame();
   const [fh] = useState(() => delayRender("fonts"));
-  useEffect(() => { Promise.all([document.fonts.load('900 96px "Montserrat"'), document.fonts.load('italic 900 96px "Playfair Display"')]).finally(() => continueRender(fh)); }, [fh]);
-  return (<AbsoluteFill><Captions t={f / FPS} /><HookTitle t={f / FPS} /></AbsoluteFill>);
+  useEffect(() => { Promise.all([document.fonts.load('900 96px "Montserrat"'), document.fonts.load('800 96px "Montserrat"')]).finally(() => continueRender(fh)); }, [fh]);
+  return (<AbsoluteFill><Captions t={f / FPS} mode={capMode()} /><Banners t={f / FPS} /><HookTitle t={f / FPS} /></AbsoluteFill>);
 };

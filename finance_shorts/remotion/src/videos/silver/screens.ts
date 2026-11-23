@@ -33,8 +33,7 @@ export const drawBoard = (d: DynTex, t: number, id: number) => {
   d.set(key, (g, w, h) => {
     g.fillStyle = "#14101a"; g.fillRect(0, 0, w, h);
     g.fillStyle = "rgba(255,255,255,.05)"; for (let y = 0; y < h; y += 6) g.fillRect(0, y, w, 3);
-    g.fillStyle = "#fff36b"; g.font = '900 86px "Arial Black", Arial'; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText("SILVER  Ag", 60, 90);
-    g.textAlign = "right"; g.fillStyle = "#9aa6b5"; g.font = '700 60px Arial'; g.fillText("PER OUNCE", w - 60, 92);
+    g.fillStyle = "#fff36b"; g.font = '900 78px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("SILVER (Ag) • PER OUNCE", w / 2, 96);
     const c = falling ? "#ff4a4a" : "#41f08f";
     g.fillStyle = c; g.font = '900 230px "Courier New", monospace'; g.textAlign = "center"; g.fillText(money(p), w / 2, 330);
     // arrow
@@ -64,19 +63,21 @@ export const drawCal = (d: DynTex, t: number) => {
 
 export const drawConsole = (d: DynTex, t: number) => {
   const on = Math.floor(t * 5) % 2;
-  d.set("con" + on, (g, w, h) => {
-    g.fillStyle = "#3a3d4a"; g.fillRect(0, 0, w, h);
-    const btn = (x: number, fill: string, label: string, glow: boolean) => {
-      if (glow) { const gr = g.createRadialGradient(x, 250, 60, x, 250, 230); gr.addColorStop(0, "rgba(255,80,80,.8)"); gr.addColorStop(1, "rgba(255,80,80,0)"); g.fillStyle = gr; g.fillRect(x - 240, 20, 480, 470); }
-      g.fillStyle = fill; g.strokeStyle = INK; g.lineWidth = 16; g.beginPath(); g.arc(x, 250, 170, 0, 7); g.fill(); g.stroke();
-      g.fillStyle = "rgba(255,255,255,.35)"; g.beginPath(); g.ellipse(x - 50, 190, 70, 34, -0.5, 0, 7); g.fill();
-      g.fillStyle = "#ffffff"; g.font = '900 110px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(label, x, 258);
+  d.set("con2" + on, (g, w, h) => {
+    g.fillStyle = "#23262f"; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#2f333e"; g.beginPath(); g.roundRect(24, 24, w - 48, h - 48, 36); g.fill();
+    const btn = (x: number, fill: string, label: string, sub: string, glow: boolean) => {
+      if (glow) { g.shadowColor = "rgba(255,70,70,.9)"; g.shadowBlur = 50; }
+      g.fillStyle = fill; g.beginPath(); g.roundRect(x - 200, 110, 400, 220, 40); g.fill(); g.shadowBlur = 0;
+      g.strokeStyle = "rgba(0,0,0,.5)"; g.lineWidth = 8; g.stroke();
+      g.fillStyle = "rgba(255,255,255,.18)"; g.beginPath(); g.roundRect(x - 180, 124, 360, 60, 30); g.fill();
+      g.fillStyle = "#ffffff"; g.font = '900 120px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(label, x, 228);
+      g.fillStyle = "#c9ced8"; g.font = '800 44px Arial'; g.fillText(sub, x, 400);
     };
-    btn(260, "#7a7f8c", "BUY", false);
-    // padlock over BUY
-    g.fillStyle = "#e8c45a"; g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); g.roundRect(190, 300, 140, 110, 14); g.fill(); g.stroke();
-    g.beginPath(); g.arc(260, 300, 46, Math.PI, 0); g.stroke();
-    btn(w - 260, on ? "#ff3b3b" : "#c0262f", "SELL", !!on);
+    btn(w * 0.27, "#6f7480", "BUY", "LOCKED", false);
+    btn(w * 0.73, on ? "#ff3b3b" : "#d0262f", "SELL", "OPEN", !!on);
+    // small padlock badge on BUY
+    g.fillStyle = "#e8c45a"; g.beginPath(); g.roundRect(w * 0.27 + 120, 70, 80, 66, 10); g.fill(); g.strokeStyle = "#e8c45a"; g.lineWidth = 12; g.beginPath(); g.arc(w * 0.27 + 160, 70, 26, Math.PI, 0); g.stroke();
   });
 };
 

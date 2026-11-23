@@ -74,7 +74,7 @@ const cvs = (key: string, w: number, h: number, draw: (g: CanvasRenderingContext
   c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d")!; g.lineJoin = "round"; g.strokeStyle = INK; g.lineWidth = 12; draw(g); cvCache.set(key, c); return c;
 };
 const H = (key: string, w: number, h: number, side: -1 | 1, ww: number, rot: number, dx: number, dy: number, draw: (g: CanvasRenderingContext2D) => void): Hold =>
-  ({ side, img: cvs(key, w, h, draw), w: ww, h: (ww * h) / w, rot, dx, dy, key });
+  ({ side, img: cvs(key, w, h, draw), w: ww, h: (ww * h) / w, rot, dx, dy, key, bare: true });
 const silverFill = (g: CanvasRenderingContext2D, y0: number, y1: number) => { const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.5, "#c9d1dc"); gr.addColorStop(1, "#8e9aad"); return gr; };
 const billDraw = (g: CanvasRenderingContext2D) => {
   g.fillStyle = "#9bd88f"; g.strokeStyle = "#1f5a2a"; g.beginPath(); g.roundRect(8, 8, 384, 184, 14); g.fill(); g.stroke();
@@ -113,7 +113,7 @@ const HOLD = {
     g.fillRect(125, 120, 50, 150); g.strokeRect(125, 120, 50, 150);
     g.fillStyle = "#c0262f"; g.beginPath(); g.roundRect(40, 270, 220, 120, 12); g.fill(); g.stroke();
   }),
-  handset: () => H("handset", 420, 160, 1, 0.95, -0.55, 0.05, -0.05, (g) => {
+  handset: () => H("handset", 420, 160, 1, 0.8, -1.25, 0.08, -0.1, (g) => {
     g.fillStyle = "#c0262f"; g.beginPath(); g.roundRect(60, 40, 300, 50, 25); g.fill(); g.stroke();
     for (const x of [70, 350]) { g.beginPath(); g.ellipse(x, 100, 52, 40, 0, 0, 7); g.fill(); g.stroke(); }
   }),
@@ -166,6 +166,11 @@ const SHOWHI: AP = { x: 0.05, y: 0.0, front: true };
 const FACEP: AP = { x: -0.42, y: -0.35, front: true };
 const THUMB: AP = { x: -0.25, y: 0.35, front: true };
 const CROSSA: AP = { x: -0.55, y: 0.62, front: true };
+/** hand low in front of the belly (for books / papers shown below the face) */
+const BOOKLO: AP = { x: 0.0, y: 0.62, front: true };
+/** arm out to the side, hand at shoulder height: props sit beside the head, never on it */
+const SIDEUP: AP = { x: 1.0, y: -0.25 };
+const SIDE: AP = { x: 0.95, y: 0.2 };
 const lerpA = (a: AP, b: AP, k: number): AP => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, front: k < 0.5 ? a.front : b.front, bend: b.bend ?? a.bend });
 const sm = (x: number) => { const u = Math.min(1, Math.max(0, x)); return u * u * (3 - 2 * u); };
 const keys = (t: number, k: [number, AP][], dur = 0.28): AP => {
@@ -241,6 +246,7 @@ const glint = (out: Stage, t: number, t0: number, p: V3, size: number) => {
   }, x: p[0], y: p[1], z: p[2], w: size, h: size, soft: true, rot: 0.3 });
 };
 const pop = (out: Stage, t: number, t0: number, t1: number, p: V3, h: number, text: string, fg = "#ffffff", bg = "#e2453c", rot = 0) => {
+  if (true as boolean) return; // v2: all labels are screen-space banners (captions.tsx BANNERS)
   if (t < t0 || t > t1) return;
   const u = Math.min(1, (t - t0) / 0.16), s = u < 1 ? 0.2 + 1.0 * sm(u) * 1.1 : 1 + 0.05 * Math.sin((t - t0) * 10) * Math.exp(-(t - t0) * 4);
   const cw = Math.max(400, 110 * text.length + 120), ch = 240;
@@ -267,16 +273,17 @@ const scraps = (out: Stage, t: number, t0: number, c: V3) => {
 const gusher = (out: Stage, t: number, t0: number, top: V3) => {
   if (t < t0) return;
   const k = t - t0, grow = Math.min(1, k / 0.35);
-  for (let i = 0; i < 34; i++) {
+  for (let i = 0; i < 14; i++) {
     const life = 1.3, ph = ((k + i * (life / 34)) % life) / life, born = k - ph * life; if (born < -0.02) continue;
     const a = hh(i, 7) * Math.PI * 2, spread = 0.6 + 1.6 * hh(i, 8);
     const h = 9 * grow * (ph * 2.2 - 1.25 * ph * ph * 2.2), x = top[0] + Math.cos(a) * spread * ph * 3, z = top[2] + Math.sin(a) * spread * ph * 3;
     const sz = 1.3 + 1.6 * hh(i, 9) * (0.5 + ph);
     out.fx.push({ key: `oil${i % 4}`, cw: 160, ch: 160, draw: (pp) => {
-      const g = pp.g; g.fillStyle = "#15111c"; g.strokeStyle = INK; g.lineWidth = 6;
-      g.beginPath(); g.ellipse(80, 84, 62 - (i % 4) * 6, 56, 0.3 * (i % 4), 0, Math.PI * 2); g.fill();
-      g.fillStyle = "rgba(255,255,255,0.75)"; g.beginPath(); g.ellipse(58, 62, 14, 8, -0.6, 0, Math.PI * 2); g.fill();
-    }, x, y: top[1] + Math.max(0, h), z, w: sz, h: sz });
+      const g = pp.g; // glossy crude droplet: teardrop, near-black brown with a warm rim + white glint
+      const gr = g.createRadialGradient(64, 70, 6, 80, 96, 70); gr.addColorStop(0, "#4a3020"); gr.addColorStop(0.55, "#1b120c"); gr.addColorStop(1, "#0b0806");
+      g.fillStyle = gr; g.beginPath(); g.moveTo(80, 10 + (i % 4) * 4); g.bezierCurveTo(118, 70, 132, 98, 120, 122); g.bezierCurveTo(104, 152, 56, 152, 40, 122); g.bezierCurveTo(28, 98, 42, 70, 80, 10 + (i % 4) * 4); g.fill();
+      g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(62, 96, 9, 15, -0.4, 0, Math.PI * 2); g.fill();
+    }, x, y: top[1] + Math.max(0, h), z, w: sz * 0.3, h: sz * 0.38, rot: Math.atan2(-Math.cos(a), 1) * 0.3 });
   }
 };
 /** dollar bills fluttering down */
@@ -307,14 +314,23 @@ const sweat = (out: Stage, t: number, p: V3, size: number) => {
 const card = (out: Stage, key: string, cw: number, ch: number, p: V3, w: number, h: number, rot: number, draw: (g: CanvasRenderingContext2D) => void) =>
   out.fx.push({ key, cw, ch, draw: (pp) => { pp.g.lineJoin = "round"; draw(pp.g); }, x: p[0], y: p[1], z: p[2], w, h, rot });
 const tape = (g: CanvasRenderingContext2D) => { g.fillStyle = "#f2c94c"; g.fillRect(0, 0, 800, 80); g.fillStyle = INK; for (let x = -80; x < 800; x += 80) { g.beginPath(); g.moveTo(x, 80); g.lineTo(x + 40, 0); g.lineTo(x + 80, 0); g.lineTo(x + 40, 80); g.fill(); } };
-const iou = (g: CanvasRenderingContext2D) => { g.fillStyle = "#f4f1ea"; g.strokeStyle = INK; g.lineWidth = 8; g.fillRect(4, 4, 232, 152); g.strokeRect(4, 4, 232, 152); g.fillStyle = "#c0262f"; g.font = '900 70px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("IOU", 120, 70); g.fillStyle = INK; g.font = '700 28px Arial'; g.fillText("$$$,$$$,$$$", 120, 124); };
+const iou = (g: CanvasRenderingContext2D) => { g.fillStyle = "#f4f1ea"; g.strokeStyle = INK; g.lineWidth = 8; g.fillRect(4, 4, 232, 152); g.strokeRect(4, 4, 232, 152); g.fillStyle = "#c0262f"; g.font = '900 70px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("LOAN", 120, 66); g.fillStyle = INK; g.font = '800 30px Arial'; g.fillText("$10,000,000", 120, 122); };
 const bigBill = (g: CanvasRenderingContext2D) => {
   g.fillStyle = "#f4f1ea"; g.strokeStyle = INK; g.lineWidth = 14; g.beginPath(); g.roundRect(8, 8, 784, 464, 20); g.fill(); g.stroke();
   g.fillStyle = "#c0262f"; g.fillRect(8, 8, 784, 110); g.fillStyle = "#ffffff"; g.font = '900 70px "Arial Black", Arial'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("MARGIN CALL", 400, 66);
   g.fillStyle = INK; g.font = '900 96px "Arial Black", Arial'; g.fillText("$100,000,000+", 400, 250);
   g.fillStyle = "#c0262f"; g.font = '900 80px "Arial Black", Arial'; g.fillText("DUE TODAY", 400, 380);
 };
-const moth = (g: CanvasRenderingContext2D) => { g.fillStyle = "#c9b79a"; g.strokeStyle = INK; g.lineWidth = 6; for (const s of [-1, 1]) { g.beginPath(); g.ellipse(64 + s * 30, 56, 30, 22, s * 0.5, 0, 7); g.fill(); g.stroke(); } g.fillStyle = "#5a4630"; g.beginPath(); g.ellipse(64, 64, 8, 22, 0, 0, 7); g.fill(); };
+const moth = (g: CanvasRenderingContext2D) => {
+  g.lineJoin = "round"; g.strokeStyle = INK; g.lineWidth = 4;
+  for (const s of [-1, 1]) { // fore + hind wings, dusty brown with eye spots
+    g.fillStyle = "#b59a74"; g.beginPath(); g.moveTo(64, 56); g.quadraticCurveTo(64 + s * 70, 10, 64 + s * 58, 62); g.quadraticCurveTo(64 + s * 30, 70, 64, 64); g.fill(); g.stroke();
+    g.fillStyle = "#9a7e5a"; g.beginPath(); g.moveTo(64, 66); g.quadraticCurveTo(64 + s * 50, 74, 64 + s * 36, 104); g.quadraticCurveTo(64 + s * 12, 100, 64, 74); g.fill(); g.stroke();
+    g.fillStyle = "#5a4630"; g.beginPath(); g.arc(64 + s * 34, 46, 7, 0, 7); g.fill();
+  }
+  g.fillStyle = "#6a5236"; g.beginPath(); g.ellipse(64, 70, 7, 26, 0, 0, 7); g.fill(); g.stroke();
+  g.lineWidth = 3; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(64, 46); g.quadraticCurveTo(64 + s * 10, 26, 64 + s * 22, 20); g.stroke(); }
+};
 
 // ---------------- staging per shot ----------------
 export const stage = (id: number, t: number, s0: number, light: Light, cam: CamInfo): Stage => {
@@ -325,7 +341,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
     case 1: case 2: { // on top of the silver: Bunker hoists a bar, Herbert pumps a fist
       const hop = id === 2 ? Math.max(0, Math.sin((t - 2.3) * 9)) * (t > 2.3 && t < 2.65 ? 1 : 0) : 0;
       P({ id: "BUNKER" }, BUNKER, { expr: "grin", look: 0.35, armR: id === 1 ? UP : keys(t, [[1.9, UP], [2.6, UP], [2.9, SHOWHI]]), armL: id === 1 ? WIDE : keys(t, [[1.9, WIDE], [2.7, HIP]]),
-        hold: { side: 1, img: barCv(), w: 0.62, h: 0.31, rot: -0.15, dx: 0, dy: -0.1, key: "bar" }, bounce: hop * 3 });
+        hold: { side: 1, img: barCv(), w: 0.62, h: 0.31, rot: -0.15, dx: 0, dy: -0.1, key: "bar", bare: true }, bounce: hop * 3 });
       P({ id: "HERBERT" }, HERBERT, { expr: id === 1 ? "laugh" : "grin", look: -0.45, armR: pump(t, 1), armL: id === 2 ? keys(t, [[1.9, HIP], [2.4, THUMB]]) : HIP });
       for (let i = 0; i < 9; i++) {
         const t0 = 0.15 + i * 0.37, a = i * 2.4, L = 3 + (i * 7) % 14, r = 10.5 * Math.pow(1 - L / 20, 0.85) + 1.6 * (L / 20);
@@ -335,19 +351,19 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       break;
     }
     case 3: { // the exchange: the official on the top step, book up
-      P({ id: "OFFICIAL" }, OFFICIAL, { expr: "stern", look: 0, armR: SHOWHI, armL: { x: -0.1, y: 0.0, front: true }, hold: { side: 1, img: book(0), w: 0.85, h: 0.61, rot: 0.04, dx: -0.3, dy: -0.15, key: "book" } });
+      P({ id: "OFFICIAL" }, OFFICIAL, { expr: "stern", look: 0, armR: BOOKLO, armL: { x: -0.1, y: 0.62, front: true }, hold: { side: 1, img: book(0), w: 0.8, h: 0.58, rot: 0.03, dx: -0.3, dy: 0.12, key: "book", bare: true } });
       break;
     }
     case 4: { // rip on "rules": halves fly apart, scraps burst
       const ripped = t >= RIP;
       P({ id: "OFFICIAL" }, OFFICIAL, { expr: ripped ? "grin" : "stern", look: 0, headTilt: ripped ? -5 : 0,
-        armR: ripped ? keys(t, [[RIP, SHOWHI], [RIP + 0.12, WIDE]], 0.12) : SHOWHI,
-        armL: ripped ? keys(t, [[RIP, { x: -0.1, y: 0.0, front: true }], [RIP + 0.12, WIDE]], 0.12) : { x: -0.1, y: 0.0, front: true },
-        hold: ripped ? { side: 1, img: book(1), w: 0.45, h: 0.61, rot: -0.3, dx: 0, dy: -0.1, key: "bookR" } : { side: 1, img: book(0), w: 0.85, h: 0.61, rot: 0.04 + 0.05 * Math.sin(t * 30) * (t > RIP - 0.35 ? 1 : 0), dx: -0.3, dy: -0.15, key: "book" } });
+        armR: ripped ? keys(t, [[RIP, BOOKLO], [RIP + 0.12, WIDE]], 0.12) : BOOKLO,
+        armL: ripped ? keys(t, [[RIP, { x: -0.1, y: 0.62, front: true }], [RIP + 0.12, WIDE]], 0.12) : { x: -0.1, y: 0.62, front: true },
+        hold: ripped ? { side: 1, img: book(1), w: 0.45, h: 0.61, rot: -0.3, dx: 0.12, dy: -0.2, key: "bookR", bare: true } : { side: 1, img: book(0), w: 0.8, h: 0.58, rot: 0.03 + 0.05 * Math.sin(t * 30) * (t > RIP - 0.35 ? 1 : 0), dx: -0.3, dy: 0.12, key: "book", bare: true } });
       if (ripped) {
         const k = t - RIP, hx = OFFICIAL[0] - 0.9 - 1.6 * k, hy = OFFICIAL[1] + 1.55 + 1.2 * k - 3 * k * k;
         out.fx.push({ key: "bookL", cw: 380, ch: 520, draw: (pp) => { pp.g.drawImage(book(2), 0, 0); }, x: hx, y: hy, z: OFFICIAL[2] + 0.4, w: 0.45, h: 0.62, rot: 0.4 + 5 * k });
-        scraps(out, t, RIP, [OFFICIAL[0], OFFICIAL[1] + 1.6, OFFICIAL[2]]);
+        scraps(out, t, RIP, [OFFICIAL[0] + 0.9, OFFICIAL[1] + 0.9, OFFICIAL[2]]);
         burst(out, t, RIP, 0.3, [OFFICIAL[0] + 0.55, OFFICIAL[1] + 1.05, OFFICIAL[2] + 0.5], 0.7, "#fff3b0", 10);
       }
       break;
@@ -368,8 +384,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       const rich = t > MONEY;
       P({ id: "BUNKER" }, BUNKER_R, { expr: rich ? "laugh" : "grin", look: 0.35, armR: rich ? pump(t, 2) : keys(t, [[8.3, HIP], [GUSH, { x: 0.9, y: -0.6 }]]), armL: rich ? pump(t, 4) : THUMB, bounce: rich ? 0.6 * Math.max(0, Math.sin(t * 8)) : 0 });
       P({ id: "HERBERT" }, HERBERT_R, { expr: rich ? "laugh" : "shock", look: -0.5, armL: rich ? UP : SHRUG, armR: rich ? pump(t, 0, WIDE) : SHRUG });
-      gusher(out, t, GUSH, [RANCH[0] - 7.5, 13.6, -8]);
-      burst(out, t, GUSH, 0.4, [RANCH[0] - 7.5, 13.8, -7.5], 5, "#2b2433", 14);
+      gusher(out, t, GUSH, [RANCH[0] - 7.5, 10.4, -8]);
       money(out, t, MONEY, [RANCH[0] + 0.2, 0, 9.0]);
       if (rich) pop(out, t, MONEY + 0.1, 10.42, [RANCH[0] - 2.8, 4.6, 8.6], 0.9, "$$$", "#ffffff", "#2f9a52", -0.12);
       break;
@@ -384,7 +399,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
     }
     case 9: { // inflation: prices climb, the bill in her hand shrinks
       const [TX, , TZ] = TOWN, k = Math.min(1, Math.max(0, (t - 12.5) / 1.6));
-      P({ id: "SHOPPER" }, [TX - 17.2, 0.15, TZ + 7.6], { expr: t > 13.0 ? "shock" : "neutral", look: -0.7, facing: -1, armR: SHOWHI, hold: HOLD.bill(0.55 * (1 - 0.6 * k)), armL: t > 13.0 ? FACEP : REST });
+      P({ id: "SHOPPER" }, [TX - 17.2, 0.15, TZ + 7.6], { expr: t > 13.0 ? "shock" : "neutral", look: -0.7, facing: -1, armR: SIDE, hold: HOLD.bill(0.55 * (1 - 0.6 * k)), armL: t > 13.0 ? FACEP : REST });
       pop(out, t, 13.0, 14.4, [TX - 20.2, 3.75, TZ + 10.4], 0.75, "INFLATION!", "#ffffff", "#e2453c", -0.06);
       break;
     }
@@ -421,10 +436,10 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
     case 16: case 24: case 25: { // trading floor crowd
       const X = FLOOR, spots: V3[] = [[X - 6, 0, -2.7], [X - 1.5, 0, -2.6], [X + 3.2, 0, -2.8], [X + 7, 0, -2.6], [X - 3.8, 0, -6.9], [X + 1, 0, -6.8], [X + 5.5, 0, -7.0]];
       spots.forEach((p, i) => {
-        const cheer = id === 16 && t > 29.2, panic = id === 25 || (id === 24 && t > 49.9);
+        const cheer = id === 16 && t > 29.2, panic = id === 25 || (id === 24 && t > 49.9), pairSide = (i % 2 ? -1 : 1) as -1 | 1;
         P({ id: "T", o: TRADERS[i], seed: i + 3, i: 70 + i }, p, {
           expr: cheer ? (i % 2 ? "laugh" : "grin") : panic ? (i % 3 ? "shock" : "nervous") : "neutral", look: 0.3 * Math.sin(i * 2), headTilt: panic ? 6 * Math.sin(t * 7 + i) : -4,
-          armR: cheer ? pump(t, i) : panic ? (i % 2 ? FACEP : UP) : REST, armL: cheer ? (i % 2 ? UP : HIP) : panic ? (i % 2 ? SHRUG : FACEP) : REST, bounce: cheer ? Math.max(0, Math.sin(t * 9 + i)) * 1.5 : 0 });
+          facing: panic ? pairSide : 0, armR: cheer ? pump(t, i) : panic ? (i % 2 ? FACEP : { x: 1.0, y: -0.7 }) : REST, armL: cheer ? (i % 2 ? UP : HIP) : panic ? (i % 2 ? SHRUG : HIP) : REST, bounce: cheer ? Math.max(0, Math.sin(t * 9 + i)) * 1.5 : 0 });
       });
       if (id === 25) { scraps(out, t, 51.0, [X - 3, 2.2, -4]); scraps(out, t, 51.5, [X + 2.5, 2.4, -5]); scraps(out, t, 52.0, [X - 0.5, 2.0, -3]); }
       break;
@@ -433,13 +448,13 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       const [TX, , TZ] = TOWN, items = [HOLD.forks(), HOLD.candle(), HOLD.trophy(), HOLD.teapot(), HOLD.forks()];
       const who: [Outfit, string][] = [[GRANNY, "GRANNY"], [FOLKS[0], "F0"], [FOLKS[2], "F2"], [FOLKS[3], "F3"], [FOLKS[4], "F4"]];
       who.forEach(([o, nm], i) => P({ id: i ? "F" : "GRANNY", o, seed: i + 4, i: 80 + i }, [TX + 3.3 + i * 1.55, 0.15, TZ + 7.9 - 0.12 * i], {
-        expr: i === 0 ? "grin" : i === 2 ? "smile" : "neutral", look: -0.5, facing: -1, armR: SHOWHI, hold: items[i], armL: i === 0 ? keys(t, [[31.25, REST], [32.4, REST], [32.7, UP]]) : REST }));
+        expr: i === 0 ? "grin" : i === 2 ? "smile" : "neutral", look: -0.5, facing: -1, armR: i === 0 ? SIDEUP : SIDE, hold: items[i], armL: REST }));
       if (t > 32.7) pop(out, t, 32.75, 34.45, [TOWN[0] + 3.0, 3.3, TOWN[2] + 7.6], 0.5, "CASH!", "#241726", "#5cf5a6", 0.08);
       break;
     }
     case 18: { // "up billions on paper"
       const X = OFFICE;
-      P({ id: "BUNKER" }, [X - 0.85, 0, -3.1], { expr: "laugh", look: 0.3, armR: SHOWHI, hold: HOLD.profit(), armL: pump(t, 1), blob: false });
+      P({ id: "BUNKER" }, [X - 0.85, 0, -3.1], { expr: "laugh", look: 0.3, armR: SIDEUP, hold: HOLD.profit(), armL: pump(t, 1), blob: false });
       P({ id: "HERBERT" }, [X + 0.85, 0, -2.95], { expr: "laugh", look: -0.4, armL: UP, armR: pump(t, 3), blob: false, bounce: Math.max(0, Math.sin(t * 8)) });
       // adding-machine tape spilling up off the desk
       const L = Math.min(1.8, (t - 34.6) * 0.9);
@@ -452,7 +467,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
     }
     case 19: { // the official stamps the new rule
       const X = FLOOR, slam = 38.6;
-      P({ id: "OFFICIAL" }, [X, 0.75, -13.1], { expr: t > slam ? "grin" : "stern", look: 0, armR: keys(t, [[37.45, SHOWHI], [38.25, UP], [slam, { x: 0.1, y: 0.62, front: true }]], 0.2), hold: HOLD.stamp(), armL: HIP, blob: false });
+      P({ id: "OFFICIAL" }, [X, 0.75, -13.1], { expr: t > slam ? "grin" : "stern", look: 0, armR: keys(t, [[37.45, SIDE], [38.25, SIDEUP], [slam, { x: 0.55, y: 0.75 }]], 0.2), hold: HOLD.stamp(), armL: HIP, blob: false });
       if (t > slam) { burst(out, t, slam, 0.35, [X + 0.1, 1.25, -12.2], 0.9, "#fff3b0", 10); pop(out, t, slam + 0.05, 40.0, [X + 0.45, 2.95, -12.0], 0.5, "NEW RULE", "#ffffff", "#c0262f", -0.1); }
       break;
     }
@@ -469,30 +484,30 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       P({ id: "HERBERT" }, [X + 0.85, 0, -2.95], { expr: "nervous", look: -0.5, armL: FACEP, blob: false });
       sweat(out, t, [X + 1.35, 2.35, -2.8], 0.3); sweat(out, t + 0.4, [X - 0.2, 2.35, -2.9], 0.3);
       for (let i = 0; i < 7; i++) { const t0 = 45.2 + i * 0.18; if (t < t0) continue; const u = Math.min(1, (t - t0) / 0.5);
-        card(out, "iou", 240, 160, [X - 1.0 + i * 0.32, 2.4 - 1.35 * u * u, -1.75 + 0.02 * i], 0.36, 0.24 * (0.4 + 0.6 * u), (1 - u) * 2 + (i % 3 - 1) * 0.2, iou); }
+        card(out, "loan", 240, 160, [X - 1.0 + i * 0.32, 2.4 - 1.35 * u * u, -1.75 + 0.02 * i], 0.36, 0.24 * (0.4 + 0.6 * u), (1 - u) * 2 + (i % 3 - 1) * 0.2, iou); }
       pop(out, t, 45.7, 47.25, [X + 0.1, 2.55, -2.1], 0.4, "BORROWED", "#ffffff", "#c0262f", 0.06);
       break;
     }
     case 23: if (t > 47.95) { puff(out, t, 47.95, 0.6, [FLOOR - 10, 4.6, -15.6], 2.4); burst(out, t, 47.95, 0.35, [FLOOR - 10, 4.6, -15.7], 2.6, "#fff3b0", 12); } break;
     case 26: { // the margin call
       const X = OFFICE, pick = t >= 54.0;
-      P({ id: "BUNKER" }, [X - 0.25, 0, -3.05], { expr: t > 55.0 ? "shock" : pick ? "neutral" : "smile", look: 0.4, armR: pick ? keys(t, [[54.0, { x: 0.6, y: 0.5 }], [54.3, { x: -0.06, y: -0.28, front: true }]]) : { x: 0.6, y: 0.6 }, hold: pick ? HOLD.handset() : undefined, armL: t > 55.0 ? FACEP : HIP, blob: false });
+      P({ id: "BUNKER" }, [X - 0.25, 0, -3.05], { expr: t > 55.0 ? "shock" : pick ? "neutral" : "smile", look: 0.4, armR: pick ? keys(t, [[54.0, { x: 0.6, y: 0.5 }], [54.3, { x: 0.62, y: -0.42 }]]) : { x: 0.6, y: 0.6 }, hold: pick ? HOLD.handset() : undefined, armL: t > 55.0 ? FACEP : HIP, blob: false });
       P({ id: "HERBERT" }, [X + 1.35, 0, -2.9], { expr: t > 55.0 ? "nervous" : "neutral", look: -0.7, armL: CROSSA, armR: CROSSA, blob: false });
       if (t > 55.1) { const u = Math.min(1, (t - 55.1) / 0.18), sc2 = 0.3 + 0.7 * u + 0.04 * Math.sin((t - 55.1) * 12) * Math.exp(-(t - 55.1) * 3);
-        card(out, "marginBill", 800, 480, [X + 0.25, 2.5, -1.5], 1.5 * sc2, 0.9 * sc2, -0.06, bigBill); }
+        void sc2; void bigBill; }
       break;
     }
     case 27: { // they can't pay
       const X = OFFICE;
-      P({ id: "BUNKER" }, [X - 0.55, 0, -3.0], { expr: "dazed", look: 0.2, armR: SHOWHI, hold: HOLD.wallet(), armL: SHRUG, blob: false });
+      P({ id: "BUNKER" }, [X - 0.55, 0, -3.0], { expr: "dazed", look: 0.2, armR: SIDE, hold: HOLD.wallet(), armL: SHRUG, blob: false });
       P({ id: "HERBERT" }, [X + 0.7, 0, -2.9], { expr: "dazed", look: -0.3, armL: SHRUG, armR: SHRUG, blob: false });
-      const u = Math.max(0, t - 57.6); if (u > 0) card(out, "moth", 128, 128, [X - 0.6 + 0.4 * u, 1.55 + 0.7 * u + 0.08 * Math.sin(t * 20), -2.4], 0.2, 0.16 * (0.6 + 0.4 * Math.abs(Math.sin(t * 22))), 0.2 * Math.sin(t * 9), moth);
+      const u = Math.max(0, t - 57.6); if (u > 0) card(out, "moth2", 128, 128, [X - 0.6 + 0.4 * u, 1.55 + 0.7 * u + 0.08 * Math.sin(t * 20), -2.4], 0.2, 0.16 * (0.6 + 0.4 * Math.abs(Math.sin(t * 22))), 0.2 * Math.sin(t * 9), moth);
       break;
     }
     case 28: { // bankers rush in with bags of money
       for (let i = 0; i < 4; i++) {
         const z = 19.5 - 2.6 * (t - 58.95) - (i % 2) * 1.2, x = EXCH[0] - 3 + i * 2;
-        P({ id: "B", o: BANKER, seed: i + 2, i: 90 + i }, [x, 0.08, Math.max(9.8, z)], { mode: "stroll", phase: (t - 58.95) * 2.6 + i, expr: "nervous", look: 0.2 * (i - 1.5), armR: SHOWHI, hold: HOLD.bag(i), armL: UP });
+        P({ id: "B", o: BANKER, seed: i + 2, i: 90 + i }, [x, 0.08, Math.max(9.8, z)], { mode: "stroll", phase: (t - 58.95) * 2.6 + i, expr: "nervous", look: 0.2 * (i - 1.5), armR: SIDE, hold: HOLD.bag(i), armL: UP });
       }
       pop(out, t, 60.3, 62.85, [EXCH[0], 6.6, 8], 1.25, "$1.1 BILLION LOAN", "#ffffff", "#2f9a52", -0.05);
       break;
@@ -503,12 +518,12 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       for (let i = 0; i < 6; i++) {
         const front = i < 3, stand = verdict && i === 1;
         P({ id: "J", o: FOLKS[(i + 1) % FOLKS.length], seed: i + 8, i: 100 + i }, [X + 3.25 + (i % 3) * 1.05, front ? 0.3 : 0.6, front ? -2.3 : -3.55], {
-          expr: stand ? "stern" : "neutral", mode: stand ? "stand" : "sit", look: -0.5, blob: false, armR: stand ? SHOWHI : undefined, hold: stand ? HOLD.verdict() : undefined });
+          expr: stand ? "stern" : "neutral", mode: stand ? "stand" : "sit", look: -0.5, blob: false, armR: stand ? SIDEUP : undefined, hold: stand ? HOLD.verdict() : undefined });
       }
       const bad = id === 30 || t > 64.6;
       P({ id: "BUNKER" }, [X - 3.75, 0, -2.0], { expr: bad ? (id === 30 ? "dazed" : "shock") : "nervous", look: 0.6, armR: id === 30 ? SHRUG : REST, armL: id === 30 ? FACEP : REST, blob: false });
       P({ id: "HERBERT" }, [X - 2.2, 0, -2.0], { expr: bad ? "shock" : "nervous", look: 0.7, armL: id === 30 ? UP : REST, armR: id === 30 ? UP : REST, blob: false });
-      if (id === 30) { burst(out, t, 66.2, 0.4, [X - 3.0, 1.8, -1.2], 2.0, "#ffd0d0", 12); pop(out, t, 66.25, 66.95, [X - 3.0, 1.85, -1.1], 0.62, "BANKRUPT", "#ffffff", "#c0262f", -0.14); }
+      if (id === 30) { pop(out, t, 66.25, 66.95, [X - 3.0, 1.85, -1.1], 0.62, "BANKRUPT", "#ffffff", "#c0262f", -0.14); }
       break;
     }
     case 31: { // banned from trading
@@ -519,7 +534,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       break;
     }
     case 32: { // "A billion dollars isn't what it used to be."
-      P({ id: "BUNKER" }, [VAULT, 0, -3.3], { expr: t > 71.2 ? "smile" : "smile_closed", look: 0, armR: SHOWHI, hold: HOLD.coin(), armL: t > 71.2 ? SHRUG : HIP });
+      P({ id: "BUNKER" }, [VAULT, 0, -3.3], { expr: t > 71.2 ? "smile" : "smile_closed", look: 0, armR: SIDEUP, hold: HOLD.coin(), armL: t > 71.2 ? SHRUG : HIP });
       glint(out, t, 69.0, [VAULT - 0.15, 1.95, -2.9], 0.5); glint(out, t, 70.6, [VAULT - 0.15, 1.95, -2.9], 0.4);
       break;
     }
@@ -530,7 +545,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       break;
     }
     case 34: { // "...or did Wall Street change the rules?"
-      P({ id: "OFFICIAL" }, OFFICIAL, { expr: "grin", look: 0, headTilt: -6, armR: SHOWHI, hold: { side: 1, img: book(1), w: 0.45, h: 0.61, rot: -0.3, dx: 0, dy: -0.1, key: "bookR" }, armL: HIP });
+      P({ id: "OFFICIAL" }, OFFICIAL, { expr: "grin", look: 0, headTilt: -6, armR: SHOWHI, hold: { side: 1, img: book(1), w: 0.45, h: 0.61, rot: -0.3, dx: 0.12, dy: -0.2, key: "bookR", bare: true }, armL: HIP });
       pop(out, t, 74.3, 76.95, [OFFICIAL[0] + 0.15, EX_STEP_Y + 2.15, 4.6], 0.34, "RIGGED?", "#ffffff", "#1d3f8a", 0.08);
       break;
     }

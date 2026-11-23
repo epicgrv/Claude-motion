@@ -319,7 +319,7 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
     const x = fx + side * ex;
     const base = F.eye[(facing ? side === facing : side > 0) ? 1 : 0];
     if (base === "lid" || base === "dot" || base === "small") {                     // toon eyes: white, pupil, catchlight, lid
-      const rx = 8.2 * u, ry = 10 * u, px = x + look * 3.2 * u, py = ey + 1.2 * u, pr = base === "small" ? 3.6 * u : 4.8 * u;
+      const rx = 9.2 * u, ry = 11 * u, px = x + look * 3.4 * u, py = ey + 1.2 * u, pr = base === "small" ? 4.0 * u : 5.4 * u;
       p.ell(x, ey, rx, ry, WHITE, 2.6 * u);
       if (lid < 1) {
         p.clip(ellPts(x, ey, rx, ry, 0, 360, 0), () => {
@@ -356,9 +356,9 @@ const faceFront = (p: Pen, cx: number, cy: number, W: number, expr: Expr, facing
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
   if (glasses) { // thick round rims over the eyes, bridge, temples
-    const ex2 = (F.eye[0] === "shock" ? 12 : 13.5) * u, ey2 = cy - 1 * u, rx = 11.4 * u, ry = 11.8 * u;
-    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, "rgba(210,235,255,0.16)", 0);
-    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, null, 3.4 * u);
+    const ex2 = (F.eye[0] === "shock" ? 12 : 13.5) * u, ey2 = cy - 1 * u, rx = 12.2 * u, ry = 12.6 * u;
+    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, "rgba(220,240,255,0.10)", 0);
+    for (const sd of [-1, 1]) p.ell(fx + sd * ex2, ey2, rx, ry, null, 2.4 * u);
     p.arc(fx, ey2 - 1 * u, ex2 - rx + 0.5 * u, 3 * u, 200, 340, 3 * u, glasses);
     for (const sd of [-1, 1]) p.stroke([[fx + sd * (ex2 + rx), ey2 - 2 * u], [fx + sd * (ex2 + rx + 9 * u), ey2 - 4 * u]], 3 * u, glasses);
   }
@@ -505,7 +505,7 @@ export type FrontOpts = {
 /** hand target relative to the shoulder, in head heights: x outward from the body (+), y down (+); front = over the torso */
 export type ArmPose = { x: number; y: number; front?: boolean; bend?: number };
 /** something held in one hand: a canvas image drawn at the hand (w, h in head heights), turned by rot (rad) */
-export type Hold = { side: -1 | 1; img: CanvasImageSource; w: number; h: number; rot?: number; dx?: number; dy?: number; key: string };
+export type Hold = { side: -1 | 1; img: CanvasImageSource; w: number; h: number; rot?: number; dx?: number; dy?: number; key: string; bare?: boolean };
 /** 2-bone IK: elbow for shoulder S, hand target T, bone lengths l1 l2, bend side (+1 = elbow out/down) */
 const ik2 = (S: P2, T: P2, l1: number, l2: number, bend: number): [P2, P2] => {
   let dx = T[0] - S[0], dy = T[1] - S[1], d = Math.hypot(dx, dy) || 1e-3;
@@ -697,7 +697,7 @@ export const bodyFront = (p: Pen, o: Outfit, opts: FrontOpts) => {
     const [hx, hy] = a.pts[2], w = hold.w * HH, h = hold.h * HH, g = p.g;
     const [X, Y] = p.P(hx + (hold.dx ?? 0) * HH, hy + (hold.dy ?? 0) * HH);
     g.save(); g.translate(X, Y); g.rotate((hold.rot ?? 0) + (p.rot ? p.rot[0] : 0));
-    g.fillStyle = INK; g.fillRect(-w / 2 - 2.2 * u, -h / 2 - 2.2 * u, w + 4.4 * u, h + 4.4 * u);
+    if (!hold.bare) { g.fillStyle = INK; g.fillRect(-w / 2 - 2.2 * u, -h / 2 - 2.2 * u, w + 4.4 * u, h + 4.4 * u); }
     g.drawImage(hold.img, -w / 2, -h / 2, w, h);
     g.restore();
     // thumb over the object

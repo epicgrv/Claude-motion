@@ -8,7 +8,7 @@ import { cloudHD } from "../bridge/paint";
 import { Pool, Actor, Fx } from "../bridge/cast";
 import { Sets, EXCH } from "./sets";
 import { Places, TOWN, ALPS } from "./places";
-import { FPS, Shot, camAt, shotAt, SLIDE, planeAt } from "./story";
+import { FPS, Shot, camAt, shotAt, SLIDE, GUSH, planeAt } from "./story";
 import { drawBoard, drawCal, drawConsole, drawScreen, drawPrices, cartPath } from "./screens";
 import { stage } from "./cast";
 
@@ -161,6 +161,7 @@ export class World {
       g.visible = !!p; if (p) { g.position.set(p[0], 0.08, p[2]); g.rotation.y = -Math.PI / 2 + 0.04 * Math.sin(t * 6 + i); }
     });
     // ---- cargo plane ----
+    P.propsSpin.forEach((r, i) => (r.rotation.x = t * 38 + i));
     const pp = planeAt(t); P.plane.position.set(...pp); P.plane.rotation.set(0.05 * Math.sin(t * 1.3), 0, -0.04 + 0.03 * Math.sin(t * 0.9));
     // ---- globe: spins, slows so the silver third faces the camera at 26.0 ----
     P.globe.rotation.y = t < 26 ? -2.2 * (26 - t) - 0.9 * (26 - t) ** 2 * (t > 24.9 ? 0 : 0) : 0.04 * Math.sin((t - 26) * 3) * Math.exp(-(t - 26) * 2);
@@ -180,6 +181,16 @@ export class World {
       m.position.set(x + (x / r) * 1.65 * down, y - down, z + (z / r) * 1.65 * down);
       m.rotation.set(2.6 * k * (i % 2 ? 1 : -1), Math.atan2(x, z) + Math.PI / 2 + 0.6 * k, 1.4 * k);
     });
+    // oil gusher (shot 7): glossy column rising from the derrick crown, cap spray, puddle
+    const gush = id === 7 && t >= GUSH;
+    S.gushCol.visible = gush; S.puddle.visible = gush;
+    if (gush) {
+      const k = Math.min(1, (t - GUSH) / 0.35), H = 9 * k, wob = 0.08 * Math.sin(t * 13);
+      const c0 = S.gushCol.children[0] as THREE.Mesh; c0.scale.set(0.9 + wob, Math.max(0.01, H), 0.9 - wob);
+      S.gushCap.position.y = H; S.gushCap.scale.set(1.6 + 0.3 * Math.sin(t * 9), 0.8 + 0.15 * Math.sin(t * 11), 1.6 + 0.3 * Math.cos(t * 9));
+      S.gushCol.rotation.z = 0.04 * Math.sin(t * 2.1);
+      S.puddle.scale.setScalar(0.4 + 3.2 * Math.min(1, (t - GUSH) / 1.6));
+    }
     // pumpjacks nod
     S.pumps.forEach((p, i) => { p.beam.rotation.z = 0.32 * Math.sin(t * 2.4 + i * 1.7); });
   }

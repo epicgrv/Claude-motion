@@ -66,7 +66,7 @@ export const SHOTS: Shot[] = [
   { id: 14, name: "globe wide", s: 22.75, e: 24.9, light: "day", dof: 6, sunAz: 150, sunEl: 62,
     cam: { p0: [OX + 3.3, 1.95, 3.4], l0: [OX + 3.5, 1.55, -4.6], p1: [OX + 3.4, 1.9, 2.4], l1: [OX + 3.55, 1.6, -4.6], fov: [54, 52], ease: "io" } },
   { id: 15, name: "a third turns silver", s: 24.9, e: 27.45, light: "day", dof: 10, sunAz: 150, sunEl: 62,
-    cam: { p0: [OX + 3.45, 2.15, -1.3], l0: [OX + 3.6, 2.0, -4.6], p1: [OX + 3.55, 2.05, -1.9], l1: [OX + 3.6, 2.0, -4.6], fov: [48, 46], ease: "io" } },
+    cam: { p0: [OX + 3.4, 2.1, 0.2], l0: [OX + 3.6, 2.0, -4.6], p1: [OX + 3.5, 2.05, -0.6], l1: [OX + 3.6, 2.0, -4.6], fov: [46, 44], ease: "io" } },
   // ---- "Silver jumps from $6 an ounce to almost 50." ----
   { id: 16, name: "board climbs", s: 27.45, e: 31.25, light: "day", dof: 4, sunAz: 160, sunEl: 64,
     cam: { p0: [FX + 1.0, 1.9, 5.5], l0: [FX, 2.9, -16], p1: [FX + 0.6, 2.0, 3.5], l1: [FX, 3.0, -16], fov: [62, 58], ease: "io" } },
