@@ -6,16 +6,22 @@ import { LIGHTS, LOOK } from "../bridge/lights";
 import { NOINK } from "../bridge/ink";
 import { cloudHD } from "../bridge/paint";
 import { Pool, Actor, Fx } from "../bridge/cast";
-import { Sets } from "./sets";
-import { FPS, Shot, camAt, shotAt, SLIDE } from "./story";
+import { Sets, EXCH } from "./sets";
+import { Places, TOWN, ALPS } from "./places";
+import { FPS, Shot, camAt, shotAt, SLIDE, planeAt } from "./story";
+import { drawBoard, drawCal, drawConsole, drawScreen, drawPrices, cartPath } from "./screens";
 import { stage } from "./cast";
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+/** where each shot happens (for cloud placement) */
+const centre = (id: number): [number, number] =>
+  [8, 9, 17].includes(id) ? [TOWN[0], TOWN[2]] : [3, 4, 11, 12, 28, 31, 34].includes(id) ? [EXCH[0], 0] : [6, 7].includes(id) ? [400, 0] : id === 13 ? [ALPS[0], ALPS[2]] : [0, 0];
 
 export class World {
   root = new THREE.Group();
   sets = new Sets();
+  places = new Places();
   private pool = new Pool();
   private actors: Actor[] = [];
   private fxs: Fx[] = [];
@@ -29,7 +35,7 @@ export class World {
 
   constructor() {
     const R = this.root;
-    R.add(this.sets.root);
+    R.add(this.sets.root, this.places.root);
     this.skyMat = new THREE.ShaderMaterial({
       uniforms: { c0: { value: new THREE.Color() }, c1: { value: new THREE.Color() }, c2: { value: new THREE.Color() }, c3: { value: new THREE.Color() }, c4: { value: new THREE.Color() }, e: { value: new THREE.Vector4() } },
       vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
@@ -100,11 +106,12 @@ export class World {
     untone(L.fog, this.fog.color); this.fog.near = L.fogNear + 40; this.fog.far = L.fogFar + 260;
     scene.fog = this.fog; scene.background = null;
     for (let i = 0; i < this.clouds.length; i++) {
-      const m = this.clouds[i]; m.position.x = (s.id >= 6 && s.id <= 7 ? 400 : s.id >= 3 && s.id <= 4 ? -400 : 0) + Math.cos((i / 10) * Math.PI * 2 + 0.3) * (560 + (i % 3) * 70);
+      const [cx, cz] = centre(s.id), a = (i / 10) * Math.PI * 2 + 0.3, d = 560 + (i % 3) * 70;
+      const m = this.clouds[i]; m.position.x = cx + Math.cos(a) * d; m.position.z = cz + Math.sin(a) * d;
       m.lookAt(cam.position.x, m.position.y, cam.position.z);
       (m.material as THREE.MeshBasicMaterial).map = this.cloudMaps[s.light][i % 4];
     }
-    this.poseProps(t);
+    this.poseProps(t, s.id);
     // ---- cast ----
     const right = V(0, 0, 0).setFromMatrixColumn(cam.matrixWorld, 0);
     const st = stage(s.id, t, s.s, s.light, { pos: cam.position, right, sun: sunDir });
@@ -144,8 +151,28 @@ export class World {
     return focus;
   }
 
-  private poseProps(t: number) {
-    const S = this.sets;
+  private poseProps(t: number, id: number) {
+    const S = this.sets, P = this.places;
+    // ---- town cars ----
+    for (const c of P.cars) { const x = c.x0 + c.v * (t - 10.42); c.g.position.set(x, 0, c.z); c.g.rotation.y = c.v < 0 ? Math.PI : 0; }
+    // ---- carts on the exchange plaza (shots 11, 12) ----
+    P.carts.forEach((g, i) => {
+      const p = cartPath(i, t, id);
+      g.visible = !!p; if (p) { g.position.set(p[0], 0.08, p[2]); g.rotation.y = -Math.PI / 2 + 0.04 * Math.sin(t * 6 + i); }
+    });
+    // ---- cargo plane ----
+    const pp = planeAt(t); P.plane.position.set(...pp); P.plane.rotation.set(0.05 * Math.sin(t * 1.3), 0, -0.04 + 0.03 * Math.sin(t * 0.9));
+    // ---- globe: spins, slows so the silver third faces the camera at 26.0 ----
+    P.globe.rotation.y = t < 26 ? -2.2 * (26 - t) - 0.9 * (26 - t) ** 2 * (t > 24.9 ? 0 : 0) : 0.04 * Math.sin((t - 26) * 3) * Math.exp(-(t - 26) * 2);
+    P.setGlobe(id === 15 ? Math.round(clamp01((t - 25.3) / 0.7) * 8) / 8 : 0);
+    // ---- phone rings, then is picked up ----
+    const ringing = id === 26 && t < 54.0;
+    P.phone.rotation.z = ringing ? 0.08 * Math.sin(t * 70) : 0;
+    P.handset.position.y = 0.19 + (ringing ? 0.03 * Math.abs(Math.sin(t * 35)) : 0);
+    P.handset.visible = !((id === 26 && t >= 54.0) || id === 27);
+    P.goldBar.visible = id === 10;
+    // ---- screens / boards ----
+    drawBoard(P.boardTex, t, id); drawCal(P.calTex, t); drawConsole(P.consoleTex, t); drawScreen(P.screenTex, t); drawPrices(P.priceTex, t);
     // loose bars slide down the front flank once the rules change (staggered, tumbling)
     S.slide.forEach((m, i) => {
       const [x, y, z] = S.slideHome[i], u = clamp01((t - SLIDE - 0.025 * i) / 0.75), k = u * u;
