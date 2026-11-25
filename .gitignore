@@ -14,3 +14,4 @@ finance_shorts/deliverables/*.mp4
 finance_shorts/visuals/*/plates/**
 finance_shorts/remotion/node_modules/
 finance_shorts/remotion/out/
+finance_shorts/audio/glitch/*.wav
