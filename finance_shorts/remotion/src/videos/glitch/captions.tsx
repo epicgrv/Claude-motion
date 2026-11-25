@@ -15,8 +15,7 @@ const INK = "#140c18";
 export type CapMode = "multi" | "single" | "auto";
 type Look = "classic" | "neon" | "boxed";
 /** sample (step 5): which caption look plays when */
-const styleAt = (t: number): { kind: "multi" | "single"; look: Look } =>
-  t < 20 ? { kind: "multi", look: "classic" } : t < 40 ? { kind: "single", look: "classic" } : t < 60 ? { kind: "multi", look: "neon" } : { kind: "multi", look: "boxed" };
+const styleAt = (t: number): { kind: "multi" | "single"; look: Look } => { void t; return { kind: "multi", look: "classic" }; }; // user picked style A
 
 type Kind = "money" | "accent" | "scratch" | "small" | "normal";
 const YEAR = /^(19\d\d|\d+(st|nd|rd|th))/i;
@@ -50,7 +49,7 @@ const easeOut = (u: number) => 1 - (1 - Math.min(1, Math.max(0, u))) ** 2;
 const backOut = (u: number) => { const x = Math.min(1, Math.max(0, u)), c = 1.6; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
 
 /** caption height (top of the caption block, % of frame) per moment: lower where a shot shows important text */
-const LOW: [number, number][] = [[0, 3.0], [24.0, 27.44]];
+const LOW: [number, number][] = [[0, 3.0], [7.45, 11.2], [24.0, 27.44], [54.7, 58.4], [18.9, 21.0], [50.3, 54.7], [61.0, 64.3]];
 const capTop = (t: number) => (LOW.some(([a, b]) => t >= a && t < b) ? 82 : 76);
 
 const OUTLINE = `0 0 2px ${INK}, 0 0 2px ${INK}, 0 0 3px ${INK}`;
@@ -133,7 +132,7 @@ export const HookTitle: React.FC<{ t: number }> = ({ t }) => {
   });
   return (
     <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", top: "6%" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1.04, background: "rgba(12,8,22,0.72)", borderRadius: 30, padding: "14px 34px 18px", opacity: easeOut(t / 0.2) * (t > 3.05 ? 1 - Math.min(1, (t - 3.05) / 0.25) : 1) }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1.04 }}>
         <span style={st(0.0, 58, "#ffffff")}>HIS BANK HAD AN</span>
         <span style={st(0.15, 96, "#5cf5a6")}>INFINITE MONEY</span>
         <span style={st(0.45, 84, "#ffd72e")}>GLITCH</span>
@@ -145,9 +144,11 @@ export const HookTitle: React.FC<{ t: number }> = ({ t }) => {
 // ---------------- banners (screen space, top safe zone) ----------------
 type Banner = { s: number; e: number; text: string; bg: string; fg?: string; sub?: string; y?: number };
 export const BANNERS: Banner[] = [
+  { s: 7.7, e: 10.1, text: "NO HACKING. NO PASSWORDS.", bg: "#14213f" },
   { s: 47.2, e: 50.3, text: "BAR TAB: PAID BY DAN", bg: "#1f8f4e" },
-  { s: 72.0, e: 76.5, text: "WHO'S REALLY GUILTY?", bg: "#d62f3a" },
-  { s: 76.5, e: 79.5, text: "COMMENT 1 OR 2", sub: "1 = DAN   •   2 = THE BANK", bg: "#ffd72e", fg: INK },
+  { s: 67.4, e: 69.7, text: "HE CONFESSED", bg: "#d62f3a" },
+  { s: 72.0, e: 76.5, text: "WHO'S REALLY GUILTY?", bg: "#d62f3a", y: 30 },
+  { s: 76.5, e: 79.5, text: "COMMENT 1 OR 2", sub: "1 = DAN • 2 = THE BANK", bg: "#ffd72e", fg: INK, y: 30 },
 ];
 export const Banners: React.FC<{ t: number }> = ({ t }) => {
   const b = BANNERS.find((k) => t >= k.s && t < k.e);
@@ -158,7 +159,7 @@ export const Banners: React.FC<{ t: number }> = ({ t }) => {
       <div style={{ transform: `scale(${sc})`, opacity: op, background: b.bg, border: `6px solid ${INK}`, borderRadius: 26, padding: b.sub ? "16px 40px 20px" : "14px 40px",
         boxShadow: "0 10px 0 rgba(20,12,24,0.9), 0 18px 30px rgba(0,0,0,0.35)", maxWidth: 940, textAlign: "center" }}>
         <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: b.text.length > 16 ? 60 : 80, lineHeight: 1.05, color: b.fg ?? "#ffffff", letterSpacing: -1 }}>{b.text}</div>
-        {b.sub ? <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 46, color: b.fg ?? "#ffffff", marginTop: 6 }}>{b.sub}</div> : null}
+        {b.sub ? <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 10 }}>{b.sub.split("•").map((x, i) => <span key={i} style={{ fontFamily: SANS, fontWeight: 900, fontSize: 44, lineHeight: 1, color: "#ffffff", background: i ? "#1d3f8a" : "#d62f3a", borderRadius: 14, padding: "8px 18px", whiteSpace: "nowrap" }}>{x.trim()}</span>)}</div> : null}
       </div>
     </AbsoluteFill>
   );

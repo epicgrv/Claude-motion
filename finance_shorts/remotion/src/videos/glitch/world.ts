@@ -6,15 +6,15 @@ import { LIGHTS, LOOK } from "../bridge/lights";
 import { NOINK } from "../bridge/ink";
 import { cloudHD } from "../bridge/paint";
 import { Pool, Actor, Fx } from "../bridge/cast";
-import { Sets, RUNWAY, STREET } from "./sets";
-import { FPS, Shot, camAt, shotAt } from "./story";
-import { drawPhone, drawClock } from "./screens";
+import { Sets, RUNWAY, STREET, HOTEL_X, COPS_X, POLICE } from "./sets";
+import { FPS, Shot, camAt, shotAt, SLAM1, SLAM2, OFF_T, RING_T } from "./story";
+import { drawPhone, drawClock, drawServer, drawCal, drawNightPhone } from "./screens";
 import { stage } from "./cast";
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 /** where each shot happens (for cloud placement) */
-const centre = (id: number): [number, number] => (id === 5 ? [RUNWAY[0], 0] : id === 7 ? [STREET[0], 0] : [0, 0]);
+const centre = (id: number): [number, number] => (id === 16 ? [RUNWAY[0], 0] : id === 17 ? [HOTEL_X, 0] : id === 23 ? [COPS_X, 0] : id === 26 ? [STREET[0], 0] : [0, 0]);
 
 export class World {
   root = new THREE.Group();
@@ -149,6 +149,15 @@ export class World {
   }
 
   private poseProps(t: number, id: number) {
-    drawPhone(this.sets.phoneTex, t); drawClock(this.sets.clockTex, t); void id;
+    const S = this.sets;
+    drawPhone(S.phoneTex, t); drawClock(S.clockTex, t, id === 21 || id === 22 ? 4 : 2); drawServer(S.serverTex, t); drawCal(S.calTex, t); drawNightPhone(S.nightPhoneTex, t);
+    // server LEDs die one by one once the system goes offline
+    S.leds.forEach((m, i) => m.color.set(t >= OFF_T + (i % 12) * 0.08 && t < 60 ? "#2a1418" : i % 3 ? "#5cf5a6" : "#7fb6ff"));
+    // police lights through the bedroom window while the phone rings
+    const flick = t >= RING_T + 0.3 && t < 64.4; S.copLight.opacity = flick ? 0.45 : 0; S.copLight.color.set(Math.floor(t * 5) % 2 ? "#ff3b3b" : "#3b6bff");
+    // jail door slides shut (teaser + prison)
+    const slam = (t0: number) => Math.min(1, Math.max(0, (t - t0 + 0.25) / 0.25));
+    const k = id === 4 ? slam(SLAM1) : id === 25 ? slam(SLAM2) : 1;
+    S.cellDoor.position.x = POLICE + 4.5 + 2.3 * (1 - k * k);
   }
 }
