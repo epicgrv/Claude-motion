@@ -119,7 +119,8 @@ export class Sets {
         const h = ty === 2 ? 0.1 : 0.12, rr = ty === 1 ? 0.082 : ty === 2 ? 0.102 : 0.092;
         const lb = new THREE.Mesh(new THREE.CylinderGeometry(rr, rr, h, 18, 1, true, -Math.PI / 2.2, Math.PI / 1.1), pic(labelTex(k + row * 5)));
         at(lb, x, y0 + (ty === 2 ? 0.1 : 0.13), -D + 0.28); g.add(lb);
-        g.add(at(cyl(0.03, 0.03, 0.035, col("cap" + (k % 3), ["#d9b25a", "#241726", "#c0262f"][k % 3]), 10), x, y0 + (ty === 1 ? 0.43 : ty === 2 ? 0.345 : 0.415), -D + 0.28));
+        const cap = cyl(0.03, 0.03, 0.035, col("cap" + (k % 3), ["#d9b25a", "#241726", "#c0262f"][k % 3]), 10); cap.castShadow = false;
+        g.add(at(cap, x, y0 + (ty === 1 ? 0.43 : ty === 2 ? 0.345 : 0.415), -D + 0.28));
       }
     }
     // neon sign, clock, night window
@@ -133,7 +134,7 @@ export class Sets {
     b.add(boxGeo(V(-5.2, 0, -2.4), V(5.2, 1.0, -1.3), 1), lam("gl_counter", () => ({ map: woodFloor("gl_counterW", "#6a3a22") })));
     b.add(boxGeo(V(-5.3, 1.0, -2.5), V(5.3, 1.07, -1.2), 0), col("top", "#3a2416"));
     const rail = cyl(0.04, 0.04, 10.4, col("brass", "#d9b25a"), 8); rail.rotation.z = Math.PI / 2; at(rail, 0, 0.25, -1.15); g.add(rail);
-    for (let i = 0; i < 6; i++) { const x = -4.4 + i * 1.6; g.add(at(cyl(0.05, 0.05, 0.75, col("stoolLeg", "#2a2a30"), 8), x, 0.37, -0.75)); g.add(at(cyl(0.28, 0.28, 0.1, col("stool", "#c0353a"), 18), x, 0.78, -0.75)); }
+    for (let i = 0; i < 6; i++) { const x = -3.6 + i * 1.6; g.add(at(cyl(0.05, 0.05, 0.75, col("stoolLeg", "#2a2a30"), 8), x, 0.37, -0.75)); g.add(at(cyl(0.28, 0.28, 0.1, col("stool", "#c0353a"), 18), x, 0.78, -0.75)); }
     for (const x of [-3.5, 0, 3.5]) { g.add(at(cyl(0.01, 0.01, 1.2, col("cord", "#14101a"), 4), x, 4.0, -1.9)); g.add(at(mesh(new THREE.ConeGeometry(0.32, 0.3, 18, 1, true), col("shade", "#2f4a3a"), false), x, 3.35, -1.9)); g.add(at(mesh(new THREE.SphereGeometry(0.12, 10, 8), glow("#ffe3a8"), false), x, 3.25, -1.9)); }
     // glasses, a drink by Dan's spot, the tip jar
     for (let i = 0; i < 4; i++) g.add(at(cyl(0.05, 0.04, 0.14, new THREE.MeshPhongMaterial({ color: "#cfe6ff", transparent: true, opacity: 0.55, shininess: 100 }), 10), -3.6 + i * 0.6, 1.14, -1.8));
@@ -155,7 +156,7 @@ export class Sets {
     const [X] = RUNWAY, g = new THREE.Group(), b = new Batch(); this.root.add(g);
     b.add(quad(V(X - 200, 0.01, 60), V(X + 200, 0.01, 60), V(X + 200, 0.01, -120), V(X - 200, 0.01, -120), 400 / 8, 180 / 8), lam("gl_tarmacM", () => ({ map: tarmac() })));
     for (let k = -10; k < 10; k++) b.add(boxGeo(V(X + k * 14, 0.02, 9.8), V(X + k * 14 + 7, 0.03, 10.2), 0), col("tmark", "#f4f1ea"));
-    b.add(boxGeo(V(X - 40, 0, -60), V(X + 20, 16, -35), 4), lam("gl_hangar", () => ({ map: wallPaint("gl_hangarW", "#c9ced8", "#8a8f9a") })));
+    b.add(boxGeo(V(X - 95, 0, -120), V(X - 45, 11, -100), 4), lam("gl_hangar", () => ({ map: wallPaint("gl_hangarW", "#c9ced8", "#8a8f9a") })));
     b.build(g);
     // private jet (nose +x): slim fuselage, swept wings, rear engines, T-tail, tall gear, open door + airstair
     const J = this.jet, white = lam("gl_jetW", () => ({ color: "#f4f6fa" })), dark = col("jetD", "#2b2e3a"), gold = col("jetG", "#d9b25a"), glass = col("jetGlass", "#1f2a3a");
@@ -234,7 +235,7 @@ export class Sets {
     b.add(boxGeo(V(PX - 1.2, 0.45, -4.02), V(PX + 1.2, 3.2, -3.96), 0), col("copDoor", "#1d3f8a"));
     const ps = plane(6, 1.1, pic(signTex("gl_cops", ["CITY POLICE"], { bg: "#1d3f8a", fg: "#ffffff", w: 1200, h: 220, sizes: [130], shadow: false })));
     at(ps, PX, 4.2, -3.95); g.add(ps);
-    for (const dx of [-1.8, 1.8]) { g.add(at(cyl(0.05, 0.05, 1.0, col("lampP", "#2a2a34"), 8), PX + dx, 3.4, -3.7)); g.add(at(mesh(new THREE.BoxGeometry(0.4, 0.5, 0.4), glow("#7fb6ff"), false), PX + dx, 3.95, -3.7)); }
+    for (const dx of [-3.6, 3.6]) { g.add(at(cyl(0.05, 0.05, 1.0, col("lampP", "#2a2a34"), 8), PX + dx, 3.4, -3.7)); g.add(at(mesh(new THREE.BoxGeometry(0.4, 0.5, 0.4), glow("#7fb6ff"), false), PX + dx, 3.95, -3.7)); }
     for (const dx of [-30, -14, 2, 18, 34, 50, 66]) { g.add(at(cyl(0.1, 0.14, 5, col("lampP", "#2a2a34"), 8), X + dx, 2.5, 5)); g.add(at(mesh(new THREE.SphereGeometry(0.4, 12, 8), glow("#fff2c4"), false), X + dx, 5.1, 5)); }
     b.build(g);
   }

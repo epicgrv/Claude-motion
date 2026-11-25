@@ -192,7 +192,7 @@ export const stage = (id: number, t: number, s0: number, light: Light, cam: CamI
       rain(out, t, 45.7, [0.2, 0, -0.6], 7, 36);
       break;
     case 21: case 22: {
-      const p: V3 = [BEDROOM + 0.2, 0, -2.9];
+      const p: V3 = [BEDROOM - 0.55, 0, -2.5];
       if (id === 22) break;
       P("DAN", DAN, 3, p, { expr: "nervous", mode: "stand", look: 0, armL: { x: 0.3, y: 0.55, front: true }, armR: { x: 0.3, y: 0.55, front: true } });
       sweat(out, t, [p[0] + 0.45, p[1] + 1.5, p[2] + 0.2]);

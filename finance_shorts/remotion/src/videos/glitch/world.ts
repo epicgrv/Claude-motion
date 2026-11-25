@@ -91,7 +91,9 @@ export class World {
     const sc = this.sun.shadow.camera;
     sc.left = -Rr; sc.right = Rr; sc.top = Rr; sc.bottom = -Rr; sc.near = 20; sc.far = 480; sc.updateProjectionMatrix();
     this.sun.shadow.bias = L.bias; this.sun.shadow.normalBias = L.normalBias * (Rr / 12);
-    TONE.uLitCol.value.set(...L.lit); TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift);
+    TONE.uLitCol.value.set(...L.lit); // night interiors: warmer, less blue shade so cast shadows read as shadows, not blue puddles
+    if (s.light === "golden") { TONE.uShadeCol.value.set(0.2, 0.17, 0.21); TONE.uShadeLift.value.set(0.05, 0.05, 0.09); }
+    else { TONE.uShadeCol.value.set(...L.shade); TONE.uShadeLift.value.set(...L.lift); }
     TONE.uLambert.value = L.lambert; TONE.uSideK.value = L.sideK; TONE.uTerm.value = L.term; TONE.uBounce.value.set(...K.bounce); TONE.uSat.value = K.sat;
     CHAR.uCharTint.value.set(...L.charTint); CHAR.uCharShade.value = L.charShade; CHAR.uGrad.value = L.charGrad;
     CHAR.uBodyGrad.value = L.bodyGrad; CHAR.uSideTint.value.set(...L.sideTint);
